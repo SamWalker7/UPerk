@@ -1,11 +1,4 @@
 import type { Metadata } from "next";
-import React, { useEffect } from 'react';
-
-declare global {
-  interface Window {
-    _mtm?: Array<Record<string, unknown>>;
-  }
-}
 import { Roboto } from "next/font/google";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -28,18 +21,6 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  useEffect(() => {
-    const _mtm = window._mtm = window?._mtm || [];
-    _mtm.push({'mtm.startTime': (new Date().getTime()), 'event': 'mtm.Start'});
-    const d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
-    g.async=true; 
-    g.src='https://cdn.matomo.cloud/universalperk.matomo.cloud/container_ajVHcFZt.js'; 
-    if (s.parentNode) {
-      s.parentNode.insertBefore(g, s);
-    } else {
-      d.appendChild(g);
-    }
-   }, [])
   return (
     <html lang="en">
       <body className={`${inter.className} antialiased`}>
