@@ -18,61 +18,64 @@ declare global {
   }
 }
 
-// ─── Trusted By ───────────────────────────────────────────────────────────────
-function TrustedBySection() {
-  const logos = [
-    { src: "/icons/payPal.svg", alt: "PayPal", w: 90 },
-    { src: "/icons/bayer.svg", alt: "Bayer", w: 70 },
-    { src: "/icons/tik-tok.svg", alt: "TikTok", w: 80 },
-    { src: "/icons/cognizant.svg", alt: "Cognizant", w: 110 },
-    { src: "/icons/turing.svg", alt: "Turing", w: 80 },
+// ─── Problem Statement ────────────────────────────────────────────────────────
+function ProblemStatementSection() {
+  const problems = [
+    {
+      title: "Slow releases",
+      description:
+        "Every product change turns into a multi-team project because the codebase is brittle, dependencies are outdated, and shipping feels risky.",
+      impact: "Teams lose momentum and roadmap priorities keep slipping.",
+    },
+    {
+      title: "Vendor sprawl",
+      description:
+        "Web, mobile, cloud, and integrations are split across too many specialists, so no one owns the system end to end.",
+      impact: "Projects stall in handoffs, rework, and conflicting decisions.",
+    },
+    {
+      title: "AI blocked by infrastructure",
+      description:
+        "The business wants automation, copilots, or AI workflows, but legacy systems and disconnected data make implementation messy and fragile.",
+      impact: "New AI initiatives never move past demos or pilot mode.",
+    },
   ];
 
   return (
-    <section className="py-14 border-y border-gray-100 dark:border-gray-800/40">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 text-center">
-        <p className="text-xs font-semibold uppercase tracking-widest text-gray-400 dark:text-gray-500 mb-8">
-          Trusted by teams at
-        </p>
-        <div className="flex flex-wrap items-center justify-center gap-10 sm:gap-16">
-          {logos.map((logo) => (
+    <section className="py-24 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto">
+        <div className="text-center mb-14">
+          <p className="text-xs font-semibold uppercase tracking-widest text-blue-500 dark:text-blue-400 mb-4">
+            What Breaks First
+          </p>
+          <h2 className="text-4xl sm:text-5xl font-extrabold text-gray-900 dark:text-white mb-6 tracking-tight leading-tight">
+            Legacy systems rarely fail all at once.
+          </h2>
+          <p className="text-lg text-gray-500 dark:text-gray-400 leading-relaxed max-w-3xl mx-auto">
+            They slow delivery, create operational drag, and make modern AI
+            initiatives harder to ship. High-performing teams fix the bottlenecks
+            before they become revenue problems.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {problems.map((problem) => (
             <div
-              key={logo.alt}
-              className="relative opacity-50 dark:opacity-30 hover:opacity-80 dark:hover:opacity-60 transition-opacity"
-              style={{ width: logo.w, height: 36 }}
+              key={problem.title}
+              className="rounded-2xl border border-gray-100 dark:border-gray-800/50 bg-white dark:bg-gray-900/50 p-8 shadow-sm"
             >
-              <Image
-                src={logo.src}
-                alt={logo.alt}
-                fill
-                className="object-contain"
-              />
+              <p className="text-[12px] font-semibold uppercase tracking-widest text-blue-500 dark:text-blue-400 mb-4">
+                {problem.title}
+              </p>
+              <p className="text-[15px] text-gray-600 dark:text-gray-300 leading-relaxed mb-5">
+                {problem.description}
+              </p>
+              <p className="text-[13px] font-medium text-gray-500 dark:text-gray-400 border-t border-gray-100 dark:border-gray-800/60 pt-4">
+                {problem.impact}
+              </p>
             </div>
           ))}
         </div>
-      </div>
-    </section>
-  );
-}
-
-// ─── Problem Statement ────────────────────────────────────────────────────────
-function ProblemStatementSection() {
-  return (
-    <section className="py-24 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto text-center">
-        <p className="text-xs font-semibold uppercase tracking-widest text-blue-500 dark:text-blue-400 mb-4">
-          The Problem
-        </p>
-        <h2 className="text-4xl sm:text-5xl font-extrabold text-gray-900 dark:text-white mb-8 tracking-tight leading-tight">
-          Legacy systems don&apos;t fix themselves.
-        </h2>
-        <p className="text-xl text-gray-500 dark:text-gray-400 leading-relaxed max-w-3xl mx-auto">
-          Most enterprise teams are stuck maintaining software that was built
-          for a different era. It&apos;s slow to change, expensive to run, and
-          impossible to connect to modern AI tools. The answer isn&apos;t a new
-          vendor for every problem — it&apos;s one team that understands the
-          whole stack.
-        </p>
       </div>
     </section>
   );
@@ -97,7 +100,7 @@ function HowItWorksSection({ onBookCall }: { onBookCall: () => void }) {
       verb: "Automate",
       tag: "AI Agents · Workflows · Integrations",
       description:
-        "We build custom AI agents that handle sales, support, and recruiting — integrated directly into your CRM and existing workflows. Available 24/7. No new headcount required.",
+        "We build custom AI agents that handle sales, support, and recruiting integrated directly into your CRM and existing workflows. Available 24/7. No new headcount required.",
       proof: "Most clients see 80%+ query automation within the first month.",
       icon: (
         <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -182,105 +185,197 @@ function HowItWorksSection({ onBookCall }: { onBookCall: () => void }) {
   );
 }
 
-// ─── Client Proof ─────────────────────────────────────────────────────────────
-function ClientProofSection() {
-  const proofs = [
+// ─── Case Studies ─────────────────────────────────────────────────────────────
+function CaseStudiesSection() {
+  const studies = [
     {
-      client: "PayPal & Bayer",
-      logos: ["/icons/payPal.svg", "/icons/bayer.svg"],
-      what: "Migrated REST APIs to GraphQL across legacy enterprise systems.",
-      result: "300% improvement in system performance.",
-      resultColor: "text-green-600 dark:text-green-400",
+      category: "Enterprise CRM",
+      accent: "from-blue-600 to-cyan-400",
+      accentSolid: "#2563EB",
+      client: "WMTFA",
+      industry: "Nonprofit · Stakeholder Management",
+      headline:
+        "Built a custom CRM that unified operations for a multinational nonprofit — centralizing data, automating workflows, and eliminating the manual overhead holding their team back.",
+      metric: "7",
+      metricLabel: "core systems unified",
+      deliverables: [
+        "Centralized donor & stakeholder data",
+        "Automated workflows with KPI tracking",
+        "AI-driven reporting & event management",
+        "Payment integration & admin dashboard",
+      ],
+      tech: ["React", "Node.js", "Angular", "AWS"],
+      href: "/wmtfa",
+      cta: "Read case study",
+      comingSoon: false,
     },
     {
+      category: "Startup MVP",
+      accent: "from-emerald-500 to-cyan-400",
+      accentSolid: "#059669",
       client: "DASGUZO",
-      logos: [],
-      what: "Built a peer-to-peer car rental platform from zero to launch — full mobile and web product.",
-      result: "End-to-end product delivered on schedule.",
-      resultColor: "text-green-600 dark:text-green-400",
+      industry: "Mobility · P2P Marketplace",
+      headline:
+        "Took a peer-to-peer car rental platform from concept to live product — full web and mobile app, booking engine, payments, and identity verification — in 90 days.",
+      metric: "90-Day",
+      metricLabel: "concept to live product",
+      deliverables: [
+        "Full web app + iOS & Android mobile apps",
+        "Booking, payments & identity verification",
+        "End-to-end delivery, on time and on budget",
+        "Scalable backend architecture from day one",
+      ],
+      tech: ["React", "React Native", "Node.js", "AWS"],
+      href: "/dasguzo",
+      cta: "Read case study",
+      comingSoon: false,
     },
     {
-      client: "Enterprise CRM Client",
-      logos: [],
-      what: "Redesigned organizational workflows with a custom CRM solution.",
-      result: "Measurable reduction in operational overhead.",
-      resultColor: "text-blue-600 dark:text-blue-400",
-      badge: "Full case study coming soon",
+      category: "AI Platform",
+      accent: "from-violet-600 to-cyan-400",
+      accentSolid: "#7c3aed",
+      client: "Creva.ai",
+      industry: "AI · SaaS",
+      headline:
+        "Designed and built a production AI platform from scratch — custom model integration, API-first architecture, and a full-stack SaaS product ready to scale from launch day.",
+      metric: "4-Week",
+      metricLabel: "first AI in production",
+      deliverables: [
+        "Custom AI model integration & pipelines",
+        "Full-stack SaaS product build",
+        "API-first architecture built to scale",
+        "Continuous optimization post-launch",
+      ],
+      tech: ["Python", "React", "Node.js", "AWS"],
+      href: "/creva",
+      cta: "Read case study",
+      comingSoon: false,
     },
   ];
 
   return (
-    <section className="py-24 px-4 sm:px-6 lg:px-8">
+    <section
+      id="case-studies"
+      className="py-24 px-4 sm:px-6 lg:px-8"
+    >
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-16">
           <p className="text-xs font-semibold uppercase tracking-widest text-blue-500 dark:text-blue-400 mb-3">
-            Client Proof
+            Case Studies
           </p>
           <h2 className="text-4xl sm:text-5xl font-extrabold text-gray-900 dark:text-white mb-4 tracking-tight">
-            Results our clients actually measure.
+            Real work. Real results.
           </h2>
           <p className="text-lg text-gray-500 dark:text-gray-400 max-w-xl mx-auto">
-            No demos. No mockups. Shipped code, real outcomes.
+            Three clients. Three different problems. One team that owned the outcome.
           </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {proofs.map((proof) => (
+          {studies.map((study) => (
             <div
-              key={proof.client}
-              className="p-8 rounded-2xl bg-white dark:bg-gray-900/50 border border-gray-100 dark:border-gray-800/50 hover:border-blue-200 dark:hover:border-blue-700/40 hover:shadow-xl hover:shadow-blue-500/5 transition-all duration-300 flex flex-col"
+              key={study.client}
+              className="rounded-2xl bg-white dark:bg-gray-900/50 border border-gray-100 dark:border-gray-800/50 overflow-hidden hover:shadow-xl hover:shadow-blue-500/5 hover:border-blue-200 dark:hover:border-blue-700/40 transition-all duration-300 flex flex-col"
             >
-              {/* Logos or client name */}
-              {proof.logos.length > 0 ? (
-                <div className="flex items-center gap-4 mb-5">
-                  {proof.logos.map((logo) => (
-                    <div
-                      key={logo}
-                      className="relative h-8"
-                      style={{ width: logo.includes("payPal") ? 72 : 56 }}
+              {/* Colored top accent bar */}
+              <div
+                className={`h-1 w-full bg-gradient-to-r ${study.accent}`}
+              />
+
+              <div className="p-7 flex flex-col flex-1">
+                {/* Category tag + client */}
+                <div className="mb-5">
+                  <span
+                    className="inline-block text-[11px] font-semibold px-2.5 py-0.5 rounded-full border mb-3"
+                    style={{
+                      color: study.accentSolid,
+                      borderColor: `${study.accentSolid}33`,
+                      background: `${study.accentSolid}0d`,
+                    }}
+                  >
+                    {study.category}
+                  </span>
+                  <h3 className="text-[22px] font-extrabold text-gray-900 dark:text-white leading-tight">
+                    {study.client}
+                  </h3>
+                  <p className="text-[12px] text-gray-400 dark:text-gray-500 font-medium mt-0.5">
+                    {study.industry}
+                  </p>
+                </div>
+
+                {/* Key metric */}
+                <div className="mb-5 pb-5 border-b border-gray-100 dark:border-gray-800/40">
+                  <div
+                    className="text-[42px] font-extrabold bg-clip-text text-transparent leading-none mb-1"
+                    style={{
+                      backgroundImage: `linear-gradient(to right, ${study.accentSolid}, #34E5FF)`,
+                    }}
+                  >
+                    {study.metric}
+                  </div>
+                  <p className="text-[13px] font-medium text-gray-500 dark:text-gray-400">
+                    {study.metricLabel}
+                  </p>
+                </div>
+
+                {/* Headline */}
+                <p className="text-[14px] text-gray-600 dark:text-gray-300 leading-relaxed mb-5">
+                  {study.headline}
+                </p>
+
+                {/* Deliverables */}
+                <ul className="space-y-2 mb-6 flex-1">
+                  {study.deliverables.map((d) => (
+                    <li
+                      key={d}
+                      className="flex items-start gap-2.5 text-[13px] text-gray-500 dark:text-gray-400"
                     >
-                      <Image
-                        src={logo}
-                        alt={proof.client}
-                        fill
-                        className="object-contain object-left"
-                      />
-                    </div>
+                      <svg
+                        className="w-4 h-4 flex-shrink-0 mt-0.5"
+                        style={{ color: study.accentSolid }}
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                      {d}
+                    </li>
+                  ))}
+                </ul>
+
+                {/* Tech tags */}
+                <div className="flex flex-wrap gap-1.5 mb-5">
+                  {study.tech.map((t) => (
+                    <span
+                      key={t}
+                      className="text-[11px] font-medium px-2.5 py-0.5 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400"
+                    >
+                      {t}
+                    </span>
                   ))}
                 </div>
-              ) : (
-                <div className="mb-5">
-                  <span className="inline-block text-[13px] font-bold text-gray-900 dark:text-white bg-gray-100 dark:bg-gray-800 px-3 py-1 rounded-lg">
-                    {proof.client}
-                  </span>
-                </div>
-              )}
 
-              <p className="text-[15px] text-gray-600 dark:text-gray-300 leading-relaxed mb-4 flex-1">
-                {proof.what}
-              </p>
-
-              <div className="border-t border-gray-100 dark:border-gray-800/40 pt-4 mt-auto">
-                <p className={`text-[15px] font-bold ${proof.resultColor} mb-1`}>
-                  ↑ {proof.result}
-                </p>
-                {proof.badge && (
-                  <span className="text-[11px] font-medium text-gray-400 dark:text-gray-500 bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded">
-                    {proof.badge}
+                {/* CTA */}
+                {study.comingSoon ? (
+                  <span className="text-[13px] font-medium text-gray-400 dark:text-gray-500 italic">
+                    Case study coming soon
                   </span>
+                ) : (
+                  <Link
+                    href={study.href}
+                    className="text-[13.5px] font-semibold transition-colors"
+                    style={{ color: study.accentSolid }}
+                  >
+                    {study.cta} →
+                  </Link>
                 )}
               </div>
             </div>
           ))}
-        </div>
-
-        <div className="text-center mt-10">
-          <Link
-            href="/case-studies"
-            className="text-[14px] font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
-          >
-            View all case studies →
-          </Link>
         </div>
       </div>
     </section>
@@ -418,12 +513,18 @@ function AIServicesBanner() {
 // ─── Tech Stack ───────────────────────────────────────────────────────────────
 function TechStackSection() {
   const techLogos = [
-    { name: "Node.js", path: "/icons/tech/node.svg" },
-    { name: "Angular", path: "/icons/tech/angular.svg" },
-    { name: "Vue.js", path: "/icons/tech/vue.svg" },
-    { name: "Flutter", path: "/icons/tech/flutter.svg" },
-    { name: "Java", path: "/icons/tech/java.svg" },
+    { name: "OpenAI", shortLabel: "OA" },
+    { name: "ElevenLabs", shortLabel: "11" },
+    { name: "Deepgram", shortLabel: "DG" },
+    { name: "OpenClaw", shortLabel: "OC" },
+    { name: "LangChain", shortLabel: "LC" },
+    { name: "LangGraph", shortLabel: "LG" },
+    { name: "LangSmith", shortLabel: "LS" },
+    { name: "n8n", shortLabel: "n8n" },
+    { name: "AWS Nova", shortLabel: "AN" },
+    { name: "Python", shortLabel: "Py" },
     { name: "React", path: "/icons/tech/react.svg" },
+    { name: "Node.js", path: "/icons/tech/node.svg" },
     { name: "JavaScript", path: "/icons/tech/js.svg" },
     { name: "AWS", path: "/icons/tech/aws.svg" },
   ];
@@ -441,17 +542,23 @@ function TechStackSection() {
           No trend-chasing. We use proven technologies that your team can hire
           for, maintain, and build on.
         </p>
-        <div className="flex flex-wrap justify-center gap-5 max-w-2xl mx-auto">
+        <div className="flex flex-wrap justify-center gap-5 max-w-4xl mx-auto">
           {techLogos.map((tech) => (
             <div key={tech.name} className="flex flex-col items-center gap-2 group">
               <div className="w-16 h-16 rounded-2xl bg-white dark:bg-gray-900/60 border border-gray-100 dark:border-gray-800/50 flex items-center justify-center shadow-sm hover:shadow-md hover:border-blue-200 dark:hover:border-blue-800/40 transition-all">
-                <Image
-                  src={tech.path}
-                  alt={tech.name}
-                  width={32}
-                  height={32}
-                  className="object-contain"
-                />
+                {tech.path ? (
+                  <Image
+                    src={tech.path}
+                    alt={tech.name}
+                    width={32}
+                    height={32}
+                    className="object-contain"
+                  />
+                ) : (
+                  <span className="text-sm font-semibold text-gray-700 dark:text-gray-200">
+                    {tech.shortLabel}
+                  </span>
+                )}
               </div>
               <span className="text-[11px] font-medium text-gray-400 dark:text-gray-500 group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-colors">
                 {tech.name}
@@ -609,17 +716,14 @@ export default function Home() {
       {/* Hero */}
       <Header />
 
-      {/* Social proof bar */}
-      <TrustedBySection />
-
       {/* Problem statement */}
       <ProblemStatementSection />
 
       {/* How it works — Modernize / Automate / Scale */}
       <HowItWorksSection onBookCall={openCalendly} />
 
-      {/* Client proof with real outcomes */}
-      <ClientProofSection />
+      {/* Case studies */}
+      <CaseStudiesSection />
 
       {/* 90-Day MVP */}
       <MVPSection onGetStarted={openForm} />

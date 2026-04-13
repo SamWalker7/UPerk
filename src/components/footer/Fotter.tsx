@@ -60,7 +60,7 @@ export function Footer() {
             </h4>
             <ul className="space-y-3">
               {[
-                { label: "Case Studies", href: "/case-studies" },
+                { label: "Case Studies", href: "/#case-studies" },
                 { label: "Blog", href: "/blog" },
                 { label: "Contact", href: "/#contact" },
               ].map((item) => (
@@ -86,7 +86,7 @@ export function Footer() {
               <li>Austin, TX 78750</li>
               <li className="pt-1">422 Longview St STE A</li>
               <li>San Jose, CA 95113</li>
-              <li className="pt-1">+1 (650) 256-7514</li>
+              <li className="pt-1">+1 (408) 769-9094</li>
               <li>
                 <a
                   href="mailto:contact@universalperk.com"

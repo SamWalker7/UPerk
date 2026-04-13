@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Image from "next/image";
 import CalendlyEmbed from "./CalendlyEmbed";
 import GetAQuote from "../get-a-quote/GetAQuote";
 import Overlay from "../common/Overlay";
@@ -42,12 +43,12 @@ const Header = () => {
           {/* Badge */}
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-blue-200 dark:border-blue-800/60 bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 text-[13px] font-medium mb-8 select-none">
             <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse flex-shrink-0" />
-            Web · Mobile · Cloud · DevOps · AI
+            Legacy Modernization · Product Delivery · AI Systems
           </div>
 
           {/* Headline — problem-first */}
           <h1 className="text-5xl sm:text-6xl lg:text-[72px] font-extrabold tracking-tight text-gray-900 dark:text-white mb-6 leading-[1.08]">
-            Your tech stack is{" "}
+            Modernize legacy software.{" "}
             <span
               className="bg-clip-text text-transparent"
               style={{
@@ -55,19 +56,19 @@ const Header = () => {
                   "linear-gradient(to right, #2563EB, #2FBAF8, #34E5FF)",
               }}
             >
-              holding you back.
+              Ship faster with one engineering partner.
             </span>
           </h1>
 
           {/* Subheadline */}
           <p className="max-w-2xl mx-auto text-lg sm:text-xl text-gray-500 dark:text-gray-400 mb-10 leading-relaxed">
-            Universal Perk modernizes legacy software, APIs, and infrastructure
-            for enterprise teams — with web, mobile, cloud, DevOps, and AI
-            handled by one partner, end to end.
+            Universal Perk helps teams rebuild aging apps, modernize APIs, and
+            launch AI-powered systems without juggling separate web, mobile,
+            cloud, and DevOps vendors.
           </p>
 
-          {/* Single primary CTA */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
+          {/* CTAs */}
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-10">
             <button
               onClick={() => setShowCalendly(!showCalendly)}
               className="px-9 py-4 text-white font-semibold rounded-xl cursor-pointer text-[15px] shadow-lg shadow-blue-500/20 hover:shadow-blue-500/30 hover:opacity-95 transition-all"
@@ -82,11 +83,40 @@ const Header = () => {
               onClick={() => setShowForm(true)}
               className="px-9 py-4 font-semibold rounded-xl cursor-pointer text-[15px] border border-gray-200 dark:border-gray-700/60 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-white/[0.04] transition-all"
             >
-              Get a Free Quote
+              Get a Project Estimate
             </button>
           </div>
 
-          {/* Social proof numbers */}
+          {/* Trusted by — inline social proof at the moment of decision */}
+          <div className="mb-10">
+            <p className="text-[11px] font-semibold uppercase tracking-widest text-gray-400 dark:text-gray-600 mb-5">
+              Trusted by teams at
+            </p>
+            <div className="flex flex-wrap items-center justify-center gap-8 sm:gap-12">
+              {[
+                { src: "/icons/payPal.svg", alt: "PayPal", w: 80 },
+                { src: "/icons/bayer.svg", alt: "Bayer", w: 64 },
+                { src: "/icons/tik-tok.svg", alt: "TikTok", w: 72 },
+                { src: "/icons/cognizant.svg", alt: "Cognizant", w: 100 },
+                { src: "/icons/turing.svg", alt: "Turing", w: 72 },
+              ].map((logo) => (
+                <div
+                  key={logo.alt}
+                  className="relative opacity-40 dark:opacity-25 hover:opacity-70 dark:hover:opacity-50 transition-opacity"
+                  style={{ width: logo.w, height: 28 }}
+                >
+                  <Image
+                    src={logo.src}
+                    alt={logo.alt}
+                    fill
+                    className="object-contain"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Stats bar */}
           <div className="grid grid-cols-3 divide-x divide-gray-200 dark:divide-gray-800/60 border border-gray-200 dark:border-gray-800/60 rounded-2xl max-w-xl mx-auto bg-white/60 dark:bg-white/[0.03] backdrop-blur-sm shadow-sm">
             {[
               { value: "300%", label: "Avg. performance improvement" },

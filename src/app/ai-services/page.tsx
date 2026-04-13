@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import Navebar from "@/components/header/Navebar";
 import { Footer } from "@/components/footer/Fotter";
 import Chatbot from "@/components/chatbot/Chatbot";
@@ -445,6 +446,200 @@ function AIProcessSection() {
   );
 }
 
+// ─── Creva.ai Case Study Spotlight ───────────────────────────────────────────
+function CrevaCaseStudySpotlight() {
+  const metrics = [
+    { value: "70%", label: "Faster Screening" },
+    { value: "2×", label: "Time-to-Hire Speed" },
+    { value: "78%", label: "Candidate Satisfaction" },
+  ];
+
+  const aiStack = [
+    { name: "OpenAI GPT-4o", color: "#10a37f" },
+    { name: "ElevenLabs Voice", color: "#f97316" },
+    { name: "Deepgram STT", color: "#06b6d4" },
+    { name: "AWS Bedrock Nova", color: "#f59e0b" },
+    { name: "LangChain", color: "#4f46e5" },
+    { name: "LangGraph", color: "#7c3aed" },
+  ];
+
+  const deliverables = [
+    "AI voice interview agent with real-time scoring",
+    "Resume parser + JD match engine (GPT-4o)",
+    "Automated candidate ranking dashboard",
+    "ATS integration for seamless pipeline handoff",
+    "Recruiter analytics: bottleneck detection & insights",
+  ];
+
+  return (
+    <section className="py-24 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+      {/* Background */}
+      <div
+        className="absolute inset-0 -z-10"
+        style={{
+          background:
+            "linear-gradient(135deg, #0f0a1e 0%, #0d1526 50%, #0a0f1e 100%)",
+        }}
+      />
+      <div
+        className="absolute -top-40 right-0 w-[600px] h-[600px] rounded-full opacity-10 blur-[120px] -z-10"
+        style={{
+          background: "radial-gradient(circle, #7c3aed 0%, #2563EB 100%)",
+        }}
+      />
+      <div
+        className="absolute bottom-0 -left-20 w-[400px] h-[400px] rounded-full opacity-8 blur-[100px] -z-10"
+        style={{
+          background: "radial-gradient(circle, #06b6d4 0%, #7c3aed 100%)",
+        }}
+      />
+
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="mb-14">
+          <span className="inline-block text-[11px] font-semibold uppercase tracking-widest text-violet-400 border border-violet-500/30 bg-violet-950/40 px-3 py-1 rounded-full mb-4">
+            Real-World AI in Action
+          </span>
+          <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4">
+            <div>
+              <h2 className="text-4xl sm:text-5xl font-extrabold text-white mb-3 tracking-tight leading-tight">
+                See What We Built for{" "}
+                <span
+                  className="bg-clip-text text-transparent"
+                  style={{
+                    backgroundImage:
+                      "linear-gradient(to right, #a78bfa, #34E5FF)",
+                  }}
+                >
+                  Creva.ai
+                </span>
+              </h2>
+              <p className="text-lg text-gray-400 max-w-2xl leading-relaxed">
+                An AI-powered recruiting platform that screens, interviews, and
+                ranks candidates autonomously — cutting the hiring cycle in half.
+              </p>
+            </div>
+            <Link
+              href="/creva"
+              className="flex-shrink-0 inline-flex items-center gap-2 px-6 py-3 rounded-xl text-[14px] font-semibold text-white border border-violet-500/40 hover:border-violet-400/70 hover:bg-violet-950/40 transition-all"
+            >
+              Read full case study
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+              </svg>
+            </Link>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Left — metrics + deliverables */}
+          <div className="space-y-6">
+            {/* Metric cards */}
+            <div className="grid grid-cols-3 gap-4">
+              {metrics.map((m) => (
+                <div
+                  key={m.label}
+                  className="rounded-2xl border border-white/[0.08] bg-white/[0.04] p-5 text-center"
+                >
+                  <div
+                    className="text-3xl font-extrabold bg-clip-text text-transparent mb-1"
+                    style={{
+                      backgroundImage:
+                        "linear-gradient(to right, #a78bfa, #34E5FF)",
+                    }}
+                  >
+                    {m.value}
+                  </div>
+                  <div className="text-[12px] text-gray-400 font-medium leading-snug">
+                    {m.label}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Deliverables */}
+            <div className="rounded-2xl border border-white/[0.08] bg-white/[0.04] p-6">
+              <h3 className="text-[13px] font-semibold uppercase tracking-widest text-gray-400 mb-4">
+                What We Delivered
+              </h3>
+              <ul className="space-y-3">
+                {deliverables.map((d) => (
+                  <li key={d} className="flex items-start gap-3 text-[14px] text-gray-300">
+                    <svg
+                      className="w-4 h-4 text-violet-400 flex-shrink-0 mt-0.5"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                    {d}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+
+          {/* Right — AI stack + fake terminal */}
+          <div className="space-y-6">
+            {/* AI Stack */}
+            <div className="rounded-2xl border border-white/[0.08] bg-white/[0.04] p-6">
+              <h3 className="text-[13px] font-semibold uppercase tracking-widest text-gray-400 mb-4">
+                AI Stack Used
+              </h3>
+              <div className="flex flex-wrap gap-2">
+                {aiStack.map((tool) => (
+                  <span
+                    key={tool.name}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12.5px] font-semibold border"
+                    style={{
+                      color: tool.color,
+                      borderColor: `${tool.color}40`,
+                      backgroundColor: `${tool.color}12`,
+                    }}
+                  >
+                    <span
+                      className="w-1.5 h-1.5 rounded-full flex-shrink-0"
+                      style={{ backgroundColor: tool.color }}
+                    />
+                    {tool.name}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            {/* Fake activity terminal */}
+            <div className="rounded-2xl border border-white/[0.08] bg-[#0a0612] p-6 font-mono text-[13px]">
+              <div className="flex items-center gap-2 mb-4">
+                <span className="w-3 h-3 rounded-full bg-red-500/70" />
+                <span className="w-3 h-3 rounded-full bg-yellow-500/70" />
+                <span className="w-3 h-3 rounded-full bg-green-500/70" />
+                <span className="text-gray-500 text-[11px] ml-2">creva-ai-pipeline · live</span>
+              </div>
+              <div className="space-y-2 text-[12.5px]">
+                <div><span className="text-violet-400">→</span> <span className="text-gray-300">resume_parser</span> <span className="text-green-400">matched</span> <span className="text-gray-400">94% · JD: Senior ML Engineer</span></div>
+                <div><span className="text-violet-400">→</span> <span className="text-gray-300">voice_interview</span> <span className="text-cyan-400">completed</span> <span className="text-gray-400">12m 34s · score: 87/100</span></div>
+                <div><span className="text-violet-400">→</span> <span className="text-gray-300">engagement_model</span> <span className="text-yellow-400">ranked</span> <span className="text-gray-400">#3 of 247 candidates</span></div>
+                <div><span className="text-violet-400">→</span> <span className="text-gray-300">ats_handoff</span> <span className="text-green-400">pushed</span> <span className="text-gray-400">Greenhouse · stage: Technical</span></div>
+                <div className="mt-3 border-t border-white/[0.06] pt-3">
+                  <span className="text-gray-500">Pipeline processed </span>
+                  <span className="text-white font-semibold">247 candidates</span>
+                  <span className="text-gray-500"> in </span>
+                  <span className="text-violet-400 font-semibold">4.2 hrs</span>
+                  <span className="text-green-400 animate-pulse ml-2">●</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 // ─── AI CTA ───────────────────────────────────────────────────────────────────
 function AICta({
   onGetStarted,
@@ -509,6 +704,7 @@ export default function AIServicesPage() {
       <AIServicesGrid onGetStarted={() => setShowForm(true)} />
       <WhyAISection />
       <AIProcessSection />
+      <CrevaCaseStudySpotlight />
       <AICta
         onGetStarted={() => setShowForm(true)}
         onBookCall={() => setShowCalendly(true)}

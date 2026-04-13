@@ -1,11 +1,5 @@
-import React from "react";
-import CaseStudies from "@/components/case-studies/";
-const page = () => {
-  return (
-    <div>
-      <CaseStudies />
-    </div>
-  )
-}
+import { redirect } from "next/navigation";
 
-export default page;
+export default function CaseStudiesPage() {
+  redirect("/dasguzo");
+}

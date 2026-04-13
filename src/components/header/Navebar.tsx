@@ -33,7 +33,7 @@ const Navebar: React.FC<NavbarProps> = () => {
     { href: "/", label: "Home" },
     { href: "/#services", label: "Services" },
     { href: "/ai-services", label: "AI Services" },
-    { href: "/case-studies", label: "Case Studies" },
+    { href: "/#case-studies", label: "Case Studies" },
     { href: "/blog", label: "Blog" },
     { href: "/#contact", label: "Contact" },
   ];
