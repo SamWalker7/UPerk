@@ -1,124 +1,143 @@
 "use client";
-import React, { useState } from "react";
-import Image from "next/image";
-import BorderGradientButton from "../common/BorderGradientButton";
-import GradientButton from "../common/BgGradientButton";
-import { Heading } from "@/components/common/Heading";
-import { Paragraph } from "../common/Paragraph";
-import Navebar from "./Navebar";
-import GetAQuote from "../get-a-quote/GetAQuote";
-import CalendlyEmbed from "./CalendlyEmbed";
-// import VoiceAi from "@/components/header/VoiceAI";
 
+import React, { useState } from "react";
+import CalendlyEmbed from "./CalendlyEmbed";
+import GetAQuote from "../get-a-quote/GetAQuote";
 import Overlay from "../common/Overlay";
 
 const Header = () => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [showForm, setShowForm] = useState(false);
   const [showCalendly, setShowCalendly] = useState(false);
-  // const [isRecording, setIsRecording] = useState(false)
-
-  const handleBookaCall = () => {
-    if (showCalendly) {
-      setShowCalendly(false); // Show the Calendly widget
-    } else {
-      setShowCalendly(true); // Show the Calendly widget
-    }
-  };
-
-  const toggleMenu = () => {
-    setIsMenuOpen(!isMenuOpen);
-  };
-
-  const handleQuoteOpen = () => {
-    setShowForm(true);
-  };
-
-  const handleQuoteClose = () => {
-    setShowForm(false);
-  };
+  const [showForm, setShowForm] = useState(false);
 
   return (
     <>
-      {showCalendly && (
-        <div className="container">
-          <CalendlyEmbed url="https://calendly.com/universal-perk" />
-        </div>
-      )}
-      <div className="max-w-7xl sm:px-10 px-4 mx-auto mt-[25px]">
-        <Navebar toggleMenu={toggleMenu} isMenuOpen={isMenuOpen} />
-        {/* Hero Section */}
-        <div className="relative flex flex-col items-center justify-center text-center mt-[40px] px-4">
-          {/* Glowing Background Behind the Mic */}
+      <section className="relative min-h-screen flex flex-col items-center justify-center pt-16 pb-20 overflow-hidden">
+        {/* Background decorations */}
+        <div className="absolute inset-0 -z-10 overflow-hidden pointer-events-none">
           <div
-            className="absolute top-0 left-1/2 -translate-x-1/2 w-[300px] h-[300px] rounded-full opacity-50 blur-[85px] z-[-1]"
+            className="absolute -top-32 right-0 w-[700px] h-[700px] rounded-full opacity-25 dark:opacity-15 blur-[130px]"
             style={{
               background:
-                "linear-gradient(to bottom, #2563EB, #2CA2F4, #34E5FF)",
+                "radial-gradient(circle, #2563EB 0%, #34E5FF 60%, transparent 100%)",
             }}
           />
-          {/* Mic Image */}
-          <Image
-            src={"/images/hero.svg"}
-            width={256}
-            height={255}
-            alt="hero"
-            className="mb-4"
+          <div
+            className="absolute bottom-0 -left-20 w-[500px] h-[500px] rounded-full opacity-15 dark:opacity-10 blur-[100px]"
+            style={{
+              background:
+                "radial-gradient(circle, #2563EB 0%, #0ea5e9 60%, transparent 100%)",
+            }}
           />
+          <div
+            className="absolute inset-0 opacity-[0.025] dark:opacity-[0.06]"
+            style={{
+              backgroundImage:
+                "radial-gradient(circle, #64748b 1px, transparent 1px)",
+              backgroundSize: "32px 32px",
+            }}
+          />
+        </div>
 
-          <Paragraph className="text-sm dark:text-[#E8E9EA] text-[#272A2D] mt-8 mb-6">
-            Powered by Universal Perk
-          </Paragraph>
-          {/* below is voice Ai */}
-          {/* <div className="">
-            <VoiceAi
-              setIsRecording={setIsRecording}
-              isRecording={isRecording}
-            />
-          </div> */}
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 text-center">
+          {/* Badge */}
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-blue-200 dark:border-blue-800/60 bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 text-[13px] font-medium mb-8 select-none">
+            <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse flex-shrink-0" />
+            Web · Mobile · Cloud · DevOps · AI
+          </div>
 
-          {/* Title */}
-          <Heading level={1}>
-            <div className="sm:mb-[-30px] dark:text-[#EAEAEA] text-[#272A2D]">
-              <span className="bg-gradient-to-r from-[#2563EB] via-[#2FBAF8] to-[#34E5FF] bg-clip-text text-transparent">
-                CUSTOM AI{" "}
-              </span>
-              THAT SELLS,
-            </div>
-            <br className="hidden sm:block" /> SUPPORTS AND SCALE WITH YOU
-          </Heading>
-
-          {/* Subtitle */}
-          <Paragraph className="dark:text-[#A6A6A6] text-[#797979] mt-4 max-w-xl">
-            Close more deals, cut response time and slash costs – 24/7
-            automation that sounds human and works non-stop
-          </Paragraph>
-
-          {/* Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 mt-8 cursor-pointer">
-            <GradientButton
-              className="rounded-[35px]"
-              onClick={handleQuoteOpen}
+          {/* Headline — problem-first */}
+          <h1 className="text-5xl sm:text-6xl lg:text-[72px] font-extrabold tracking-tight text-gray-900 dark:text-white mb-6 leading-[1.08]">
+            Your tech stack is{" "}
+            <span
+              className="bg-clip-text text-transparent"
+              style={{
+                backgroundImage:
+                  "linear-gradient(to right, #2563EB, #2FBAF8, #34E5FF)",
+              }}
             >
-              Get a Quote
-            </GradientButton>
-            <BorderGradientButton
-              text="Book a Call"
-              onHandleBookAcall={handleBookaCall}
-              showCalendly={showCalendly}
-            />
+              holding you back.
+            </span>
+          </h1>
+
+          {/* Subheadline */}
+          <p className="max-w-2xl mx-auto text-lg sm:text-xl text-gray-500 dark:text-gray-400 mb-10 leading-relaxed">
+            Universal Perk modernizes legacy software, APIs, and infrastructure
+            for enterprise teams — with web, mobile, cloud, DevOps, and AI
+            handled by one partner, end to end.
+          </p>
+
+          {/* Single primary CTA */}
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
+            <button
+              onClick={() => setShowCalendly(!showCalendly)}
+              className="px-9 py-4 text-white font-semibold rounded-xl cursor-pointer text-[15px] shadow-lg shadow-blue-500/20 hover:shadow-blue-500/30 hover:opacity-95 transition-all"
+              style={{
+                background:
+                  "linear-gradient(to right, #2563EB, #2CA2F4, #34E5FF)",
+              }}
+            >
+              → Book a Discovery Call
+            </button>
+            <button
+              onClick={() => setShowForm(true)}
+              className="px-9 py-4 font-semibold rounded-xl cursor-pointer text-[15px] border border-gray-200 dark:border-gray-700/60 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-white/[0.04] transition-all"
+            >
+              Get a Free Quote
+            </button>
+          </div>
+
+          {/* Social proof numbers */}
+          <div className="grid grid-cols-3 divide-x divide-gray-200 dark:divide-gray-800/60 border border-gray-200 dark:border-gray-800/60 rounded-2xl max-w-xl mx-auto bg-white/60 dark:bg-white/[0.03] backdrop-blur-sm shadow-sm">
+            {[
+              { value: "300%", label: "Avg. performance improvement" },
+              { value: "90-Day", label: "MVP delivery" },
+              { value: "50+", label: "Projects shipped" },
+            ].map((stat) => (
+              <div key={stat.label} className="py-5 px-4">
+                <div
+                  className="text-2xl sm:text-3xl font-bold bg-clip-text text-transparent"
+                  style={{
+                    backgroundImage:
+                      "linear-gradient(to right, #2563EB, #34E5FF)",
+                  }}
+                >
+                  {stat.value}
+                </div>
+                <div className="text-[12px] text-gray-500 dark:text-gray-400 mt-0.5 font-medium">
+                  {stat.label}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
-      </div>
 
-      {/* Get a Quote Form */}
-      {showForm && (
-        <div>
-          <Overlay>
-            <GetAQuote handleQuoteClose={handleQuoteClose} />
-          </Overlay>
+      </section>
 
+      {showCalendly && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="bg-white dark:bg-gray-900 rounded-2xl w-full max-w-3xl mx-4 shadow-2xl">
+            <div className="flex justify-between items-center p-4 border-b border-gray-100 dark:border-gray-800">
+              <span className="font-semibold text-gray-900 dark:text-white">
+                Book a Discovery Call
+              </span>
+              <button
+                onClick={() => setShowCalendly(false)}
+                className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors cursor-pointer"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <CalendlyEmbed url="https://calendly.com/universal-perk" />
+          </div>
         </div>
+      )}
+
+      {showForm && (
+        <Overlay>
+          <GetAQuote handleQuoteClose={() => setShowForm(false)} />
+        </Overlay>
       )}
     </>
   );

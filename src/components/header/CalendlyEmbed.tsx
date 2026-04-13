@@ -20,10 +20,6 @@ const CalendlyEmbed = ({ url }: { url: string }) => {
       style={{
         height: "650px",
         width: "100%",
-        position: "absolute",
-        top: "790px",
-        zIndex: 40,
-        
       }}
     ></div>
   );
