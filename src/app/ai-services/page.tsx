@@ -70,7 +70,7 @@ function AIHero({
         {/* Subtitle */}
         <p className="max-w-2xl mx-auto text-lg sm:text-xl text-gray-500 dark:text-gray-400 mb-10 leading-relaxed">
           We design and build automation systems, voice agents, and intelligent workflows 
-          that do the repetitive work your team shouldn't be doing -
+          that do the repetitive work your team shouldn&apos;t be doing -
           deployed and running in weeks, not months.
         </p>
 
