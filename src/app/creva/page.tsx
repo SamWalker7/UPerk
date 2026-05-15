@@ -282,24 +282,24 @@ export default function CrevaCaseStudy() {
       <Navebar />
 
       {/* ─── Hero ──────────────────────────────────────────────────────── */}
-      <section className="relative pt-32 pb-20 px-4 sm:px-6 lg:px-8 overflow-hidden">
+      <section className="relative pt-32 pb-20 px-4 sm:px-6 lg:px-8 overflow-hidden bg-violet-50/70 dark:bg-transparent">
         <div
-          className="absolute inset-0 -z-10"
+          className="hidden dark:block absolute inset-0 -z-10"
           style={{ background: "linear-gradient(135deg, #0c0518 0%, #1a0a3a 50%, #060a14 100%)" }}
         />
         <div
-          className="absolute inset-0 -z-10 opacity-[0.06]"
+          className="hidden dark:block absolute inset-0 -z-10 opacity-[0.06]"
           style={{
             backgroundImage: "radial-gradient(circle, #94a3b8 1px, transparent 1px)",
             backgroundSize: "28px 28px",
           }}
         />
         <div
-          className="absolute top-0 right-0 w-[600px] h-[600px] rounded-full blur-[120px] -z-10 opacity-20"
+          className="hidden dark:block absolute top-0 right-0 w-[600px] h-[600px] rounded-full blur-[120px] -z-10 opacity-20"
           style={{ background: "radial-gradient(circle, #7c3aed 0%, #34E5FF 70%, transparent 100%)" }}
         />
         <div
-          className="absolute bottom-0 left-0 w-[400px] h-[400px] rounded-full blur-[100px] -z-10 opacity-15"
+          className="hidden dark:block absolute bottom-0 left-0 w-[400px] h-[400px] rounded-full blur-[100px] -z-10 opacity-15"
           style={{ background: "radial-gradient(circle, #2563EB 0%, transparent 100%)" }}
         />
 
@@ -307,13 +307,13 @@ export default function CrevaCaseStudy() {
           <div className="flex flex-col lg:flex-row items-center gap-12">
             <div className="flex-1 max-w-2xl">
               <div className="flex items-center gap-3 mb-6">
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-violet-500/15 border border-violet-500/25 text-violet-300 text-[12px] font-semibold">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-violet-100 dark:bg-violet-500/15 border border-violet-200 dark:border-violet-500/25 text-violet-700 dark:text-violet-300 text-[12px] font-semibold">
                   AI Platform · SaaS
                 </span>
-                <span className="text-gray-500 text-[12px]">Recruitment · HR Technology</span>
+                <span className="text-gray-500 dark:text-gray-500 text-[12px]">Recruitment · HR Technology</span>
               </div>
 
-              <h1 className="text-4xl sm:text-5xl lg:text-[56px] font-extrabold text-white mb-6 leading-[1.1] tracking-tight">
+              <h1 className="text-4xl sm:text-5xl lg:text-[56px] font-extrabold text-gray-950 dark:text-white mb-6 leading-[1.1] tracking-tight">
                 Building the AI That{" "}
                 <span
                   className="bg-clip-text text-transparent"
@@ -323,7 +323,7 @@ export default function CrevaCaseStudy() {
                 </span>
               </h1>
 
-              <p className="text-gray-300 text-lg leading-relaxed mb-10">
+              <p className="text-gray-600 dark:text-gray-300 text-lg leading-relaxed mb-10">
                 Universal Perk designed and built Creva AI&apos;s full-stack
                 recruitment platform from the ground up — AI resume screening,
                 automated voice interviews powered by ElevenLabs and Deepgram,
@@ -331,7 +331,7 @@ export default function CrevaCaseStudy() {
                 that cut time-to-hire in half.
               </p>
 
-              <div className="grid grid-cols-3 divide-x divide-white/10 border border-white/10 rounded-2xl bg-white/[0.04] backdrop-blur-sm max-w-md">
+              <div className="grid grid-cols-3 divide-x divide-gray-200 dark:divide-white/10 border border-gray-200 dark:border-white/10 rounded-2xl bg-white dark:bg-white/[0.04] backdrop-blur-sm max-w-md shadow-sm shadow-violet-100/80 dark:shadow-none">
                 {[
                   { value: "70%", label: "Screening time saved" },
                   { value: "2×", label: "Faster time-to-hire" },
@@ -344,7 +344,7 @@ export default function CrevaCaseStudy() {
                     >
                       {stat.value}
                     </div>
-                    <div className="text-[11px] text-gray-400 mt-0.5 font-medium">{stat.label}</div>
+                    <div className="text-[11px] text-gray-600 dark:text-gray-400 mt-0.5 font-medium">{stat.label}</div>
                   </div>
                 ))}
               </div>
