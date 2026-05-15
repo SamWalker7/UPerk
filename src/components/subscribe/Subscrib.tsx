@@ -4,6 +4,7 @@ import type React from "react";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import Loader from "../common/Loader";
+import { trackEvent } from "@/lib/analytics";
 export function Subscribe() {
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState("");
@@ -13,6 +14,9 @@ export function Subscribe() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    trackEvent("newsletter_submit_attempt", {
+      category: "lead_generation",
+    });
 
     try {
       setLoading(true)
@@ -26,12 +30,26 @@ export function Subscribe() {
 
       if (response.ok) {
         setStatus("succeeded");
+        trackEvent("newsletter_submit_success", {
+          category: "lead_generation",
+        });
+        trackEvent("sign_up", {
+          category: "lead_generation",
+          method: "newsletter",
+        });
       } else {
         setStatus("failed");
+        trackEvent("newsletter_submit_error", {
+          category: "lead_generation",
+          status_code: response.status,
+        });
       }
     } catch (error) {
       console.error("Error submitting form:", error);
       setStatus("failed");
+      trackEvent("newsletter_submit_error", {
+        category: "lead_generation",
+      });
     } finally {
       setLoading(false)
     }
@@ -112,6 +130,8 @@ export function Subscribe() {
               </div>
               <button
                 type="submit"
+                data-analytics-event="newsletter_submit_click"
+                data-analytics-category="lead_generation"
                 className="w-full mt-3 h-[43px] bg-gray-900 hover:bg-gray-800 text-[#969696] font-medium py-2 rounded-[7px]"
               >
                 {loading ?  <Loader  /> : "Subscribe Now"}

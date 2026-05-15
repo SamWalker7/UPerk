@@ -9,6 +9,7 @@ import Chatbot from "@/components/chatbot/Chatbot";
 import GetAQuote from "@/components/get-a-quote/GetAQuote";
 import Overlay from "@/components/common/Overlay";
 import CalendlyEmbed from "@/components/header/CalendlyEmbed";
+import { trackEvent } from "@/lib/analytics";
 
 // ─── Hero ─────────────────────────────────────────────────────────────────────
 function AIHero({
@@ -78,6 +79,9 @@ function AIHero({
         <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
           <button
             onClick={onGetStarted}
+            data-analytics-event="quote_form_open_click"
+            data-analytics-category="lead_generation"
+            data-analytics-label="AI Hero Free Consultation"
             className="px-8 py-4 text-white font-semibold rounded-xl cursor-pointer text-[15px] shadow-lg shadow-purple-500/20 hover:opacity-95 transition-all"
             style={{
               background:
@@ -88,6 +92,9 @@ function AIHero({
           </button>
           <button
             onClick={onBookCall}
+            data-analytics-event="calendly_open_click"
+            data-analytics-category="lead_generation"
+            data-analytics-label="AI Hero Discovery Call"
             className="px-8 py-4 font-semibold rounded-xl cursor-pointer text-[15px] border border-gray-200 dark:border-gray-700/60 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-white/[0.04] transition-all"
           >
             Book a Discovery Call →
@@ -277,6 +284,9 @@ function AIServicesGrid({ onGetStarted }: { onGetStarted: () => void }) {
 
               <button
                 onClick={onGetStarted}
+                data-analytics-event="quote_form_open_click"
+                data-analytics-category="lead_generation"
+                data-analytics-label={`AI Service Card - ${service.title}`}
                 className="text-[13.5px] font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors cursor-pointer"
               >
                 Get Started →
@@ -521,6 +531,9 @@ function CrevaCaseStudySpotlight() {
             </div>
             <Link
               href="/creva"
+              data-analytics-event="case_study_click"
+              data-analytics-category="case_study"
+              data-analytics-label="Creva.ai spotlight"
               className="flex-shrink-0 inline-flex items-center gap-2 px-6 py-3 rounded-xl text-[14px] font-semibold text-violet-700 dark:text-white bg-white dark:bg-transparent border border-violet-200 dark:border-violet-500/40 shadow-sm shadow-violet-200/60 dark:shadow-none hover:border-violet-400 hover:bg-violet-50 dark:hover:border-violet-400/70 dark:hover:bg-violet-950/40 transition-all"
             >
               Read full case study
@@ -669,6 +682,9 @@ function AICta({
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <button
             onClick={onGetStarted}
+            data-analytics-event="quote_form_open_click"
+            data-analytics-category="lead_generation"
+            data-analytics-label="AI CTA Free Consultation"
             className="px-9 py-4 text-white font-semibold rounded-xl cursor-pointer text-[15px] shadow-lg shadow-purple-500/20 hover:opacity-95 transition-all"
             style={{
               background:
@@ -679,6 +695,9 @@ function AICta({
           </button>
           <button
             onClick={onBookCall}
+            data-analytics-event="calendly_open_click"
+            data-analytics-category="lead_generation"
+            data-analytics-label="AI CTA Discovery Call"
             className="px-9 py-4 font-semibold rounded-xl cursor-pointer text-[15px] border border-gray-200 dark:border-gray-700/60 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-white/[0.04] transition-all"
           >
             Book a Discovery Call →
@@ -698,16 +717,48 @@ export default function AIServicesPage() {
     <div className="min-h-screen bg-white dark:bg-[#060a14] text-gray-900 dark:text-white">
       <Navebar />
       <AIHero
-        onGetStarted={() => setShowForm(true)}
-        onBookCall={() => setShowCalendly(true)}
+        onGetStarted={() => {
+          trackEvent("quote_form_open", {
+            category: "lead_generation",
+            source: "ai_services_hero",
+          });
+          setShowForm(true);
+        }}
+        onBookCall={() => {
+          trackEvent("calendly_open", {
+            category: "lead_generation",
+            source: "ai_services_hero",
+          });
+          setShowCalendly(true);
+        }}
       />
-      <AIServicesGrid onGetStarted={() => setShowForm(true)} />
+      <AIServicesGrid
+        onGetStarted={() => {
+          trackEvent("quote_form_open", {
+            category: "lead_generation",
+            source: "ai_services_card",
+          });
+          setShowForm(true);
+        }}
+      />
       <WhyAISection />
       <AIProcessSection />
       <CrevaCaseStudySpotlight />
       <AICta
-        onGetStarted={() => setShowForm(true)}
-        onBookCall={() => setShowCalendly(true)}
+        onGetStarted={() => {
+          trackEvent("quote_form_open", {
+            category: "lead_generation",
+            source: "ai_services_cta",
+          });
+          setShowForm(true);
+        }}
+        onBookCall={() => {
+          trackEvent("calendly_open", {
+            category: "lead_generation",
+            source: "ai_services_cta",
+          });
+          setShowCalendly(true);
+        }}
       />
       <Footer />
       <Chatbot />
@@ -726,7 +777,15 @@ export default function AIServicesPage() {
                 Book a Discovery Call
               </span>
               <button
-                onClick={() => setShowCalendly(false)}
+                onClick={() => {
+                  trackEvent("calendly_close", {
+                    category: "lead_generation",
+                    source: "ai_services_page",
+                  });
+                  setShowCalendly(false);
+                }}
+                data-analytics-event="calendly_close_click"
+                data-analytics-category="lead_generation"
                 className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors cursor-pointer"
               >
                 <svg

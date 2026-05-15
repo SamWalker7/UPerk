@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 import Loader from "../common/Loader";
+import { trackEvent } from "@/lib/analytics";
 
 interface FormData {
   projectType: string;
@@ -110,6 +111,14 @@ const GetAQuote = ({ handleQuoteClose }: { handleQuoteClose: () => void }) => {
   });
 
   useEffect(() => {
+    trackEvent("quote_form_view", {
+      category: "lead_generation",
+      step: currentStep,
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
     if (status === "failed") {
       toast.error("Form submission failed", {
         position: "top-right",
@@ -141,6 +150,15 @@ const GetAQuote = ({ handleQuoteClose }: { handleQuoteClose: () => void }) => {
   const handleInputChange = (field: keyof FormData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
     setErrors((prev) => ({ ...prev, [field]: "" }));
+
+    if (field === "projectType" || field === "budgetRange" || field === "timeline") {
+      trackEvent("quote_form_selection", {
+        category: "lead_generation",
+        field,
+        value,
+        step: currentStep,
+      });
+    }
   };
 
   const validateStep = () => {
@@ -164,11 +182,28 @@ const GetAQuote = ({ handleQuoteClose }: { handleQuoteClose: () => void }) => {
   };
 
   const handleNext = () => {
-    if (validateStep() && currentStep < 3) setCurrentStep(currentStep + 1);
+    if (validateStep() && currentStep < 3) {
+      trackEvent("quote_form_step_complete", {
+        category: "lead_generation",
+        step: currentStep,
+      });
+      setCurrentStep(currentStep + 1);
+    } else {
+      trackEvent("quote_form_validation_error", {
+        category: "lead_generation",
+        step: currentStep,
+      });
+    }
   };
 
   const handleBack = () => {
-    if (currentStep > 1) setCurrentStep(currentStep - 1);
+    if (currentStep > 1) {
+      trackEvent("quote_form_back", {
+        category: "lead_generation",
+        step: currentStep,
+      });
+      setCurrentStep(currentStep - 1);
+    }
   };
 
   const quoteEndpoint =
@@ -176,6 +211,13 @@ const GetAQuote = ({ handleQuoteClose }: { handleQuoteClose: () => void }) => {
 
   const handleSubmit = async () => {
     if (validateStep()) {
+      trackEvent("quote_form_submit_attempt", {
+        category: "lead_generation",
+        project_type: formData.projectType,
+        budget_range: formData.budgetRange,
+        timeline: formData.timeline,
+      });
+
       const formattedData = {
         projectDetails: {
           projectType: formData.projectType,
@@ -200,13 +242,37 @@ const GetAQuote = ({ handleQuoteClose }: { handleQuoteClose: () => void }) => {
           headers: { "Content-Type": "application/json" },
         });
         setStatus("succeeded");
+        trackEvent("quote_form_submit_success", {
+          category: "lead_generation",
+          project_type: formData.projectType,
+          budget_range: formData.budgetRange,
+          timeline: formData.timeline,
+        });
+        trackEvent("generate_lead", {
+          category: "lead_generation",
+          method: "quote_form",
+          project_type: formData.projectType,
+          budget_range: formData.budgetRange,
+          timeline: formData.timeline,
+        });
         console.log("Success:", response.data);
       } catch (error) {
         setStatus("failed");
+        trackEvent("quote_form_submit_error", {
+          category: "lead_generation",
+          project_type: formData.projectType,
+          budget_range: formData.budgetRange,
+          timeline: formData.timeline,
+        });
         console.error("Error submitting form:", error);
       } finally {
         setLoading(false);
       }
+    } else {
+      trackEvent("quote_form_validation_error", {
+        category: "lead_generation",
+        step: currentStep,
+      });
     }
   };
 
@@ -235,6 +301,8 @@ const GetAQuote = ({ handleQuoteClose }: { handleQuoteClose: () => void }) => {
             </div>
             <button
               onClick={handleQuoteClose}
+              data-analytics-event="quote_form_close"
+              data-analytics-category="lead_generation"
               className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all cursor-pointer flex-shrink-0"
               aria-label="Close"
             >
@@ -310,6 +378,9 @@ const GetAQuote = ({ handleQuoteClose }: { handleQuoteClose: () => void }) => {
                       key={type.value}
                       type="button"
                       onClick={() => handleInputChange("projectType", type.value)}
+                      data-analytics-event="quote_project_type_click"
+                      data-analytics-category="lead_generation"
+                      data-analytics-label={type.value}
                       className={`flex flex-col items-center gap-2 p-3 rounded-xl border text-center transition-all cursor-pointer ${
                         formData.projectType === type.value
                           ? "border-blue-500 bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400"
@@ -367,6 +438,9 @@ const GetAQuote = ({ handleQuoteClose }: { handleQuoteClose: () => void }) => {
                       key={range}
                       type="button"
                       onClick={() => handleInputChange("budgetRange", range)}
+                      data-analytics-event="quote_budget_click"
+                      data-analytics-category="lead_generation"
+                      data-analytics-label={range}
                       className={`py-3 px-4 rounded-xl border text-[13px] font-medium transition-all cursor-pointer ${
                         formData.budgetRange === range
                           ? "border-blue-500 bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400"
@@ -392,6 +466,9 @@ const GetAQuote = ({ handleQuoteClose }: { handleQuoteClose: () => void }) => {
                       key={t}
                       type="button"
                       onClick={() => handleInputChange("timeline", t)}
+                      data-analytics-event="quote_timeline_click"
+                      data-analytics-category="lead_generation"
+                      data-analytics-label={t}
                       className={`py-3 px-4 rounded-xl border text-[13px] font-medium transition-all cursor-pointer ${
                         formData.timeline === t
                           ? "border-blue-500 bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400"
@@ -483,6 +560,8 @@ const GetAQuote = ({ handleQuoteClose }: { handleQuoteClose: () => void }) => {
           {currentStep > 1 ? (
             <button
               onClick={handleBack}
+              data-analytics-event="quote_form_back_click"
+              data-analytics-category="lead_generation"
               className="px-5 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 text-[14px] font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-all cursor-pointer"
             >
               ← Back
@@ -495,6 +574,9 @@ const GetAQuote = ({ handleQuoteClose }: { handleQuoteClose: () => void }) => {
             <button
               onClick={handleNext}
               disabled={currentStep === 1 ? !step1Valid : !step2Valid}
+              data-analytics-event="quote_form_continue_click"
+              data-analytics-category="lead_generation"
+              data-analytics-label={`Step ${currentStep}`}
               className={`px-6 py-2.5 rounded-xl text-[14px] font-semibold text-white transition-all cursor-pointer ${
                 (currentStep === 1 ? !step1Valid : !step2Valid)
                   ? "opacity-40 cursor-not-allowed"
@@ -510,6 +592,8 @@ const GetAQuote = ({ handleQuoteClose }: { handleQuoteClose: () => void }) => {
             <button
               onClick={handleSubmit}
               disabled={!step3Valid || loading}
+              data-analytics-event="quote_form_submit_click"
+              data-analytics-category="lead_generation"
               className={`px-6 py-2.5 rounded-xl text-[14px] font-semibold text-white transition-all cursor-pointer ${
                 !step3Valid || loading ? "opacity-40 cursor-not-allowed" : "hover:opacity-90"
               }`}

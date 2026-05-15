@@ -7,6 +7,7 @@ import { usePathname } from "next/navigation";
 import { useTheme } from "@/components/ThemeProvider";
 import GetAQuote from "../get-a-quote/GetAQuote";
 import Overlay from "../common/Overlay";
+import { trackEvent } from "@/lib/analytics";
 
 // Accept legacy props optionally so existing pages (Blog, CaseStudies) still compile
 interface NavbarProps {
@@ -56,7 +57,13 @@ const Navebar: React.FC<NavbarProps> = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
-            <Link href="/" className="flex items-center gap-2.5 flex-shrink-0">
+            <Link
+              href="/"
+              className="flex items-center gap-2.5 flex-shrink-0"
+              data-analytics-event="nav_logo_click"
+              data-analytics-category="navigation"
+              data-analytics-label="Universal Perk logo"
+            >
               <Image
                 src="/icons/logo.svg"
                 width={34}
@@ -76,6 +83,9 @@ const Navebar: React.FC<NavbarProps> = () => {
                 <Link
                   key={link.href}
                   href={link.href}
+                  data-analytics-event="nav_link_click"
+                  data-analytics-category="navigation"
+                  data-analytics-label={link.label}
                   className={`text-[13.5px] font-medium transition-colors duration-200 ${
                     isActive(link.href)
                       ? "text-blue-600 dark:text-blue-400"
@@ -92,7 +102,15 @@ const Navebar: React.FC<NavbarProps> = () => {
               {/* Theme Toggle */}
               {mounted && (
                 <button
-                  onClick={toggle}
+                  onClick={() => {
+                    trackEvent("theme_toggle", {
+                      category: "engagement",
+                      theme: theme === "dark" ? "light" : "dark",
+                    });
+                    toggle();
+                  }}
+                  data-analytics-event="theme_toggle_click"
+                  data-analytics-category="engagement"
                   className="p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800/60 transition-colors cursor-pointer"
                   aria-label="Toggle theme"
                 >
@@ -130,7 +148,16 @@ const Navebar: React.FC<NavbarProps> = () => {
 
               {/* Get Started CTA */}
               <button
-                onClick={() => setShowForm(true)}
+                onClick={() => {
+                  trackEvent("quote_form_open", {
+                    category: "lead_generation",
+                    source: "navbar_desktop",
+                  });
+                  setShowForm(true);
+                }}
+                data-analytics-event="cta_click"
+                data-analytics-category="lead_generation"
+                data-analytics-label="Navbar Get Started"
                 className="hidden sm:inline-flex items-center gap-1.5 px-4 py-2 text-[13px] font-semibold text-white rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
                 style={{
                   background:
@@ -143,7 +170,15 @@ const Navebar: React.FC<NavbarProps> = () => {
               {/* Mobile Hamburger */}
               <button
                 className="lg:hidden p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800/60 transition-colors cursor-pointer"
-                onClick={() => setIsMenuOpen(!isMenuOpen)}
+                onClick={() => {
+                  trackEvent("mobile_menu_toggle", {
+                    category: "navigation",
+                    state: isMenuOpen ? "closed" : "opened",
+                  });
+                  setIsMenuOpen(!isMenuOpen);
+                }}
+                data-analytics-event="mobile_menu_toggle_click"
+                data-analytics-category="navigation"
                 aria-label="Toggle menu"
               >
                 <svg
@@ -176,6 +211,9 @@ const Navebar: React.FC<NavbarProps> = () => {
                 key={link.href}
                 href={link.href}
                 onClick={() => setIsMenuOpen(false)}
+                data-analytics-event="mobile_nav_link_click"
+                data-analytics-category="navigation"
+                data-analytics-label={link.label}
                 className="block text-[14px] font-medium py-2.5 px-3 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
               >
                 {link.label}
@@ -184,9 +222,16 @@ const Navebar: React.FC<NavbarProps> = () => {
             <div className="pt-2">
               <button
                 onClick={() => {
+                  trackEvent("quote_form_open", {
+                    category: "lead_generation",
+                    source: "navbar_mobile",
+                  });
                   setShowForm(true);
                   setIsMenuOpen(false);
                 }}
+                data-analytics-event="cta_click"
+                data-analytics-category="lead_generation"
+                data-analytics-label="Mobile Navbar Get Started"
                 className="w-full py-3 text-[14px] font-semibold text-white rounded-xl cursor-pointer hover:opacity-90 transition-opacity"
                 style={{
                   background:

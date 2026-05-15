@@ -5,6 +5,7 @@ import Image from "next/image";
 import CalendlyEmbed from "./CalendlyEmbed";
 import GetAQuote from "../get-a-quote/GetAQuote";
 import Overlay from "../common/Overlay";
+import { trackEvent } from "@/lib/analytics";
 
 const Header = () => {
   const [showCalendly, setShowCalendly] = useState(false);
@@ -70,7 +71,16 @@ const Header = () => {
           {/* CTAs */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-10">
             <button
-              onClick={() => setShowCalendly(!showCalendly)}
+              onClick={() => {
+                trackEvent(showCalendly ? "calendly_close" : "calendly_open", {
+                  category: "lead_generation",
+                  source: "home_hero",
+                });
+                setShowCalendly(!showCalendly);
+              }}
+              data-analytics-event="calendly_open_click"
+              data-analytics-category="lead_generation"
+              data-analytics-label="Home Hero Discovery Call"
               className="px-9 py-4 text-white font-semibold rounded-xl cursor-pointer text-[15px] shadow-lg shadow-blue-500/20 hover:shadow-blue-500/30 hover:opacity-95 transition-all"
               style={{
                 background:
@@ -80,7 +90,16 @@ const Header = () => {
               → Book a Discovery Call
             </button>
             <button
-              onClick={() => setShowForm(true)}
+              onClick={() => {
+                trackEvent("quote_form_open", {
+                  category: "lead_generation",
+                  source: "home_hero",
+                });
+                setShowForm(true);
+              }}
+              data-analytics-event="quote_form_open_click"
+              data-analytics-category="lead_generation"
+              data-analytics-label="Home Hero Project Estimate"
               className="px-9 py-4 font-semibold rounded-xl cursor-pointer text-[15px] border border-gray-200 dark:border-gray-700/60 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-white/[0.04] transition-all"
             >
               Get a Project Estimate
@@ -151,7 +170,15 @@ const Header = () => {
                 Book a Discovery Call
               </span>
               <button
-                onClick={() => setShowCalendly(false)}
+                onClick={() => {
+                  trackEvent("calendly_close", {
+                    category: "lead_generation",
+                    source: "home_hero",
+                  });
+                  setShowCalendly(false);
+                }}
+                data-analytics-event="calendly_close_click"
+                data-analytics-category="lead_generation"
                 className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors cursor-pointer"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

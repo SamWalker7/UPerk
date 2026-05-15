@@ -2,6 +2,7 @@
 import type React from "react";
 import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
+import { trackEvent } from "@/lib/analytics";
 
 interface Message {
   id: string;
@@ -28,6 +29,9 @@ const Chatbot = () => {
     "https://nbttrereyf.execute-api.us-east-1.amazonaws.com/prod/api/chatbot";
 
   const toggleChat = () => {
+    trackEvent(isOpen ? "chatbot_close" : "chatbot_open", {
+      category: "engagement",
+    });
     setIsOpen(!isOpen);
   };
 
@@ -39,6 +43,10 @@ const Chatbot = () => {
     e.preventDefault();
 
     if (inputValue.trim() === "") return;
+    trackEvent("chatbot_message_submit", {
+      category: "engagement",
+      message_length: inputValue.trim().length,
+    });
 
     // Add user message
     const userMessage: Message = {
@@ -79,8 +87,14 @@ const Chatbot = () => {
       };
 
       setMessages((prev) => [...prev, botMessage]);
+      trackEvent("chatbot_response_success", {
+        category: "engagement",
+      });
     } catch (error) {
       console.error("Error fetching bot response:", error);
+      trackEvent("chatbot_response_error", {
+        category: "engagement",
+      });
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         text: "Sorry, there was an error connecting to the chatbot. Please try again.",
@@ -122,6 +136,9 @@ const Chatbot = () => {
       {/* Chatbot Icon */}
       <button
         onClick={(e) => { toggleChat();  e.stopPropagation()}}
+        data-analytics-event="chatbot_toggle_click"
+        data-analytics-category="engagement"
+        aria-label="Toggle chatbot"
         className="bg-gray-800 rounded-full p-2 shadow-lg hover:bg-gray-700 transition-all"
       >
         <Image
@@ -190,6 +207,9 @@ const Chatbot = () => {
             />
             <button
               type="submit"
+              data-analytics-event="chatbot_submit_click"
+              data-analytics-category="engagement"
+              aria-label="Send chatbot message"
               className={` text-white rounded-r-lg px-4 py-2  cursor-pointer${
                 isBotTyping ? "opacity-50 cursor-not-allowed" : ""
               }`}

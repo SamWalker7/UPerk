@@ -1,7 +1,13 @@
 import React, { useEffect } from "react";
+import { trackEvent } from "@/lib/analytics";
 
 const CalendlyEmbed = ({ url }: { url: string }) => {
   useEffect(() => {
+    trackEvent("calendly_embed_view", {
+      category: "lead_generation",
+      calendly_url: url,
+    });
+
     const head = document.querySelector("head");
     const script = document.createElement("script");
     script.setAttribute(
@@ -11,7 +17,7 @@ const CalendlyEmbed = ({ url }: { url: string }) => {
     if (head) {
       head.appendChild(script);
     }
-  }, []);
+  }, [url]);
 
   return (
     <div

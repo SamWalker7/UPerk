@@ -11,6 +11,7 @@ import GetAQuote from "@/components/get-a-quote/GetAQuote";
 import Overlay from "@/components/common/Overlay";
 import CalendlyEmbed from "@/components/header/CalendlyEmbed";
 import { Subscribe } from "@/components/subscribe/Subscrib";
+import { trackEvent } from "@/lib/analytics";
 
 declare global {
   interface Window {
@@ -172,6 +173,9 @@ function HowItWorksSection({ onBookCall }: { onBookCall: () => void }) {
         <div className="text-center mt-12">
           <button
             onClick={onBookCall}
+            data-analytics-event="calendly_open_click"
+            data-analytics-category="lead_generation"
+            data-analytics-label="How It Works Discovery Call"
             className="inline-flex items-center gap-2 px-7 py-3.5 text-white font-semibold rounded-xl text-[15px] hover:opacity-90 transition-opacity cursor-pointer"
             style={{
               background: "linear-gradient(to right, #2563EB, #2CA2F4, #34E5FF)",
@@ -401,6 +405,9 @@ function MVPSection({ onGetStarted }: { onGetStarted: () => void }) {
           </p>
           <button
             onClick={onGetStarted}
+            data-analytics-event="quote_form_open_click"
+            data-analytics-category="lead_generation"
+            data-analytics-label="90-Day MVP CTA"
             className="inline-flex items-center gap-2 px-8 py-4 text-white font-semibold rounded-xl cursor-pointer text-[15px] shadow-lg shadow-blue-500/20 hover:opacity-95 transition-all"
             style={{
               background:
@@ -667,6 +674,9 @@ function ClosingCTA({ onBookCall }: { onBookCall: () => void }) {
         </p>
         <button
           onClick={onBookCall}
+          data-analytics-event="calendly_open_click"
+          data-analytics-category="lead_generation"
+          data-analytics-label="Closing CTA Discovery Call"
           className="px-9 py-4 text-white font-semibold rounded-xl cursor-pointer text-[15px] shadow-lg shadow-blue-500/20 hover:shadow-blue-500/30 hover:opacity-95 transition-all"
           style={{
             background: "linear-gradient(to right, #2563EB, #2CA2F4, #34E5FF)",
@@ -700,8 +710,20 @@ export default function Home() {
     }
   }, []);
 
-  const openCalendly = () => setShowCalendly(true);
-  const openForm = () => setShowForm(true);
+  const openCalendly = () => {
+    trackEvent("calendly_open", {
+      category: "lead_generation",
+      source: "home_page",
+    });
+    setShowCalendly(true);
+  };
+  const openForm = () => {
+    trackEvent("quote_form_open", {
+      category: "lead_generation",
+      source: "home_page",
+    });
+    setShowForm(true);
+  };
 
   return (
     <div className="min-h-screen bg-white dark:bg-[#060a14] text-gray-900 dark:text-white">
@@ -752,7 +774,15 @@ export default function Home() {
                 Book a Discovery Call
               </span>
               <button
-                onClick={() => setShowCalendly(false)}
+                onClick={() => {
+                  trackEvent("calendly_close", {
+                    category: "lead_generation",
+                    source: "home_page",
+                  });
+                  setShowCalendly(false);
+                }}
+                data-analytics-event="calendly_close_click"
+                data-analytics-category="lead_generation"
                 className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors cursor-pointer"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
