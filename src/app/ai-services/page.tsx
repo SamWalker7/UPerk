@@ -55,7 +55,7 @@ function AIHero({
 
         {/* Headline */}
         <h1 className="text-5xl sm:text-6xl lg:text-[72px] font-extrabold tracking-tight text-gray-900 dark:text-white mb-6 leading-[1.08]">
-          AI That Works as{" "}
+          Less Busywork.{" "}
           <span
             className="bg-clip-text text-transparent"
             style={{
@@ -63,15 +63,15 @@ function AIHero({
                 "linear-gradient(to right, #7c3aed, #2563EB, #34E5FF)",
             }}
           >
-            Hard as You Do.
+            More Revenue. No Extra Headcount.
           </span>
         </h1>
 
         {/* Subtitle */}
         <p className="max-w-2xl mx-auto text-lg sm:text-xl text-gray-500 dark:text-gray-400 mb-10 leading-relaxed">
-          Custom AI agents, chatbots, and voice systems built for real business
-          outcomes — not demos. Every system we build is designed to save time,
-          cut costs, and generate revenue from day one.
+          We design and build automation systems, voice agents, and intelligent workflows 
+          that do the repetitive work your team shouldn't be doing -
+          deployed and running in weeks, not months.
         </p>
 
         {/* CTAs */}
@@ -293,40 +293,40 @@ function AIServicesGrid({ onGetStarted }: { onGetStarted: () => void }) {
 function WhyAISection() {
   const reasons = [
     {
-      title: "Cut Support Costs 40%+",
+      title: "Cut Support Costs by 40%+",
       description:
-        "AI handles 80% of incoming queries without a support team. That's fewer hires, less overhead, and faster responses.",
+        "Handle 80% of incoming queries without adding a single support hire. Faster responses, lower overhead, happier customers.",
       icon: "💰",
     },
     {
-      title: "Never Miss a Lead",
+      title: "Stop Losing Leads After Hours",
       description:
-        "AI engages visitors the moment they land — qualifying them, answering questions, and booking meetings while your team sleeps.",
+        "Your pipeline doesn't pause at 5pm. Leads get engaged, qualified, and booked — the moment they land, any time of day.",
       icon: "🎯",
     },
     {
-      title: "Scale Without Headcount",
+      title: "Handle 10x the Volume, Not 10x the Staff",
       description:
-        "AI lets you handle 10x the volume without 10x the staff. Growth without proportional cost is finally possible.",
+        "As you grow, your systems grow with you. No scramble to hire, train, and manage more people just to keep up.",
       icon: "📈",
     },
     {
-      title: "Sounds Human. Works Non-Stop.",
+      title: "Your Customers Get Answers Instantly",
       description:
-        "Our AI agents are trained to sound natural and on-brand. Your customers won't notice the difference — they'll just get faster answers.",
-      icon: "🤖",
+        "No hold times, no ticket queues, no waiting. Natural, on-brand responses that feel like your best team member — available 24/7.",
+      icon: "🗣️",
     },
     {
-      title: "No Vendor Lock-In",
+      title: "Running in Weeks, Not Quarters",
       description:
-        "We build on open standards with models you can swap. You own your AI — it's not a black box controlled by a SaaS vendor.",
-      icon: "🔓",
-    },
-    {
-      title: "Live in Weeks, Not Months",
-      description:
-        "Our AI delivery model gets production systems live faster. Most clients see their first AI in action within 4 weeks.",
+        "Production-ready systems, live within 4 weeks. No endless discovery phases or consultant drag.",
       icon: "⚡",
+    },
+    {
+      title: "You Own It. We Build It.",
+      description:
+        "No black-box SaaS. No lock-in. You get custom-built systems on open standards — yours to control, yours to scale.",
+      icon: "🔓",
     },
   ];
 
@@ -472,23 +472,23 @@ function CrevaCaseStudySpotlight() {
   ];
 
   return (
-    <section className="py-24 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+    <section className="py-24 px-4 sm:px-6 lg:px-8 relative overflow-hidden bg-gray-50/80 dark:bg-transparent">
       {/* Background */}
       <div
-        className="absolute inset-0 -z-10"
+        className="hidden dark:block absolute inset-0 -z-10"
         style={{
           background:
             "linear-gradient(135deg, #0f0a1e 0%, #0d1526 50%, #0a0f1e 100%)",
         }}
       />
       <div
-        className="absolute -top-40 right-0 w-[600px] h-[600px] rounded-full opacity-10 blur-[120px] -z-10"
+        className="hidden dark:block absolute -top-40 right-0 w-[600px] h-[600px] rounded-full opacity-10 blur-[120px] -z-10"
         style={{
           background: "radial-gradient(circle, #7c3aed 0%, #2563EB 100%)",
         }}
       />
       <div
-        className="absolute bottom-0 -left-20 w-[400px] h-[400px] rounded-full opacity-8 blur-[100px] -z-10"
+        className="hidden dark:block absolute bottom-0 -left-20 w-[400px] h-[400px] rounded-full opacity-8 blur-[100px] -z-10"
         style={{
           background: "radial-gradient(circle, #06b6d4 0%, #7c3aed 100%)",
         }}
@@ -497,12 +497,12 @@ function CrevaCaseStudySpotlight() {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-14">
-          <span className="inline-block text-[11px] font-semibold uppercase tracking-widest text-violet-400 border border-violet-500/30 bg-violet-950/40 px-3 py-1 rounded-full mb-4">
+          <span className="inline-block text-[11px] font-semibold uppercase tracking-widest text-violet-700 dark:text-violet-400 border border-violet-200 dark:border-violet-500/30 bg-violet-50 dark:bg-violet-950/40 px-3 py-1 rounded-full mb-4">
             Real-World AI in Action
           </span>
           <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4">
             <div>
-              <h2 className="text-4xl sm:text-5xl font-extrabold text-white mb-3 tracking-tight leading-tight">
+              <h2 className="text-4xl sm:text-5xl font-extrabold text-gray-950 dark:text-white mb-3 tracking-tight leading-tight">
                 See What We Built for{" "}
                 <span
                   className="bg-clip-text text-transparent"
@@ -514,14 +514,14 @@ function CrevaCaseStudySpotlight() {
                   Creva.ai
                 </span>
               </h2>
-              <p className="text-lg text-gray-400 max-w-2xl leading-relaxed">
+              <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl leading-relaxed">
                 An AI-powered recruiting platform that screens, interviews, and
                 ranks candidates autonomously — cutting the hiring cycle in half.
               </p>
             </div>
             <Link
               href="/creva"
-              className="flex-shrink-0 inline-flex items-center gap-2 px-6 py-3 rounded-xl text-[14px] font-semibold text-white border border-violet-500/40 hover:border-violet-400/70 hover:bg-violet-950/40 transition-all"
+              className="flex-shrink-0 inline-flex items-center gap-2 px-6 py-3 rounded-xl text-[14px] font-semibold text-violet-700 dark:text-white bg-white dark:bg-transparent border border-violet-200 dark:border-violet-500/40 shadow-sm shadow-violet-200/60 dark:shadow-none hover:border-violet-400 hover:bg-violet-50 dark:hover:border-violet-400/70 dark:hover:bg-violet-950/40 transition-all"
             >
               Read full case study
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -539,7 +539,7 @@ function CrevaCaseStudySpotlight() {
               {metrics.map((m) => (
                 <div
                   key={m.label}
-                  className="rounded-2xl border border-white/[0.08] bg-white/[0.04] p-5 text-center"
+                  className="rounded-2xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.04] p-5 text-center shadow-sm shadow-gray-200/70 dark:shadow-none"
                 >
                   <div
                     className="text-3xl font-extrabold bg-clip-text text-transparent mb-1"
@@ -550,7 +550,7 @@ function CrevaCaseStudySpotlight() {
                   >
                     {m.value}
                   </div>
-                  <div className="text-[12px] text-gray-400 font-medium leading-snug">
+                  <div className="text-[12px] text-gray-600 dark:text-gray-400 font-medium leading-snug">
                     {m.label}
                   </div>
                 </div>
@@ -558,15 +558,15 @@ function CrevaCaseStudySpotlight() {
             </div>
 
             {/* Deliverables */}
-            <div className="rounded-2xl border border-white/[0.08] bg-white/[0.04] p-6">
-              <h3 className="text-[13px] font-semibold uppercase tracking-widest text-gray-400 mb-4">
+            <div className="rounded-2xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.04] p-6 shadow-sm shadow-gray-200/70 dark:shadow-none">
+              <h3 className="text-[13px] font-semibold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-4">
                 What We Delivered
               </h3>
               <ul className="space-y-3">
                 {deliverables.map((d) => (
-                  <li key={d} className="flex items-start gap-3 text-[14px] text-gray-300">
+                  <li key={d} className="flex items-start gap-3 text-[14px] text-gray-700 dark:text-gray-300">
                     <svg
-                      className="w-4 h-4 text-violet-400 flex-shrink-0 mt-0.5"
+                      className="w-4 h-4 text-violet-600 dark:text-violet-400 flex-shrink-0 mt-0.5"
                       fill="currentColor"
                       viewBox="0 0 20 20"
                     >
@@ -586,8 +586,8 @@ function CrevaCaseStudySpotlight() {
           {/* Right — AI stack + fake terminal */}
           <div className="space-y-6">
             {/* AI Stack */}
-            <div className="rounded-2xl border border-white/[0.08] bg-white/[0.04] p-6">
-              <h3 className="text-[13px] font-semibold uppercase tracking-widest text-gray-400 mb-4">
+            <div className="rounded-2xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.04] p-6 shadow-sm shadow-gray-200/70 dark:shadow-none">
+              <h3 className="text-[13px] font-semibold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-4">
                 AI Stack Used
               </h3>
               <div className="flex flex-wrap gap-2">

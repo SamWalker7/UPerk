@@ -513,16 +513,16 @@ function AIServicesBanner() {
 // ─── Tech Stack ───────────────────────────────────────────────────────────────
 function TechStackSection() {
   const techLogos = [
-    { name: "OpenAI", shortLabel: "OA" },
-    { name: "ElevenLabs", shortLabel: "11" },
-    { name: "Deepgram", shortLabel: "DG" },
-    { name: "OpenClaw", shortLabel: "OC" },
-    { name: "LangChain", shortLabel: "LC" },
-    { name: "LangGraph", shortLabel: "LG" },
-    { name: "LangSmith", shortLabel: "LS" },
-    { name: "n8n", shortLabel: "n8n" },
-    { name: "AWS Nova", shortLabel: "AN" },
-    { name: "Python", shortLabel: "Py" },
+    { name: "OpenAI", path: "/icons/tech/openai.svg" },
+    { name: "ElevenLabs", path: "/icons/tech/elevenlabs.svg" },
+    { name: "Deepgram", path: "/icons/tech/deepgram.svg" },
+    { name: "OpenClaw", path: "/icons/tech/openclaw.svg" },
+    { name: "LangChain", path: "/icons/tech/langchain.svg" },
+    { name: "LangGraph", path: "/icons/tech/langgraph.svg" },
+    { name: "LangSmith", path: "/icons/tech/langsmith.svg" },
+    { name: "n8n", path: "/icons/tech/n8n.svg" },
+    { name: "AWS Nova", path: "/icons/tech/aws-nova.svg" },
+    { name: "Python", path: "/icons/tech/python.svg" },
     { name: "React", path: "/icons/tech/react.svg" },
     { name: "Node.js", path: "/icons/tech/node.svg" },
     { name: "JavaScript", path: "/icons/tech/js.svg" },
@@ -546,19 +546,13 @@ function TechStackSection() {
           {techLogos.map((tech) => (
             <div key={tech.name} className="flex flex-col items-center gap-2 group">
               <div className="w-16 h-16 rounded-2xl bg-white dark:bg-gray-900/60 border border-gray-100 dark:border-gray-800/50 flex items-center justify-center shadow-sm hover:shadow-md hover:border-blue-200 dark:hover:border-blue-800/40 transition-all">
-                {tech.path ? (
-                  <Image
-                    src={tech.path}
-                    alt={tech.name}
-                    width={32}
-                    height={32}
-                    className="object-contain"
-                  />
-                ) : (
-                  <span className="text-sm font-semibold text-gray-700 dark:text-gray-200">
-                    {tech.shortLabel}
-                  </span>
-                )}
+                <Image
+                  src={tech.path}
+                  alt={tech.name}
+                  width={32}
+                  height={32}
+                  className="object-contain"
+                />
               </div>
               <span className="text-[11px] font-medium text-gray-400 dark:text-gray-500 group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-colors">
                 {tech.name}
