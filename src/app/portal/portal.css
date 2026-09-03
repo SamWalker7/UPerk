@@ -1,0 +1,50 @@
+/* Scoped design tokens for the client portal. Light values on .portal-scope;
+   dark values under the site's .dark variant. Components read these via
+   Tailwind arbitrary values, e.g. bg-[var(--p-surface)]. */
+
+.portal-scope {
+  --p-bg: #eef1f5;
+  --p-surface: #ffffff;
+  --p-surface-2: #f8fafc;
+  --p-border: #e2e8f0;
+  --p-text: #0f172a;
+  --p-text-dim: #64748b;
+  --p-accent: #2563eb;
+  --p-accent-weak: #eff6ff;
+
+  --p-hero: #ffffff;
+  --p-hero-text: #0f172a;
+  --p-hero-dim: #64748b;
+
+  --p-ok: #0f9d58;
+  --p-ok-bg: #ecfdf3;
+  --p-warn: #d97706;
+  --p-warn-bg: #fffbeb;
+  --p-risk: #dc2626;
+  --p-risk-bg: #fef2f2;
+
+  background: var(--p-bg);
+  color: var(--p-text);
+}
+
+.dark .portal-scope {
+  --p-bg: #070b13;
+  --p-surface: #101827;
+  --p-surface-2: #16213a;
+  --p-border: #24314a;
+  --p-text: #f1f5f9;
+  --p-text-dim: #94a3b8;
+  --p-accent: #3b82f6;
+  --p-accent-weak: #172554;
+
+  --p-hero: #0a1a33;
+  --p-hero-text: #f1f5f9;
+  --p-hero-dim: #94a3b8;
+
+  --p-ok: #34d399;
+  --p-ok-bg: #052e1f;
+  --p-warn: #fbbf24;
+  --p-warn-bg: #2a1c05;
+  --p-risk: #f87171;
+  --p-risk-bg: #300f0f;
+}

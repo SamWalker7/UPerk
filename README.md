@@ -22,17 +22,22 @@ This project uses [`next/font`](https://nextjs.org/docs/app/building-your-applic
 
 ## Client portal (`/portal`)
 
-A lightweight status portal for clients, living under `/portal` in this app.
+A multi-project status portal for clients, living under `/portal` in this app.
 
+- **Routes**: `/portal` lists projects as cards; `/portal/<slug>` is a project page
+  with an always-visible status hero and five tabs (`overview`, `requests`,
+  `prototype`, `timeline`, `decisions`) — each tab is deep-linkable at
+  `/portal/<slug>/<tab>`. `/portal/console` is the PM editor with a project switcher.
 - **Auth**: env-based shared login, no user accounts. Set `PORTAL_USER`,
-  `PORTAL_PASSWORD` (client role), `PORTAL_PM_PASSWORD` (unlocks `/portal/console` and
-  the dashed PM annotations), and `PORTAL_SESSION_SECRET`. See `.env.example`.
-- **Content**: read from `src/portal-data/portal.json`. The PM console
-  (`/portal/console`) edits that file — writes work in local dev; on Vercel the runtime
-  filesystem is read-only, so console saves no-op with a notice until the backend is
-  wired.
+  `PORTAL_PASSWORD` (client role), `PORTAL_PM_PASSWORD` (unlocks `/portal/console`,
+  the "New project" action, and the dashed PM annotations), and
+  `PORTAL_SESSION_SECRET`. See `.env.example`.
+- **Content**: one file per project in `src/portal-data/<slug>.json`, listed in
+  `src/portal-data/index.json` (card summaries). The console edits `<slug>.json` and
+  refreshes the index — writes work in local dev; on Vercel the runtime filesystem is
+  read-only, so console saves no-op with a notice until the backend is wired.
 - **Backend swap**: when the API in `docs/portal-api-contract.md` exists, set
-  `PORTAL_API_URL` and replace the two functions in `src/lib/portal/data.ts`. Nothing
+  `PORTAL_API_URL` and replace the four functions in `src/lib/portal/data.ts`. Nothing
   else changes.
 
 ## Learn More

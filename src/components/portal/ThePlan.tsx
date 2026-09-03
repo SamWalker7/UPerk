@@ -1,6 +1,6 @@
-import { Section, Card } from "./Section";
 import { PmAnnotation } from "./PmAnnotation";
-import type { PortalData, PortalRole } from "@/lib/portal/types";
+import { Card, SectionTitle } from "./ui";
+import type { ProjectData, PortalRole } from "@/lib/portal/types";
 
 const LABEL_W = 168; // px
 
@@ -27,9 +27,11 @@ function monthTicks(startISO: string, endISO: string) {
 export function ThePlan({
   plan,
   role,
+  slug,
 }: {
-  plan: PortalData["plan"];
+  plan: ProjectData["plan"];
   role: PortalRole;
+  slug: string;
 }) {
   const start = new Date(plan.axisStart + "T00:00:00").getTime();
   const end = new Date(plan.axisEnd + "T00:00:00").getTime();
@@ -41,21 +43,23 @@ export function ThePlan({
   const ticks = monthTicks(plan.axisStart, plan.axisEnd);
 
   return (
-    <Section title="The plan" aside={plan.rangeLabel}>
+    <div>
+      <SectionTitle title="The plan" aside={plan.rangeLabel} />
       <Card>
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto pt-4">
           <div className="min-w-[640px]">
             {/* Today marker overlays the bar track, offset past the label column */}
             <div className="relative">
               {showToday ? (
                 <div
-                  className="pointer-events-none absolute top-0 z-10 w-px bg-slate-800 dark:bg-slate-200"
+                  className="pointer-events-none absolute z-10 w-px bg-[var(--p-text)]"
                   style={{
+                    top: "0.25rem",
                     left: `calc(${LABEL_W}px + (100% - ${LABEL_W}px) * ${todayLeft / 100})`,
-                    height: `${plan.phases.length * 44 + 8}px`,
+                    height: `${plan.phases.length * 44 + 4}px`,
                   }}
                 >
-                  <span className="absolute -top-3 -translate-x-1/2 whitespace-nowrap rounded-full bg-slate-900 px-2 py-0.5 text-[11px] font-semibold text-white dark:bg-slate-100 dark:text-slate-900">
+                  <span className="absolute -top-4 -translate-x-1/2 whitespace-nowrap rounded-full bg-[var(--p-text)] px-2 py-0.5 text-[11px] font-semibold text-[var(--p-surface)]">
                     Today
                   </span>
                 </div>
@@ -76,22 +80,22 @@ export function ThePlan({
                         <span
                           className={`h-2.5 w-2.5 shrink-0 rounded-full ${
                             done
-                              ? "bg-sky-300"
+                              ? "bg-[var(--p-accent)]/60"
                               : now
-                                ? "bg-blue-600"
-                                : "border border-slate-300 bg-transparent dark:border-slate-600"
+                                ? "bg-[var(--p-accent)]"
+                                : "border border-[var(--p-border)] bg-transparent"
                           }`}
                         />
                         <span className={now ? "font-semibold" : ""}>{phase.name}</span>
                       </div>
-                      <div className="relative h-8 flex-1 rounded-full bg-slate-100 dark:bg-slate-800">
+                      <div className="relative h-8 flex-1 rounded-full bg-[var(--p-surface-2)]">
                         <div
                           className={`absolute inset-y-0 flex items-center rounded-full px-3 text-[12px] font-medium ${
                             done
-                              ? "bg-sky-200 text-sky-900"
+                              ? "bg-[var(--p-accent)]/25 text-[var(--p-text)]"
                               : now
-                                ? "bg-blue-600 text-white"
-                                : "border border-dashed border-slate-300 text-slate-400 dark:border-slate-600"
+                                ? "bg-[var(--p-accent)] text-white"
+                                : "border border-dashed border-[var(--p-border)] text-[var(--p-text-dim)]"
                           }`}
                           style={{ left: `${left}%`, width: `${width}%` }}
                         >
@@ -106,7 +110,7 @@ export function ThePlan({
 
             <div className="flex">
               <div className="shrink-0" style={{ width: LABEL_W }} />
-              <div className="relative mt-2 h-4 flex-1 text-[11px] text-slate-400">
+              <div className="relative mt-2 h-4 flex-1 text-[11px] text-[var(--p-text-dim)]">
                 {ticks.map((tk) => (
                   <span
                     key={tk.date}
@@ -121,24 +125,24 @@ export function ThePlan({
           </div>
         </div>
 
-        <div className="mt-6 grid gap-4 border-t border-slate-100 pt-5 dark:border-slate-800 sm:grid-cols-2 lg:grid-cols-4">
-          {plan.milestones.map((m) => (
-            <div key={m.title}>
-              <p className="text-[13px] font-semibold">{m.title}</p>
-              <p className="mt-0.5 text-[12px] text-slate-500 dark:text-slate-400">
-                {m.body}
-              </p>
-            </div>
-          ))}
-        </div>
+        {plan.milestones.length > 0 ? (
+          <div className="mt-6 grid gap-4 border-t border-[var(--p-border)] pt-5 sm:grid-cols-2 lg:grid-cols-4">
+            {plan.milestones.map((m) => (
+              <div key={m.title}>
+                <p className="text-[13px] font-semibold">{m.title}</p>
+                <p className="mt-0.5 text-[12px] text-[var(--p-text-dim)]">{m.body}</p>
+              </div>
+            ))}
+          </div>
+        ) : null}
 
         {role === "pm" ? (
-          <PmAnnotation linkLabel="Edit phases" href="/portal/console">
+          <PmAnnotation linkLabel="Edit phases" href={`/portal/console?p=${slug}`}>
             Edit dates in the console. Moving a date asks for a one-line reason, published
             with the change.
           </PmAnnotation>
         ) : null}
       </Card>
-    </Section>
+    </div>
   );
 }

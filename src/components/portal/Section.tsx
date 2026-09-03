@@ -1,24 +1,31 @@
 import type { ReactNode } from "react";
+import { cn } from "@/lib/utils";
 
+/** Legacy wrapper kept for the tab section components. On a project tab the tab
+ *  itself supplies the page context, so `bare` drops the outer heading. */
 export function Section({
   id,
   title,
   aside,
+  bare,
   children,
 }: {
   id?: string;
-  title: string;
+  title?: string;
   aside?: ReactNode;
+  bare?: boolean;
   children: ReactNode;
 }) {
   return (
-    <section id={id} className="mx-auto w-full max-w-6xl px-4 pt-12">
-      <div className="mb-4 flex items-end justify-between gap-4">
-        <h2 className="text-2xl font-bold tracking-tight">{title}</h2>
-        {aside ? (
-          <div className="text-[13px] text-slate-500 dark:text-slate-400">{aside}</div>
-        ) : null}
-      </div>
+    <section id={id} className="w-full">
+      {!bare && title ? (
+        <div className="mb-4 flex items-end justify-between gap-4">
+          <h2 className="text-lg font-bold tracking-tight">{title}</h2>
+          {aside ? (
+            <div className="text-[13px] text-[var(--p-text-dim)]">{aside}</div>
+          ) : null}
+        </div>
+      ) : null}
       {children}
     </section>
   );
@@ -26,14 +33,17 @@ export function Section({
 
 export function Card({
   children,
-  className = "",
+  className,
 }: {
   children: ReactNode;
   className?: string;
 }) {
   return (
     <div
-      className={`rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900 ${className}`}
+      className={cn(
+        "rounded-2xl border border-[var(--p-border)] bg-[var(--p-surface)] p-6",
+        className,
+      )}
     >
       {children}
     </div>

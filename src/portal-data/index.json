@@ -1,0 +1,32 @@
+{
+  "projects": [
+    {
+      "slug": "forkthis",
+      "name": "ForkThis!",
+      "client": "ForkThis Nutrition",
+      "currentPhase": "Development",
+      "statusLabel": "On track",
+      "statusTone": "ok",
+      "daysToLaunch": 65,
+      "launchDate": "Fri 6 Nov",
+      "screensBuilt": 11,
+      "screensTotal": 18,
+      "openRequests": 2,
+      "updatedAt": "Wed 2 Sept, 9:14"
+    },
+    {
+      "slug": "northwind",
+      "name": "Northwind Field App",
+      "client": "Northwind Logistics",
+      "currentPhase": "QA & beta",
+      "statusLabel": "Watch",
+      "statusTone": "warn",
+      "daysToLaunch": 24,
+      "launchDate": "Mon 29 Sept",
+      "screensBuilt": 22,
+      "screensTotal": 24,
+      "openRequests": 1,
+      "updatedAt": "Tue 1 Sept, 16:40"
+    }
+  ]
+}

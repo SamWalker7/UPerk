@@ -37,18 +37,18 @@ export default function LoginForm({ next }: { next?: string }) {
   return (
     <form onSubmit={handleSubmit} className="mt-5 space-y-3">
       <div>
-        <label className="mb-1 block text-[13px] font-medium text-slate-700 dark:text-slate-300">
+        <label className="mb-1 block text-[13px] font-medium text-[var(--p-text-dim)]">
           Username
         </label>
         <input
           value={username}
           onChange={(e) => setUsername(e.target.value)}
           autoComplete="username"
-          className="w-full rounded-lg border border-slate-200 bg-transparent px-3 py-2 text-[14px] outline-none focus:border-blue-500 dark:border-slate-700"
+          className="w-full rounded-lg border border-[var(--p-border)] bg-transparent px-3 py-2 text-[14px] outline-none focus:border-[var(--p-accent)]"
         />
       </div>
       <div>
-        <label className="mb-1 block text-[13px] font-medium text-slate-700 dark:text-slate-300">
+        <label className="mb-1 block text-[13px] font-medium text-[var(--p-text-dim)]">
           Password
         </label>
         <input
@@ -56,14 +56,14 @@ export default function LoginForm({ next }: { next?: string }) {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           autoComplete="current-password"
-          className="w-full rounded-lg border border-slate-200 bg-transparent px-3 py-2 text-[14px] outline-none focus:border-blue-500 dark:border-slate-700"
+          className="w-full rounded-lg border border-[var(--p-border)] bg-transparent px-3 py-2 text-[14px] outline-none focus:border-[var(--p-accent)]"
         />
       </div>
-      {error && <p className="text-[13px] text-red-600 dark:text-red-400">{error}</p>}
+      {error && <p className="text-[13px] text-[var(--p-risk)]">{error}</p>}
       <button
         type="submit"
         disabled={loading || !username || !password}
-        className="w-full rounded-lg bg-blue-600 px-4 py-2 text-[14px] font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-40"
+        className="w-full rounded-lg bg-[var(--p-accent)] px-4 py-2 text-[14px] font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-40"
       >
         {loading ? "Signing in…" : "Sign in"}
       </button>

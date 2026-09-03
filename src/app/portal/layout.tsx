@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
+import "./portal.css";
 
 export const metadata: Metadata = {
   title: "Client portal | Universal Perk",
@@ -8,7 +9,7 @@ export const metadata: Metadata = {
 
 export default function PortalLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="min-h-screen bg-[#eef1f5] text-slate-900 dark:bg-[#080c15] dark:text-slate-100">
+    <div className="portal-scope min-h-screen">
       {children}
     </div>
   );

@@ -1,37 +1,56 @@
 import { redirect } from "next/navigation";
-import Link from "next/link";
 import { getPortalRole } from "@/lib/portal/session";
-import { readPortalData } from "@/lib/portal/data";
+import { listProjects, readProject } from "@/lib/portal/data";
+import { PortalTopBar } from "@/components/portal/PortalTopBar";
 import ConsoleEditor from "@/components/portal/console/ConsoleEditor";
+import { ConsoleProjectPicker } from "@/components/portal/console/ConsoleProjectPicker";
+import { NewProjectDialog } from "@/components/portal/NewProjectDialog";
 
 export const dynamic = "force-dynamic";
 
-export default async function ConsolePage() {
+export default async function ConsolePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ p?: string }>;
+}) {
   const role = await getPortalRole();
   if (role !== "pm") redirect("/portal");
 
-  const data = await readPortalData();
+  const projects = await listProjects();
+  const { p } = await searchParams;
+  const selected =
+    (p && projects.find((x) => x.slug === p)?.slug) || projects[0]?.slug;
+
+  const data = selected ? await readProject(selected) : null;
 
   return (
-    <main className="mx-auto w-full max-w-4xl px-4 pb-24 pt-8">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <span className="inline-block h-5 w-5 rounded bg-blue-600" />
-          <h1 className="text-lg font-semibold">PM console — {data.project.name}</h1>
-        </div>
-        <Link
-          href="/portal"
-          className="text-[13px] text-blue-700 underline underline-offset-2 dark:text-blue-300"
-        >
-          ← Back to client view
-        </Link>
-      </div>
-      <p className="mt-1 text-[13px] text-slate-500 dark:text-slate-400">
-        Edits are written to <code>src/portal-data/portal.json</code> in local dev.
-        Production is read-only until the backend API is connected.
-      </p>
+    <main>
+      <PortalTopBar role={role} crumb="PM console" showConsoleLink={false} />
 
-      <ConsoleEditor initialData={data} />
+      <div className="mx-auto w-full max-w-4xl px-4 pb-24 pt-8">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <h1 className="text-lg font-semibold">PM console</h1>
+            <ConsoleProjectPicker
+              projects={projects.map((x) => ({ slug: x.slug, name: x.name }))}
+              selected={selected}
+            />
+          </div>
+          <NewProjectDialog />
+        </div>
+        <p className="mt-1 text-[13px] text-[var(--p-text-dim)]">
+          Edits are written to <code>src/portal-data/&lt;slug&gt;.json</code> in local
+          dev. Production is read-only until the backend API is connected.
+        </p>
+
+        {data ? (
+          <ConsoleEditor key={data.slug} initialData={data} slug={data.slug} />
+        ) : (
+          <p className="mt-8 text-[13px] text-[var(--p-text-dim)]">
+            No projects yet. Create one to start editing.
+          </p>
+        )}
+      </div>
     </main>
   );
 }

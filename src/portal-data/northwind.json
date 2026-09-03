@@ -1,0 +1,111 @@
+{
+  "slug": "northwind",
+  "project": {
+    "name": "Northwind Field App",
+    "client": "Northwind Logistics",
+    "updatedAt": "Tue 1 Sept, 16:40",
+    "updatedBy": "Marco (PM)"
+  },
+  "status": {
+    "currentPhase": "QA & beta",
+    "phaseSubtitle": "Phase 3 of 4 — ends 19 Sept",
+    "daysToLaunch": 24,
+    "launchDate": "Mon 29 Sept",
+    "launchNote": "Pulled in one week after a clean beta",
+    "screensBuilt": 22,
+    "screensTotal": 24,
+    "statusLabel": "Watch",
+    "statusBody": "Beta crash rate is above target on older Android. Fix is in review.",
+    "thisWeek": "Route sync went from 40 seconds to under 5 on a full depot load. Driver sign-off screen shipped.",
+    "upNext": "Offline photo capture for damaged pallets, and the depot handover report.",
+    "neededFromYou": "Confirm the three depots for the beta rollout so we can pre-load their route data.",
+    "neededLinkLabel": "Go to it",
+    "neededLink": "#waiting-on-you"
+  },
+  "steps": [
+    { "label": "Design — done", "state": "done" },
+    { "label": "Development — done", "state": "done" },
+    { "label": "QA & beta — now", "state": "now" },
+    { "label": "Launch", "state": "upcoming" }
+  ],
+  "requests": [
+    {
+      "id": "beta-depots",
+      "title": "Confirm the three beta depots",
+      "status": "open",
+      "daysOpen": 2,
+      "blocking": true,
+      "body": "We need the depot names and their dispatch leads so route data is pre-loaded before drivers install the app.",
+      "subNote": "Pre-load takes a day per depot — confirming by Thursday keeps the 15 Sept beta start.",
+      "actions": [
+        { "label": "Send the list", "kind": "primary" },
+        { "label": "Discuss on the call", "kind": "secondary" }
+      ],
+      "pmNote": "Raise a request, set assignee and due date, and choose what the client's buttons say."
+    }
+  ],
+  "build": {
+    "version": "1.2.0-rc3",
+    "date": "1 Sept",
+    "screensBuilt": 22,
+    "screensTotal": 24,
+    "knownIssues": "1 blocking (Android 10 crash), 4 minor",
+    "testedOn": "Pixel 6, Galaxy A14, iPhone 13"
+  },
+  "prototype": {
+    "prototypeUrl": "",
+    "installUrl": "",
+    "figmaUrl": "",
+    "embedUrl": "",
+    "caption": "Beta build 1.2.0-rc3 — 1 Sept, 16:10",
+    "frameLabel": "Embedded prototype — Route list",
+    "installLabel": "Install RC3",
+    "pmNote": "Paste a Figma prototype URL and a TestFlight or Play link; the embed and the buttons update together."
+  },
+  "plan": {
+    "rangeLabel": "12 May — 29 September",
+    "axisStart": "2026-05-01",
+    "axisEnd": "2026-10-15",
+    "phases": [
+      { "id": "design", "name": "Design", "state": "done", "start": "2026-05-12", "end": "2026-06-20", "rangeLabel": "12 May — 20 Jun" },
+      { "id": "development", "name": "Development", "state": "done", "start": "2026-06-22", "end": "2026-08-22", "rangeLabel": "22 Jun — 22 Aug" },
+      { "id": "qa-beta", "name": "QA & beta", "state": "now", "start": "2026-08-22", "end": "2026-09-19", "rangeLabel": "22 Aug — 19 Sept" },
+      { "id": "launch", "name": "Launch", "state": "upcoming", "start": "2026-09-19", "end": "2026-09-29", "rangeLabel": "" }
+    ],
+    "milestones": [
+      { "title": "Development complete", "body": "Signed off 22 Aug" },
+      { "title": "Beta starts 15 Sept", "body": "Three depots, ~60 drivers" },
+      { "title": "Android fix", "body": "In review, expected 5 Sept" },
+      { "title": "Launch 29 Sept", "body": "Depot-by-depot over that week" }
+    ]
+  },
+  "finishedScreens": [
+    { "id": "route-sync", "name": "Route sync", "date": "1 Sept" },
+    { "id": "driver-signoff", "name": "Driver sign-off", "date": "1 Sept" },
+    { "id": "pallet-scan", "name": "Pallet scan", "date": "26 Aug" },
+    { "id": "depot-switch", "name": "Depot switcher", "date": "20 Aug" }
+  ],
+  "decisionsIntro": "Everything on this list is settled and being built. If something here is wrong, say so — we change it and date the change.",
+  "decisions": [
+    {
+      "id": "android-min",
+      "date": "29 Aug",
+      "body": "Minimum Android is 10. Devices below that get a web fallback, not the app.",
+      "attribution": "Agreed with the Northwind IT team",
+      "link": { "label": "Doc", "url": "#" }
+    },
+    {
+      "id": "photo-storage",
+      "date": "18 Aug",
+      "body": "Damage photos are kept 90 days then deleted automatically.",
+      "attribution": "Set by Northwind compliance"
+    },
+    {
+      "id": "offline-first",
+      "date": "4 Jul",
+      "body": "The app is offline-first. Every screen must work with no signal and reconcile later.",
+      "attribution": "Scope agreed at kick-off"
+    }
+  ],
+  "nextCall": { "label": "Next call: Thursday 3 Sept, 15:00.", "agendaUrl": "#" }
+}

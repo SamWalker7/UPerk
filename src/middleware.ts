@@ -26,8 +26,8 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // Console pages are PM-only. The PUT /portal/api/data handler re-checks the
-  // role itself, so guarding the console UI here is enough.
+  // Console pages are PM-only. The projects API handlers re-check the role
+  // themselves for writes, so guarding the console UI here is enough.
   const isConsole =
     pathname === "/portal/console" || pathname.startsWith("/portal/console/");
   if (role !== "pm" && isConsole) {

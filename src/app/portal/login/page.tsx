@@ -21,12 +21,12 @@ export default async function PortalLoginPage({
     <div className="flex min-h-screen items-center justify-center px-4">
       <div className="w-full max-w-sm">
         <div className="mb-6 flex items-center gap-2">
-          <span className="inline-block h-5 w-5 rounded bg-blue-600" />
+          <span className="inline-block h-5 w-5 rounded bg-[var(--p-accent)]" />
           <span className="text-[15px] font-semibold">Universal Perk</span>
         </div>
-        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <div className="rounded-2xl border border-[var(--p-border)] bg-[var(--p-surface)] p-6">
           <h1 className="text-lg font-bold">Client portal</h1>
-          <p className="mt-1 text-[13px] text-slate-500 dark:text-slate-400">
+          <p className="mt-1 text-[13px] text-[var(--p-text-dim)]">
             Sign in with the shared account we sent you.
           </p>
           <LoginForm next={next} />

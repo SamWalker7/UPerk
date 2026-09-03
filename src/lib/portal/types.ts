@@ -1,7 +1,7 @@
 // Shared data model for the client portal.
 // This is the single source of truth for the shape returned by the future
-// backend API (see docs/portal-api-contract.md). For v1 it is filled from
-// src/portal-data/portal.json.
+// backend API (see docs/portal-api-contract.md). For v2 each project is one
+// file in src/portal-data/<slug>.json, listed in src/portal-data/index.json.
 
 export type StepState = "done" | "now" | "upcoming";
 
@@ -118,9 +118,13 @@ export type PortalStatus = {
   neededLink?: string;
 };
 
-export type PortalData = {
+export type ProjectData = {
+  /** URL slug; also the data filename (src/portal-data/<slug>.json) */
+  slug: string;
   project: {
     name: string;
+    /** the client company / team this project belongs to */
+    client: string;
     /** human string, e.g. "Wed 2 Sept, 9:14" */
     updatedAt: string;
     updatedBy: string;
@@ -145,4 +149,37 @@ export type PortalData = {
   nextCall?: { label: string; agendaUrl?: string };
 };
 
+/** @deprecated use ProjectData */
+export type PortalData = ProjectData;
+
+export type StatusTone = "ok" | "warn" | "risk";
+
+/** Card-level summary shown on the projects list, without loading a full ProjectData. */
+export type ProjectSummary = {
+  slug: string;
+  name: string;
+  client: string;
+  currentPhase: string;
+  statusLabel: string;
+  statusTone: StatusTone;
+  daysToLaunch: number;
+  launchDate: string;
+  screensBuilt: number;
+  screensTotal: number;
+  openRequests: number;
+  updatedAt: string;
+};
+
+export type ProjectIndex = { projects: ProjectSummary[] };
+
 export type PortalRole = "client" | "pm";
+
+/** The five tabs on a project page. */
+export const PROJECT_TABS = [
+  "overview",
+  "requests",
+  "prototype",
+  "timeline",
+  "decisions",
+] as const;
+export type ProjectTab = (typeof PROJECT_TABS)[number];

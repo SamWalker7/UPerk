@@ -1,6 +1,8 @@
 {
+  "slug": "forkthis",
   "project": {
     "name": "ForkThis!",
+    "client": "ForkThis Nutrition",
     "updatedAt": "Wed 2 Sept, 9:14",
     "updatedBy": "Nadia (PM)"
   },

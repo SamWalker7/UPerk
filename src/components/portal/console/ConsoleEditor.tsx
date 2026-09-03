@@ -6,7 +6,7 @@ import type {
   ClientRequest,
   Decision,
   FinishedScreen,
-  PortalData,
+  ProjectData,
 } from "@/lib/portal/types";
 import { Field, NumberField, Group } from "./fields";
 
@@ -14,17 +14,23 @@ function uid(prefix: string) {
   return `${prefix}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
-export default function ConsoleEditor({ initialData }: { initialData: PortalData }) {
+export default function ConsoleEditor({
+  initialData,
+  slug,
+}: {
+  initialData: ProjectData;
+  slug: string;
+}) {
   const router = useRouter();
-  const [data, setData] = useState<PortalData>(initialData);
+  const [data, setData] = useState<ProjectData>(initialData);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ kind: "ok" | "warn" | "err"; text: string } | null>(
     null,
   );
 
-  function patch(fn: (draft: PortalData) => void) {
+  function patch(fn: (draft: ProjectData) => void) {
     setData((prev) => {
-      const next = structuredClone(prev) as PortalData;
+      const next = structuredClone(prev) as ProjectData;
       fn(next);
       return next;
     });
@@ -34,7 +40,7 @@ export default function ConsoleEditor({ initialData }: { initialData: PortalData
     setSaving(true);
     setMessage(null);
     try {
-      const res = await fetch("/portal/api/data", {
+      const res = await fetch(`/portal/api/projects/${slug}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
@@ -60,11 +66,11 @@ export default function ConsoleEditor({ initialData }: { initialData: PortalData
   return (
     <div className="mt-6 space-y-4">
       {/* Sticky save bar */}
-      <div className="sticky top-0 z-20 -mx-4 flex items-center gap-3 border-b border-slate-200 bg-[#eef1f5]/90 px-4 py-3 backdrop-blur dark:border-slate-800 dark:bg-[#080c15]/90">
+      <div className="sticky top-0 z-20 -mx-4 flex items-center gap-3 border-b border-[var(--p-border)] bg-[var(--p-bg)]/90 px-4 py-3 backdrop-blur">
         <button
           onClick={save}
           disabled={saving}
-          className="rounded-lg bg-blue-600 px-4 py-2 text-[13px] font-semibold text-white hover:opacity-90 disabled:opacity-40"
+          className="rounded-lg bg-[var(--p-accent)] px-4 py-2 text-[13px] font-semibold text-white hover:opacity-90 disabled:opacity-40"
         >
           {saving ? "Saving…" : "Save changes"}
         </button>
@@ -72,10 +78,10 @@ export default function ConsoleEditor({ initialData }: { initialData: PortalData
           <span
             className={`text-[13px] ${
               message.kind === "ok"
-                ? "text-emerald-600 dark:text-emerald-400"
+                ? "text-[var(--p-ok)]"
                 : message.kind === "warn"
-                  ? "text-amber-600 dark:text-amber-400"
-                  : "text-red-600 dark:text-red-400"
+                  ? "text-[var(--p-warn)]"
+                  : "text-[var(--p-risk)]"
             }`}
           >
             {message.text}
@@ -89,6 +95,11 @@ export default function ConsoleEditor({ initialData }: { initialData: PortalData
             label="Project name"
             value={data.project.name}
             onChange={(v) => patch((d) => (d.project.name = v))}
+          />
+          <Field
+            label="Client"
+            value={data.project.client}
+            onChange={(v) => patch((d) => (d.project.client = v))}
           />
           <Field
             label="Updated by"
@@ -320,7 +331,7 @@ function RequestsEditor({
       {requests.map((r, i) => (
         <div
           key={r.id}
-          className="rounded-xl border border-slate-200 p-4 dark:border-slate-700"
+          className="rounded-xl border border-[var(--p-border)] p-4"
         >
           <div className="grid gap-3 sm:grid-cols-2">
             <Field
@@ -419,7 +430,7 @@ function RequestsEditor({
           </div>
           <button
             onClick={() => onChange(requests.filter((_, j) => j !== i))}
-            className="mt-3 text-[12px] text-red-600 underline underline-offset-2"
+            className="mt-3 text-[12px] text-[var(--p-risk)] underline underline-offset-2"
           >
             Remove request
           </button>
@@ -427,7 +438,7 @@ function RequestsEditor({
       ))}
       <button
         onClick={add}
-        className="text-[13px] font-medium text-blue-700 underline underline-offset-2 dark:text-blue-300"
+        className="text-[13px] font-medium text-[var(--p-accent)] underline underline-offset-2"
       >
         + New client request
       </button>
@@ -441,10 +452,10 @@ function PhasesEditor({
   plan,
   onChange,
 }: {
-  plan: PortalData["plan"];
-  onChange: (p: PortalData["plan"]) => void;
+  plan: ProjectData["plan"];
+  onChange: (p: ProjectData["plan"]) => void;
 }) {
-  function updatePhase(i: number, fn: (p: PortalData["plan"]["phases"][number]) => void) {
+  function updatePhase(i: number, fn: (p: ProjectData["plan"]["phases"][number]) => void) {
     const next = structuredClone(plan);
     fn(next.phases[i]);
     onChange(next);
@@ -477,7 +488,7 @@ function PhasesEditor({
       {plan.phases.map((p, i) => (
         <div
           key={p.id}
-          className="grid gap-3 rounded-xl border border-slate-200 p-4 dark:border-slate-700 sm:grid-cols-2"
+          className="grid gap-3 rounded-xl border border-[var(--p-border)] p-4 sm:grid-cols-2"
         >
           <Field
             label="Name"
@@ -485,7 +496,7 @@ function PhasesEditor({
             onChange={(v) => updatePhase(i, (x) => (x.name = v))}
           />
           <label className="block">
-            <span className="mb-1 block text-[12px] font-medium text-slate-600 dark:text-slate-300">
+            <span className="mb-1 block text-[12px] font-medium text-[var(--p-text-dim)]">
               State
             </span>
             <select
@@ -497,7 +508,7 @@ function PhasesEditor({
                     (x.state = e.target.value as "done" | "now" | "upcoming"),
                 )
               }
-              className="w-full rounded-lg border border-slate-200 bg-transparent px-3 py-2 text-[13px] dark:border-slate-700"
+              className="w-full rounded-lg border border-[var(--p-border)] bg-transparent px-3 py-2 text-[13px]"
             >
               <option value="done">done</option>
               <option value="now">now</option>
@@ -577,7 +588,7 @@ function ScreensEditor({
             </div>
             <button
               onClick={() => onChange(screens.filter((_, j) => j !== i))}
-              className="pb-2 text-[12px] text-red-600 underline underline-offset-2"
+              className="pb-2 text-[12px] text-[var(--p-risk)] underline underline-offset-2"
             >
               Remove
             </button>
@@ -591,7 +602,7 @@ function ScreensEditor({
             ...screens,
           ])
         }
-        className="text-[13px] font-medium text-blue-700 underline underline-offset-2 dark:text-blue-300"
+        className="text-[13px] font-medium text-[var(--p-accent)] underline underline-offset-2"
       >
         + Add screen
       </button>
@@ -618,7 +629,7 @@ function DecisionsEditor({
       {decisions.map((d, i) => (
         <div
           key={d.id}
-          className="rounded-xl border border-slate-200 p-4 dark:border-slate-700"
+          className="rounded-xl border border-[var(--p-border)] p-4"
         >
           <div className="grid gap-3 sm:grid-cols-3">
             <Field
@@ -680,7 +691,7 @@ function DecisionsEditor({
             ...decisions,
           ])
         }
-        className="text-[13px] font-medium text-blue-700 underline underline-offset-2 dark:text-blue-300"
+        className="text-[13px] font-medium text-[var(--p-accent)] underline underline-offset-2"
       >
         + Log a decision
       </button>

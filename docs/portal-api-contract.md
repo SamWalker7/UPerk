@@ -1,24 +1,27 @@
 # Client Portal — Backend API Contract
 
-The client portal (this repo, `/portal`) currently reads a committed JSON file
-(`src/portal-data/portal.json`). This document is the contract for the backend service
-that will replace it. When the service exists:
+The client portal (this repo, `/portal`) currently reads JSON files from
+`src/portal-data/` — one `<slug>.json` per project plus an `index.json` of card
+summaries. This document is the contract for the backend service that will replace it.
+When the service exists:
 
 - Set `PORTAL_API_URL` in the portal's Vercel env.
-- Replace the bodies of `readPortalData()` / `writePortalData()` in
-  `src/lib/portal/data.ts` with `fetch()` calls. **No component or type changes.**
+- Replace the bodies of the functions in `src/lib/portal/data.ts`
+  (`listProjects`, `readProject`, `writeProject`, `createProject`) with `fetch()`
+  calls. **No component or type changes.**
 
-The response/request body is the `PortalData` object defined in
-`src/lib/portal/types.ts` — treat that file as the schema of record.
+The per-project body is the `ProjectData` object defined in
+`src/lib/portal/types.ts` — treat that file as the schema of record. `index.json` /
+`ProjectSummary` is a portal-side convenience; the backend replaces it with a list
+query and can compute the summary fields itself.
 
 ---
 
 ## Auth
 
-Shared credentials, no user accounts (v1). The portal itself handles login today via
-env vars (`PORTAL_USER`, `PORTAL_PASSWORD`, `PORTAL_PM_PASSWORD`) and a signed cookie.
-
-If the backend takes over auth later:
+Shared credentials, no user accounts. The portal handles login today via env vars
+(`PORTAL_USER`, `PORTAL_PASSWORD`, `PORTAL_PM_PASSWORD`) and a signed cookie. If the
+backend takes over auth later:
 
 ```
 POST /api/portal/auth/login
@@ -27,44 +30,67 @@ POST /api/portal/auth/login
   401:   { "error": string }
 ```
 
-All other calls send `Authorization: Bearer <token>`. `role: "pm"` is required for every
-write.
+All other calls send `Authorization: Bearer <token>`. `role: "pm"` is required for
+every write.
 
 ---
 
-## Read
+## Projects collection
+
+### List
 
 ```
-GET /api/portal/:projectId
-  200: PortalData
-  401 / 404: { "error": string }
+GET /api/projects
+  200: { "projects": ProjectSummary[] }
 ```
 
-`:projectId` — for v1 there is one project; a constant id (e.g. `forkthis`) is fine.
+`ProjectSummary` = `{ slug, name, client, currentPhase, statusLabel, statusTone
+("ok"|"warn"|"risk"), daysToLaunch, launchDate, screensBuilt, screensTotal,
+openRequests, updatedAt }`.
 
----
-
-## Write (PM only)
-
-### Full replace (what the console uses today)
+### Create (PM only)
 
 ```
-PUT /api/portal/:projectId
-  body: PortalData
-  200:  { "ok": true }
+POST /api/projects
+  body: { "name": string, "client": string }
+  201:  { "ok": true, "slug": string }
+  400:  { "error": string }   // missing name
   403:  { "error": "PM access required" }
-  400:  { "error": string }
 ```
+
+Server assigns the slug (`slugify(name)`, collision → `-2`, `-3`, …) and seeds an
+empty project (4 standard phases, empty requests/decisions/screens).
+
+### Read one
+
+```
+GET /api/projects/:slug
+  200: ProjectData
+  404: { "error": "Not found" }
+```
+
+### Replace (PM only) — what the console uses
+
+```
+PUT /api/projects/:slug
+  body: ProjectData
+  200:  { "ok": true }
+  400:  { "error": string }   // malformed
+  403:  { "error": "PM access required" }
+```
+
+The portal recomputes the project's summary after a successful PUT; a real backend
+should keep its own summary/list projection in sync.
 
 ### Granular routes (optional, nicer for the console later)
 
 ```
-PATCH /api/portal/:projectId/status        body: Partial<PortalStatus>
-PATCH /api/portal/:projectId/plan          body: Partial<PortalData["plan"]>
-POST  /api/portal/:projectId/requests      body: Omit<ClientRequest,"id">   -> { id }
-PATCH /api/portal/:projectId/requests/:id  body: Partial<ClientRequest>
-POST  /api/portal/:projectId/decisions     body: Omit<Decision,"id">        -> { id }
-POST  /api/portal/:projectId/screens       body: Omit<FinishedScreen,"id">  -> { id }
+PATCH /api/projects/:slug/status        body: Partial<PortalStatus>
+PATCH /api/projects/:slug/plan           body: Partial<ProjectData["plan"]>
+POST  /api/projects/:slug/requests       body: Omit<ClientRequest,"id">   -> { id }
+PATCH /api/projects/:slug/requests/:id   body: Partial<ClientRequest>
+POST  /api/projects/:slug/decisions      body: Omit<Decision,"id">        -> { id }
+POST  /api/projects/:slug/screens        body: Omit<FinishedScreen,"id">  -> { id }
 ```
 
 Decisions are append-or-supersede only — never hard-delete (`supersededBy` points at
@@ -72,18 +98,16 @@ the replacement).
 
 ---
 
-## Client actions (post-v1 — not built yet)
+## Client actions (not built yet)
 
-Buttons like "Choose A", "Mark as done", "Resend the invite" are display-only in v1.
-When wired:
+Buttons like "Choose A", "Mark as done", "Send the list" are display-only until this
+exists. When wired (callable with the `client` role):
 
 ```
-POST /api/portal/:projectId/requests/:id/respond   body: { "choice": string }
-POST /api/portal/:projectId/requests/:id/resend
-POST /api/portal/:projectId/requests/:id/done
+POST /api/projects/:slug/requests/:id/respond   body: { "choice": string }
+POST /api/projects/:slug/requests/:id/resend
+POST /api/projects/:slug/requests/:id/done
 ```
-
-These are callable with the `client` role.
 
 ---
 
@@ -93,11 +117,12 @@ All non-2xx responses: `{ "error": string }`, optionally `{ "details": unknown }
 
 ---
 
-## `PortalData` shape (summary — `types.ts` is authoritative)
+## `ProjectData` shape (summary — `types.ts` is authoritative)
 
 ```ts
-PortalData = {
-  project:  { name, updatedAt, updatedBy }
+ProjectData = {
+  slug: string
+  project:  { name, client, updatedAt, updatedBy }
   status:   { currentPhase, phaseSubtitle, daysToLaunch, launchDate, launchNote,
               screensBuilt, screensTotal, statusLabel, statusBody,
               thisWeek, upNext, neededFromYou, neededLinkLabel?, neededLink? }

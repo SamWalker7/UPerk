@@ -1,11 +1,11 @@
-import { Section } from "./Section";
 import { PmAnnotation } from "./PmAnnotation";
+import { SectionTitle } from "./ui";
 import type { ClientRequest, PortalRole } from "@/lib/portal/types";
 
 function ActionButton({ label, kind }: { label: string; kind: string }) {
-  // Display-only in v1.
+  // Display-only until the backend is wired.
   const base =
-    "cursor-default rounded-lg px-4 py-2 text-[13px] font-semibold transition-opacity";
+    "cursor-default rounded-lg px-4 py-2 text-[13px] font-semibold";
   return (
     <button
       type="button"
@@ -13,8 +13,8 @@ function ActionButton({ label, kind }: { label: string; kind: string }) {
       title="Available after launch"
       className={
         kind === "primary"
-          ? `${base} bg-blue-700 text-white opacity-90`
-          : `${base} border border-slate-300 text-slate-700 dark:border-slate-600 dark:text-slate-200`
+          ? `${base} bg-[var(--p-accent)] text-white opacity-90`
+          : `${base} border border-[var(--p-border)] text-[var(--p-text)]`
       }
     >
       {label}
@@ -25,30 +25,30 @@ function ActionButton({ label, kind }: { label: string; kind: string }) {
 function RequestCard({
   req,
   role,
+  slug,
 }: {
   req: ClientRequest;
   role: PortalRole;
+  slug: string;
 }) {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+    <div className="rounded-2xl border border-[var(--p-border)] bg-[var(--p-surface)] p-6">
       <div className="flex items-start justify-between gap-4">
         <h3 className="flex items-center gap-2 text-[15px] font-bold">
           <span
             className={`h-2 w-2 rounded-full ${
-              req.blocking ? "bg-blue-500" : "bg-amber-500"
+              req.blocking ? "bg-[var(--p-accent)]" : "bg-[var(--p-warn)]"
             }`}
           />
           {req.title}
         </h3>
         <div className="shrink-0 text-right">
-          <p className="text-lg font-bold text-blue-700 dark:text-blue-300">
-            {req.daysOpen}
-          </p>
-          <p className="text-[11px] text-slate-400">days open</p>
+          <p className="text-lg font-bold text-[var(--p-accent)]">{req.daysOpen}</p>
+          <p className="text-[11px] text-[var(--p-text-dim)]">days open</p>
         </div>
       </div>
 
-      <p className="mt-3 text-[13px] leading-relaxed text-slate-600 dark:text-slate-300">
+      <p className="mt-3 text-[13px] leading-relaxed text-[var(--p-text-dim)]">
         {req.body}
       </p>
 
@@ -57,9 +57,9 @@ function RequestCard({
           {req.options.map((opt) => (
             <div
               key={opt.label}
-              className="rounded-xl border border-slate-200 p-4 dark:border-slate-700"
+              className="rounded-xl border border-[var(--p-border)] p-4"
             >
-              <div className="flex h-16 items-center justify-center rounded-lg bg-slate-50 text-[12px] text-slate-400 dark:bg-slate-800">
+              <div className="flex h-16 items-center justify-center rounded-lg bg-[var(--p-surface-2)] text-[12px] text-[var(--p-text-dim)]">
                 {opt.imageUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
@@ -71,7 +71,7 @@ function RequestCard({
                   "preview"
                 )}
               </div>
-              <p className="mt-2 text-[12px] font-medium text-slate-600 dark:text-slate-300">
+              <p className="mt-2 text-[12px] font-medium text-[var(--p-text)]">
                 {opt.label}
               </p>
             </div>
@@ -80,15 +80,15 @@ function RequestCard({
       ) : null}
 
       {req.note ? (
-        <div className="mt-4 rounded-lg bg-amber-50 px-4 py-3 text-[13px] text-amber-800 dark:bg-amber-500/10 dark:text-amber-300">
-          <span className="mr-1 inline-block h-2 w-2 rounded-full bg-amber-500 align-middle" />
+        <div className="mt-4 rounded-lg bg-[var(--p-warn-bg)] px-4 py-3 text-[13px] text-[var(--p-warn)]">
+          <span className="mr-1 inline-block h-2 w-2 rounded-full bg-current align-middle" />
           {req.note}
         </div>
       ) : null}
 
       {req.subNote ? (
-        <p className="mt-3 flex items-center gap-2 text-[12px] text-slate-500 dark:text-slate-400">
-          <span className="h-1.5 w-1.5 rounded-full bg-blue-500" />
+        <p className="mt-3 flex items-center gap-2 text-[12px] text-[var(--p-text-dim)]">
+          <span className="h-1.5 w-1.5 rounded-full bg-[var(--p-accent)]" />
           {req.subNote}
         </p>
       ) : null}
@@ -100,7 +100,7 @@ function RequestCard({
       </div>
 
       {role === "pm" && req.pmNote ? (
-        <PmAnnotation linkLabel="Edit request" href="/portal/console">
+        <PmAnnotation linkLabel="Edit request" href={`/portal/console?p=${slug}`}>
           {req.pmNote}
         </PmAnnotation>
       ) : null}
@@ -111,30 +111,40 @@ function RequestCard({
 export function WaitingOnYou({
   requests,
   role,
+  slug,
 }: {
   requests: ClientRequest[];
   role: PortalRole;
+  slug: string;
 }) {
   const open = requests.filter((r) => r.status === "open");
-  if (open.length === 0) return null;
 
   return (
-    <Section
-      id="waiting-on-you"
-      title="Waiting on you"
-      aside={`${open.length} open — both answerable in a minute`}
-    >
-      <div className="grid items-start gap-4 lg:grid-cols-2">
-        {open.map((req) => (
-          <RequestCard key={req.id} req={req} role={role} />
-        ))}
-      </div>
+    <div>
+      <SectionTitle
+        title="Waiting on you"
+        aside={open.length === 0 ? "Nothing open" : `${open.length} open`}
+      />
+      {open.length === 0 ? (
+        <div className="rounded-2xl border border-dashed border-[var(--p-border)] p-10 text-center text-[13px] text-[var(--p-text-dim)]">
+          You&apos;re all caught up.
+        </div>
+      ) : (
+        <div className="grid items-start gap-4 lg:grid-cols-2">
+          {open.map((req) => (
+            <RequestCard key={req.id} req={req} role={role} slug={slug} />
+          ))}
+        </div>
+      )}
       {role === "pm" ? (
-        <PmAnnotation linkLabel="+ New client request" href="/portal/console">
+        <PmAnnotation
+          linkLabel="+ New client request"
+          href={`/portal/console?p=${slug}`}
+        >
           Raise a request, set assignee and due date, and choose what the client&apos;s
           buttons say (two options, one acknowledgement, or an action + fallback).
         </PmAnnotation>
       ) : null}
-    </Section>
+    </div>
   );
 }

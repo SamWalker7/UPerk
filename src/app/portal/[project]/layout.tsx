@@ -1,0 +1,47 @@
+import type { ReactNode } from "react";
+import { notFound, redirect } from "next/navigation";
+import { getPortalRole } from "@/lib/portal/session";
+import { readProject } from "@/lib/portal/data";
+import { PortalTopBar } from "@/components/portal/PortalTopBar";
+import { ProjectHeader } from "@/components/portal/ProjectHeader";
+import { StatusHero } from "@/components/portal/StatusHero";
+import { PmBanner } from "@/components/portal/PmAnnotation";
+import { TabNav } from "@/components/portal/TabNav";
+
+export const dynamic = "force-dynamic";
+
+export default async function ProjectLayout({
+  children,
+  params,
+}: {
+  children: ReactNode;
+  params: Promise<{ project: string }>;
+}) {
+  const role = await getPortalRole();
+  if (!role) redirect("/portal/login");
+
+  const { project } = await params;
+  const data = await readProject(project);
+  if (!data) notFound();
+
+  const openRequests = data.requests.filter((r) => r.status === "open").length;
+
+  return (
+    <main className="pb-20">
+      <PortalTopBar role={role} crumb={data.project.name} showConsoleLink={false} />
+      <ProjectHeader project={data.project} slug={data.slug} role={role} />
+
+      <div className="mx-auto mt-4 w-full max-w-6xl px-4">
+        <StatusHero data={data} />
+      </div>
+
+      {role === "pm" ? <PmBanner /> : null}
+
+      <div className="mt-6">
+        <TabNav slug={data.slug} openRequests={openRequests} />
+      </div>
+
+      <div className="mx-auto w-full max-w-6xl px-4 pt-8">{children}</div>
+    </main>
+  );
+}
