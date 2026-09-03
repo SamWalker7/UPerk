@@ -1,0 +1,233 @@
+{
+  "project": {
+    "name": "ForkThis!",
+    "updatedAt": "Wed 2 Sept, 9:14",
+    "updatedBy": "Nadia (PM)"
+  },
+  "status": {
+    "currentPhase": "Development",
+    "phaseSubtitle": "Phase 2 of 4 — ends 2 Oct",
+    "daysToLaunch": 65,
+    "launchDate": "Fri 6 Nov",
+    "launchNote": "Date unchanged since kick-off",
+    "screensBuilt": 11,
+    "screensTotal": 18,
+    "statusLabel": "On track",
+    "statusBody": "No milestone has moved. One decision is waiting on you.",
+    "thisWeek": "Meal logging now works with no signal and syncs the moment you're back online. The barcode scanner read 41 of 42 test products.",
+    "upNext": "Recipe import from a pasted link, and the first working version of the weekly nutrition summary.",
+    "neededFromYou": "Pick one of the two macro-ring styles shown in the preview. We build your choice on Thursday.",
+    "neededLinkLabel": "Go to it",
+    "neededLink": "#waiting-on-you"
+  },
+  "steps": [
+    {
+      "label": "Design — done",
+      "state": "done"
+    },
+    {
+      "label": "Development — now",
+      "state": "now"
+    },
+    {
+      "label": "QA & beta",
+      "state": "upcoming"
+    },
+    {
+      "label": "Launch",
+      "state": "upcoming"
+    }
+  ],
+  "requests": [
+    {
+      "id": "macro-ring-style",
+      "title": "Choose the macro ring style",
+      "status": "open",
+      "daysOpen": 3,
+      "blocking": true,
+      "body": "Style A stacks three thin rings. Style B uses one ring with a segmented bar underneath. Both are live in the prototype's Summary screen.",
+      "subNote": "Holds up the weekly summary build, starting Thursday 3 Sept",
+      "options": [
+        {
+          "label": "Style A — three rings"
+        },
+        {
+          "label": "Style B — ring + bar"
+        }
+      ],
+      "actions": [
+        {
+          "label": "Choose A",
+          "kind": "primary"
+        },
+        {
+          "label": "Choose B",
+          "kind": "primary"
+        },
+        {
+          "label": "Discuss Friday",
+          "kind": "secondary"
+        }
+      ],
+      "pmNote": "Raise a request, set assignee and due date, and choose what the client's buttons say (two options, one acknowledgement, or an action + fallback)."
+    },
+    {
+      "id": "apple-developer-invite",
+      "title": "Accept the Apple developer invite",
+      "status": "open",
+      "daysOpen": 6,
+      "blocking": false,
+      "body": "Sent to both of you on 27 Aug. Accepting it lets us put test builds straight onto your phones instead of emailing links.",
+      "note": "Not blocking yet. Needed before beta opens 5 Oct.",
+      "actions": [
+        {
+          "label": "Resend the invite",
+          "kind": "secondary"
+        },
+        {
+          "label": "Mark as done",
+          "kind": "secondary"
+        }
+      ],
+      "pmNote": "Nudges send automatically at 3 and 7 days. Edit the request to change its buttons, schedule, or close it."
+    }
+  ],
+  "build": {
+    "version": "0.9.4",
+    "date": "1 Sept",
+    "screensBuilt": 11,
+    "screensTotal": 18,
+    "knownIssues": "3 minor, none blocking",
+    "testedOn": "iPhone 14, iPhone SE, Pixel 8"
+  },
+  "prototype": {
+    "prototypeUrl": "",
+    "installUrl": "",
+    "figmaUrl": "",
+    "embedUrl": "",
+    "caption": "Prototype r24 · build 0.9.4 — 1 Sept, 18:40",
+    "frameLabel": "Embedded prototype — Summary screen",
+    "installLabel": "Install build 0.9.4",
+    "pmNote": "Paste a Figma prototype URL and a TestFlight or Play link; the embed and the buttons update together. Build number, issue count and device list are typed once per push."
+  },
+  "plan": {
+    "rangeLabel": "8 June — 6 November",
+    "axisStart": "2026-06-01",
+    "axisEnd": "2026-11-30",
+    "phases": [
+      {
+        "id": "design",
+        "name": "Design",
+        "state": "done",
+        "start": "2026-06-08",
+        "end": "2026-07-24",
+        "rangeLabel": "8 Jun — 24 Jul"
+      },
+      {
+        "id": "development",
+        "name": "Development",
+        "state": "now",
+        "start": "2026-07-27",
+        "end": "2026-10-02",
+        "rangeLabel": "27 Jul — 2 Oct"
+      },
+      {
+        "id": "qa-beta",
+        "name": "QA & beta",
+        "state": "upcoming",
+        "start": "2026-10-02",
+        "end": "2026-10-30",
+        "rangeLabel": ""
+      },
+      {
+        "id": "launch",
+        "name": "Launch",
+        "state": "upcoming",
+        "start": "2026-10-30",
+        "end": "2026-11-06",
+        "rangeLabel": ""
+      }
+    ],
+    "milestones": [
+      {
+        "title": "Design complete",
+        "body": "Signed off 24 July"
+      },
+      {
+        "title": "Development ends 2 Oct",
+        "body": "7 screens to go"
+      },
+      {
+        "title": "Beta opens 5 Oct",
+        "body": "You both test on your phones"
+      },
+      {
+        "title": "Store review 30 Oct",
+        "body": "A week of slack before launch"
+      }
+    ]
+  },
+  "finishedScreens": [
+    {
+      "id": "meal-log-offline",
+      "name": "Meal log, offline",
+      "date": "1 Sept"
+    },
+    {
+      "id": "barcode-scanner",
+      "name": "Barcode scanner",
+      "date": "28 Aug"
+    },
+    {
+      "id": "weekly-summary-draft",
+      "name": "Weekly summary, draft",
+      "date": "27 Aug"
+    },
+    {
+      "id": "onboarding-goal-picker",
+      "name": "Onboarding, goal picker",
+      "date": "22 Aug"
+    }
+  ],
+  "decisionsIntro": "Everything on this list is settled and being built. If something here is wrong, say so — we change it and date the change.",
+  "decisions": [
+    {
+      "id": "primary-colour",
+      "date": "2 Sept",
+      "body": "Primary colour set to #0B7FD4, used for actions only.",
+      "attribution": "Agreed by Kaya and Dr. Renner on the Monday call",
+      "link": {
+        "label": "Figma",
+        "url": "#"
+      }
+    },
+    {
+      "id": "recipe-import",
+      "date": "27 Aug",
+      "body": "Recipe import is link-paste only at launch. Photo-to-recipe moves to the first update.",
+      "attribution": "Requested by Kaya — protects the launch date"
+    },
+    {
+      "id": "targets-advisory",
+      "date": "19 Aug",
+      "body": "Calorie and macro targets are advisory. No medical or clinical claims in the app or the store listing.",
+      "attribution": "Written by Dr. Renner, reviewed by our counsel"
+    },
+    {
+      "id": "sign-in",
+      "date": "12 Aug",
+      "body": "Sign-in is Apple and email only. No social logins.",
+      "attribution": "Both clients agreed; removes two weeks of privacy review"
+    },
+    {
+      "id": "offline-logging",
+      "date": "4 Aug",
+      "body": "Offline logging is in scope for launch and is the app's headline difference.",
+      "attribution": "Scope agreed at kick-off"
+    }
+  ],
+  "nextCall": {
+    "label": "Next call: Friday 4 Sept, 08:00.",
+    "agendaUrl": "#"
+  }
+}

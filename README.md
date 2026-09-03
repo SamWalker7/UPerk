@@ -20,6 +20,21 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+## Client portal (`/portal`)
+
+A lightweight status portal for clients, living under `/portal` in this app.
+
+- **Auth**: env-based shared login, no user accounts. Set `PORTAL_USER`,
+  `PORTAL_PASSWORD` (client role), `PORTAL_PM_PASSWORD` (unlocks `/portal/console` and
+  the dashed PM annotations), and `PORTAL_SESSION_SECRET`. See `.env.example`.
+- **Content**: read from `src/portal-data/portal.json`. The PM console
+  (`/portal/console`) edits that file — writes work in local dev; on Vercel the runtime
+  filesystem is read-only, so console saves no-op with a notice until the backend is
+  wired.
+- **Backend swap**: when the API in `docs/portal-api-contract.md` exists, set
+  `PORTAL_API_URL` and replace the two functions in `src/lib/portal/data.ts`. Nothing
+  else changes.
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:
