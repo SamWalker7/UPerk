@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { getPortalRole } from "@/lib/portal/session";
 import LoginForm from "@/components/portal/LoginForm";
+import { BrandLogo } from "@/components/portal/BrandLogo";
 
 export const metadata: Metadata = {
   title: "Sign in | Client portal",
@@ -14,15 +15,18 @@ export default async function PortalLoginPage({
   searchParams: Promise<{ next?: string }>;
 }) {
   const { next } = await searchParams;
+  const safeNext =
+    next && (next.startsWith("/portal") || next.startsWith("/console"))
+      ? next
+      : "/portal";
   const role = await getPortalRole();
-  if (role) redirect(next && next.startsWith("/portal") ? next : "/portal");
+  if (role) redirect(safeNext);
 
   return (
     <div className="flex min-h-screen items-center justify-center px-4">
       <div className="w-full max-w-sm">
-        <div className="mb-6 flex items-center gap-2">
-          <span className="inline-block h-5 w-5 rounded bg-[var(--p-accent)]" />
-          <span className="text-[15px] font-semibold">Universal Perk</span>
+        <div className="mb-6">
+          <BrandLogo href="/portal" />
         </div>
         <div className="rounded-2xl border border-[var(--p-border)] bg-[var(--p-surface)] p-6">
           <h1 className="text-lg font-bold">Client portal</h1>

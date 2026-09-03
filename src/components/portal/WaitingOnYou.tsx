@@ -100,7 +100,7 @@ function RequestCard({
       </div>
 
       {role === "pm" && req.pmNote ? (
-        <PmAnnotation linkLabel="Edit request" href={`/portal/console?p=${slug}`}>
+        <PmAnnotation linkLabel="Edit request" href={`/console?p=${slug}`}>
           {req.pmNote}
         </PmAnnotation>
       ) : null}
@@ -139,7 +139,7 @@ export function WaitingOnYou({
       {role === "pm" ? (
         <PmAnnotation
           linkLabel="+ New client request"
-          href={`/portal/console?p=${slug}`}
+          href={`/console?p=${slug}`}
         >
           Raise a request, set assignee and due date, and choose what the client&apos;s
           buttons say (two options, one acknowledgement, or an action + fallback).

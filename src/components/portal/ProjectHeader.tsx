@@ -33,7 +33,7 @@ export function ProjectHeader({
         </span>
         {role === "pm" ? (
           <Link
-            href={`/portal/console?p=${slug}`}
+            href={`/console?p=${slug}`}
             className="rounded-lg border border-[var(--p-border)] px-3 py-1.5 font-medium text-[var(--p-text)] hover:bg-[var(--p-surface-2)]"
           >
             Edit in console

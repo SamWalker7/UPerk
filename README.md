@@ -27,9 +27,9 @@ A multi-project status portal for clients, living under `/portal` in this app.
 - **Routes**: `/portal` lists projects as cards; `/portal/<slug>` is a project page
   with an always-visible status hero and five tabs (`overview`, `requests`,
   `prototype`, `timeline`, `decisions`) — each tab is deep-linkable at
-  `/portal/<slug>/<tab>`. `/portal/console` is the PM editor with a project switcher.
+  `/portal/<slug>/<tab>`. `/console` is the PM editor with a project switcher.
 - **Auth**: env-based shared login, no user accounts. Set `PORTAL_USER`,
-  `PORTAL_PASSWORD` (client role), `PORTAL_PM_PASSWORD` (unlocks `/portal/console`,
+  `PORTAL_PASSWORD` (client role), `PORTAL_PM_PASSWORD` (unlocks `/console`,
   the "New project" action, and the dashed PM annotations), and
   `PORTAL_SESSION_SECRET`. See `.env.example`.
 - **Content**: one file per project in `src/portal-data/<slug>.json`, listed in

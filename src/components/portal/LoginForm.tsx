@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Spinner } from "./Spinner";
 
 export default function LoginForm({ next }: { next?: string }) {
   const router = useRouter();
@@ -63,9 +64,16 @@ export default function LoginForm({ next }: { next?: string }) {
       <button
         type="submit"
         disabled={loading || !username || !password}
-        className="w-full rounded-lg bg-[var(--p-accent)] px-4 py-2 text-[14px] font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-40"
+        className="flex w-full items-center justify-center gap-2 rounded-lg bg-[var(--p-accent)] px-4 py-2 text-[14px] font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-40"
       >
-        {loading ? "Signing in…" : "Sign in"}
+        {loading ? (
+          <>
+            <Spinner />
+            Signing in…
+          </>
+        ) : (
+          "Sign in"
+        )}
       </button>
     </form>
   );

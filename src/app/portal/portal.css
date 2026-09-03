@@ -27,6 +27,23 @@
   color: var(--p-text);
 }
 
+/* Every actionable element in the portal gets a pointer cursor;
+   disabled controls fall back to not-allowed. */
+.portal-scope button,
+.portal-scope a,
+.portal-scope select,
+.portal-scope summary,
+.portal-scope [role="button"],
+.portal-scope label:has(> input[type="checkbox"]),
+.portal-scope label:has(> input[type="radio"]) {
+  cursor: pointer;
+}
+.portal-scope button:disabled,
+.portal-scope button[disabled],
+.portal-scope [aria-disabled="true"] {
+  cursor: not-allowed;
+}
+
 .dark .portal-scope {
   --p-bg: #070b13;
   --p-surface: #101827;

@@ -104,7 +104,7 @@ export function SeeItWorking({
           {role === "pm" ? (
             <PmAnnotation
               linkLabel="+ Add / replace links"
-              href={`/portal/console?p=${slug}`}
+              href={`/console?p=${slug}`}
             >
               {prototype.pmNote ||
                 "Paste a Figma prototype URL and a TestFlight or Play link; the embed and the buttons update together."}

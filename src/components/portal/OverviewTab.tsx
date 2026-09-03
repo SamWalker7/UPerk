@@ -63,7 +63,7 @@ export function OverviewTab({
       {role === "pm" ? (
         <PmAnnotation
           linkLabel="Edit the weekly update"
-          href={`/portal/console?p=${data.slug}`}
+          href={`/console?p=${data.slug}`}
         >
           This week / Up next / Needed from you are typed once per push in the console,
           along with the status line and phase.

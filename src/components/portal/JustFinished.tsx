@@ -41,7 +41,7 @@ export function JustFinished({
         </div>
       )}
       {role === "pm" ? (
-        <PmAnnotation linkLabel="+ Add screen" href={`/portal/console?p=${slug}`}>
+        <PmAnnotation linkLabel="+ Add screen" href={`/console?p=${slug}`}>
           Drop a screenshot, give it a name and a date. Newest goes to the front
           automatically.
         </PmAnnotation>

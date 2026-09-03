@@ -137,7 +137,7 @@ export function ThePlan({
         ) : null}
 
         {role === "pm" ? (
-          <PmAnnotation linkLabel="Edit phases" href={`/portal/console?p=${slug}`}>
+          <PmAnnotation linkLabel="Edit phases" href={`/console?p=${slug}`}>
             Edit dates in the console. Moving a date asks for a one-line reason, published
             with the change.
           </PmAnnotation>

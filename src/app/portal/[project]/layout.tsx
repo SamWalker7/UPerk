@@ -41,7 +41,7 @@ export default async function ProjectLayout({
         <TabNav slug={data.slug} openRequests={openRequests} />
       </div>
 
-      <div className="mx-auto w-full max-w-6xl px-4 pt-8">{children}</div>
+      <div className="mx-auto w-full max-w-6xl px-4 py-8">{children}</div>
     </main>
   );
 }

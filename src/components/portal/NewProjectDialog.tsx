@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Spinner } from "./Spinner";
 
 export function NewProjectDialog() {
   const router = useRouter();
@@ -24,14 +25,14 @@ export function NewProjectDialog() {
       const body = await res.json().catch(() => ({}));
       if (!res.ok) {
         setError(body.error || "Could not create the project.");
+        setBusy(false);
         return;
       }
-      setOpen(false);
-      router.push(`/portal/console?p=${body.slug}`);
+      // keep the spinner up through the navigation
+      router.push(`/console?p=${body.slug}`);
       router.refresh();
     } catch {
       setError("Network error.");
-    } finally {
       setBusy(false);
     }
   }
@@ -94,9 +95,16 @@ export function NewProjectDialog() {
               <button
                 type="submit"
                 disabled={busy || !name.trim()}
-                className="rounded-lg bg-[var(--p-accent)] px-3.5 py-2 text-[13px] font-semibold text-white disabled:opacity-40"
+                className="flex items-center gap-2 rounded-lg bg-[var(--p-accent)] px-3.5 py-2 text-[13px] font-semibold text-white disabled:opacity-40"
               >
-                {busy ? "Creating…" : "Create"}
+                {busy ? (
+                  <>
+                    <Spinner className="h-3.5 w-3.5" />
+                    Creating…
+                  </>
+                ) : (
+                  "Create"
+                )}
               </button>
             </div>
           </form>

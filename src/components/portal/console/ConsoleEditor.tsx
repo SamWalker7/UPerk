@@ -9,6 +9,7 @@ import type {
   ProjectData,
 } from "@/lib/portal/types";
 import { Field, NumberField, Group } from "./fields";
+import { Spinner } from "../Spinner";
 
 function uid(prefix: string) {
   return `${prefix}-${Math.random().toString(36).slice(2, 8)}`;
@@ -66,13 +67,20 @@ export default function ConsoleEditor({
   return (
     <div className="mt-6 space-y-4">
       {/* Sticky save bar */}
-      <div className="sticky top-0 z-20 -mx-4 flex items-center gap-3 border-b border-[var(--p-border)] bg-[var(--p-bg)]/90 px-4 py-3 backdrop-blur">
+      <div className="sticky top-14 z-20 -mx-4 flex items-center gap-3 border-b border-[var(--p-border)] bg-[var(--p-bg)]/90 px-4 py-3 backdrop-blur">
         <button
           onClick={save}
           disabled={saving}
-          className="rounded-lg bg-[var(--p-accent)] px-4 py-2 text-[13px] font-semibold text-white hover:opacity-90 disabled:opacity-40"
+          className="flex items-center gap-2 rounded-lg bg-[var(--p-accent)] px-4 py-2 text-[13px] font-semibold text-white hover:opacity-90 disabled:opacity-40"
         >
-          {saving ? "Saving…" : "Save changes"}
+          {saving ? (
+            <>
+              <Spinner className="h-3.5 w-3.5" />
+              Saving…
+            </>
+          ) : (
+            "Save changes"
+          )}
         </button>
         {message ? (
           <span

@@ -67,7 +67,7 @@ export function Decisions({
       )}
 
       {role === "pm" ? (
-        <PmAnnotation linkLabel="+ Log a decision" href={`/portal/console?p=${slug}`}>
+        <PmAnnotation linkLabel="+ Log a decision" href={`/console?p=${slug}`}>
           One line, a date, who agreed it, and an optional Figma or doc link. Entries can
           be superseded but never deleted.
         </PmAnnotation>

@@ -32,7 +32,11 @@ export async function POST(req: Request) {
     );
   }
 
-  if (!next.startsWith("/portal")) next = "/portal";
+  if (!next.startsWith("/portal") && !next.startsWith("/console")) {
+    next = "/portal";
+  }
+  // A client who was heading to the console lands on the projects list instead.
+  if (role !== "pm" && next.startsWith("/console")) next = "/portal";
 
   const token = await createSessionToken(role);
   const res = NextResponse.json({ ok: true, role, next });

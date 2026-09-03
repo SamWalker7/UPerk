@@ -1,11 +1,11 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { SESSION_COOKIE, verifySessionToken } from "@/lib/portal/auth";
 
-// Gate the client portal. Unauthenticated -> /portal/login.
-// /portal/console/** additionally requires the "pm" role.
+// Gate the client portal and the PM console. Unauthenticated -> /portal/login.
+// /console/** additionally requires the "pm" role.
 
 export const config = {
-  matcher: ["/portal/:path*"],
+  matcher: ["/portal/:path*", "/console/:path*", "/console"],
 };
 
 export async function middleware(req: NextRequest) {
@@ -29,7 +29,7 @@ export async function middleware(req: NextRequest) {
   // Console pages are PM-only. The projects API handlers re-check the role
   // themselves for writes, so guarding the console UI here is enough.
   const isConsole =
-    pathname === "/portal/console" || pathname.startsWith("/portal/console/");
+    pathname === "/console" || pathname.startsWith("/console/");
   if (role !== "pm" && isConsole) {
     const url = req.nextUrl.clone();
     url.pathname = "/portal";
