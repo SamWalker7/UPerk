@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { getPortalRole } from "@/lib/portal/session";
+import { getPortalSession } from "@/lib/portal/session";
 import { listProjects, readProject } from "@/lib/portal/data";
 import { PortalTopBar } from "@/components/portal/PortalTopBar";
 import ConsoleEditor from "@/components/portal/console/ConsoleEditor";
@@ -13,15 +13,16 @@ export default async function ConsolePage({
 }: {
   searchParams: Promise<{ p?: string }>;
 }) {
-  const role = await getPortalRole();
-  if (role !== "pm") redirect("/portal");
+  const session = await getPortalSession();
+  if (session?.role !== "pm") redirect("/portal");
+  const role = session.role;
 
-  const projects = await listProjects();
+  const projects = await listProjects(session.apiToken);
   const { p } = await searchParams;
   const selected =
     (p && projects.find((x) => x.slug === p)?.slug) || projects[0]?.slug;
 
-  const data = selected ? await readProject(selected) : null;
+  const data = selected ? await readProject(session.apiToken, selected) : null;
 
   return (
     <main>
@@ -39,8 +40,7 @@ export default async function ConsolePage({
           <NewProjectDialog />
         </div>
         <p className="mt-1 text-[13px] text-[var(--p-text-dim)]">
-          Edits are written to <code>src/portal-data/&lt;slug&gt;.json</code> in local
-          dev. Production is read-only until the backend API is connected.
+          Edits save directly to the portal API.
         </p>
 
         {data ? (

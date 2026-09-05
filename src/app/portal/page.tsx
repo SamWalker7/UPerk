@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { getPortalRole } from "@/lib/portal/session";
+import { getPortalSession } from "@/lib/portal/session";
 import { listProjects } from "@/lib/portal/data";
 import { PortalTopBar } from "@/components/portal/PortalTopBar";
 import { ProjectCard } from "@/components/portal/ProjectCard";
@@ -8,10 +8,11 @@ import { NewProjectDialog } from "@/components/portal/NewProjectDialog";
 export const dynamic = "force-dynamic";
 
 export default async function ProjectsPage() {
-  const role = await getPortalRole();
-  if (!role) redirect("/portal/login");
+  const session = await getPortalSession();
+  if (!session) redirect("/portal/login");
+  const role = session.role;
 
-  const projects = await listProjects();
+  const projects = await listProjects(session.apiToken);
 
   return (
     <main>

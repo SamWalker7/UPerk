@@ -1,8 +1,11 @@
 import type { PortalRole } from "./types";
+import { backend, BackendError } from "./backend";
 
-// Env-based shared login. No user accounts. Two passwords:
-//   PORTAL_PASSWORD     -> "client" role (both clients share this)
-//   PORTAL_PM_PASSWORD  -> "pm" role (unlocks the console + PM annotations)
+// Auth is delegated to the backend API (see docs/portal-api-contract.md):
+// POST /api/portal/auth/login returns { token, role }. We wrap that upstream
+// bearer token in our own signed cookie so middleware (Edge runtime) can
+// verify a session without a network round-trip, and route handlers can pull
+// the upstream token back out to call the backend on the user's behalf.
 //
 // Uses Web Crypto (SubtleCrypto) so the same helpers run in middleware (Edge
 // runtime) and in route handlers / server components.
@@ -48,28 +51,37 @@ function safeEqual(a: string, b: string): boolean {
   return diff === 0;
 }
 
-/** Returns the role for a submitted username/password, or null. */
-export function checkCredentials(username: string, password: string): PortalRole | null {
-  const user = process.env.PORTAL_USER || "";
-  const clientPw = process.env.PORTAL_PASSWORD || "";
-  const pmPw = process.env.PORTAL_PM_PASSWORD || "";
+export type PortalSession = {
+  role: PortalRole;
+  /** Bearer token issued by the backend API, replayed on every backend call. */
+  apiToken: string;
+};
 
-  if (!user || !safeEqual(username, user)) return null;
-  if (pmPw && safeEqual(password, pmPw)) return "pm";
-  if (clientPw && safeEqual(password, clientPw)) return "client";
-  return null;
+/** Calls the backend login endpoint. Returns the session to store, or null. */
+export async function login(
+  username: string,
+  password: string,
+): Promise<PortalSession | null> {
+  try {
+    const { token, role } = await backend.login(username, password);
+    if (role !== "client" && role !== "pm") return null;
+    return { role, apiToken: token };
+  } catch (err) {
+    if (err instanceof BackendError && err.status === 401) return null;
+    throw err;
+  }
 }
 
-export async function createSessionToken(role: PortalRole): Promise<string> {
+export async function createSessionToken(session: PortalSession): Promise<string> {
   const exp = Date.now() + SESSION_DAYS * 24 * 60 * 60 * 1000;
-  const payload = `${role}.${exp}`;
+  const payload = JSON.stringify({ ...session, exp });
   const mac = await sign(payload);
   return `${toBase64Url(enc.encode(payload))}.${mac}`;
 }
 
 export async function verifySessionToken(
   token: string | undefined | null,
-): Promise<PortalRole | null> {
+): Promise<PortalSession | null> {
   if (!token) return null;
   const [encoded, mac] = token.split(".");
   if (!encoded || !mac) return null;
@@ -81,9 +93,16 @@ export async function verifySessionToken(
   }
   const expected = await sign(payload);
   if (!safeEqual(mac, expected)) return null;
-  const [role, expStr] = payload.split(".");
-  const exp = Number(expStr);
-  if (!Number.isFinite(exp) || Date.now() > exp) return null;
+
+  let parsed: { role?: unknown; apiToken?: unknown; exp?: unknown };
+  try {
+    parsed = JSON.parse(payload);
+  } catch {
+    return null;
+  }
+  const { role, apiToken, exp } = parsed;
+  if (typeof exp !== "number" || Date.now() > exp) return null;
   if (role !== "client" && role !== "pm") return null;
-  return role;
+  if (typeof apiToken !== "string" || !apiToken) return null;
+  return { role, apiToken };
 }

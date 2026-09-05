@@ -1,24 +1,82 @@
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { PmAnnotation } from "./PmAnnotation";
+import { Spinner } from "./Spinner";
 import { SectionTitle } from "./ui";
 import type { ClientRequest, PortalRole } from "@/lib/portal/types";
 
-function ActionButton({ label, kind }: { label: string; kind: string }) {
-  // Display-only until the backend is wired.
-  const base =
-    "cursor-default rounded-lg px-4 py-2 text-[13px] font-semibold";
-  return (
-    <button
-      type="button"
-      disabled
-      title="Available after launch"
-      className={
-        kind === "primary"
-          ? `${base} bg-[var(--p-accent)] text-white opacity-90`
-          : `${base} border border-[var(--p-border)] text-[var(--p-text)]`
+function actionEndpoint(label: string): "done" | "resend" | "respond" {
+  const l = label.toLowerCase();
+  if (l.includes("mark as done") || l === "done") return "done";
+  if (l.includes("resend")) return "resend";
+  return "respond";
+}
+
+function ActionButton({
+  label,
+  kind,
+  slug,
+  requestId,
+  disabled,
+  onDone,
+}: {
+  label: string;
+  kind: string;
+  slug: string;
+  requestId: string;
+  disabled: boolean;
+  onDone: () => void;
+}) {
+  const router = useRouter();
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+
+  async function run() {
+    setBusy(true);
+    setError("");
+    const endpoint = actionEndpoint(label);
+    const url = `/portal/api/projects/${slug}/requests/${requestId}/${endpoint}`;
+    try {
+      const res = await fetch(url, {
+        method: "POST",
+        headers: endpoint === "respond" ? { "Content-Type": "application/json" } : undefined,
+        body: endpoint === "respond" ? JSON.stringify({ choice: label }) : undefined,
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(body.error || "Failed. Try again.");
+        setBusy(false);
+        return;
       }
-    >
-      {label}
-    </button>
+      onDone();
+      router.refresh();
+    } catch {
+      setError("Network error.");
+      setBusy(false);
+    }
+  }
+
+  const base =
+    "flex items-center gap-2 rounded-lg px-4 py-2 text-[13px] font-semibold disabled:opacity-50";
+  return (
+    <div>
+      <button
+        type="button"
+        onClick={run}
+        disabled={disabled || busy}
+        className={
+          kind === "primary"
+            ? `${base} bg-[var(--p-accent)] text-white hover:opacity-90`
+            : `${base} border border-[var(--p-border)] text-[var(--p-text)] hover:bg-[var(--p-surface-2)]`
+        }
+      >
+        {busy ? <Spinner className="h-3.5 w-3.5" /> : null}
+        {label}
+      </button>
+      {error ? <p className="mt-1 text-[11px] text-[var(--p-risk)]">{error}</p> : null}
+    </div>
   );
 }
 
@@ -31,8 +89,14 @@ function RequestCard({
   role: PortalRole;
   slug: string;
 }) {
+  const [resolved, setResolved] = useState(false);
+
   return (
-    <div className="rounded-2xl border border-[var(--p-border)] bg-[var(--p-surface)] p-6">
+    <div
+      className={`rounded-2xl border border-[var(--p-border)] bg-[var(--p-surface)] p-6 ${
+        resolved ? "opacity-60" : ""
+      }`}
+    >
       <div className="flex items-start justify-between gap-4">
         <h3 className="flex items-center gap-2 text-[15px] font-bold">
           <span
@@ -95,7 +159,15 @@ function RequestCard({
 
       <div className="mt-4 flex flex-wrap gap-2">
         {req.actions.map((a) => (
-          <ActionButton key={a.label} label={a.label} kind={a.kind} />
+          <ActionButton
+            key={a.label}
+            label={a.label}
+            kind={a.kind}
+            slug={slug}
+            requestId={req.id}
+            disabled={resolved}
+            onDone={() => setResolved(true)}
+          />
         ))}
       </div>
 

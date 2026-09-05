@@ -1,7 +1,7 @@
 // Shared data model for the client portal.
-// This is the single source of truth for the shape returned by the future
-// backend API (see docs/portal-api-contract.md). For v2 each project is one
-// file in src/portal-data/<slug>.json, listed in src/portal-data/index.json.
+// This is the single source of truth for the shape returned by the backend
+// API (see docs/portal-api-contract.md, and src/lib/portal/backend.ts for
+// the client that talks to it).
 
 export type StepState = "done" | "now" | "upcoming";
 

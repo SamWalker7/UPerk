@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { notFound, redirect } from "next/navigation";
-import { getPortalRole } from "@/lib/portal/session";
+import { getPortalSession } from "@/lib/portal/session";
 import { readProject } from "@/lib/portal/data";
 import { PortalTopBar } from "@/components/portal/PortalTopBar";
 import { ProjectHeader } from "@/components/portal/ProjectHeader";
@@ -17,11 +17,12 @@ export default async function ProjectLayout({
   children: ReactNode;
   params: Promise<{ project: string }>;
 }) {
-  const role = await getPortalRole();
-  if (!role) redirect("/portal/login");
+  const session = await getPortalSession();
+  if (!session) redirect("/portal/login");
+  const role = session.role;
 
   const { project } = await params;
-  const data = await readProject(project);
+  const data = await readProject(session.apiToken, project);
   if (!data) notFound();
 
   const openRequests = data.requests.filter((r) => r.status === "open").length;
@@ -38,7 +39,7 @@ export default async function ProjectLayout({
       {role === "pm" ? <PmBanner /> : null}
 
       <div className="mt-6">
-        <TabNav slug={data.slug} openRequests={openRequests} />
+        <TabNav openRequests={openRequests} />
       </div>
 
       <div className="mx-auto w-full max-w-6xl px-4 py-8">{children}</div>

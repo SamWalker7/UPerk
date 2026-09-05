@@ -17,9 +17,9 @@ export async function middleware(req: NextRequest) {
   }
 
   const token = req.cookies.get(SESSION_COOKIE)?.value;
-  const role = await verifySessionToken(token);
+  const session = await verifySessionToken(token);
 
-  if (!role) {
+  if (!session) {
     const url = req.nextUrl.clone();
     url.pathname = "/portal/login";
     url.searchParams.set("next", pathname);
@@ -30,7 +30,7 @@ export async function middleware(req: NextRequest) {
   // themselves for writes, so guarding the console UI here is enough.
   const isConsole =
     pathname === "/console" || pathname.startsWith("/console/");
-  if (role !== "pm" && isConsole) {
+  if (session.role !== "pm" && isConsole) {
     const url = req.nextUrl.clone();
     url.pathname = "/portal";
     return NextResponse.redirect(url);

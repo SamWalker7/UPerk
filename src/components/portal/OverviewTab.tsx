@@ -1,4 +1,3 @@
-import Link from "next/link";
 import type { ProjectData, PortalRole } from "@/lib/portal/types";
 import { PmAnnotation } from "./PmAnnotation";
 
@@ -50,12 +49,12 @@ export function OverviewTab({
         <Panel tone="accent" label="Up next" body={s.upNext} />
         <Panel tone="warn" label="Needed from you" body={s.neededFromYou}>
           {open > 0 ? (
-            <Link
-              href={`/portal/${data.slug}/requests`}
-              className="mt-3 inline-block text-[13px] font-semibold text-[var(--p-warn)] underline underline-offset-2"
+            <a
+              href="#requests"
+              className="mt-3 inline-block cursor-pointer text-[13px] font-semibold text-[var(--p-warn)] underline underline-offset-2"
             >
               {open} waiting on you →
-            </Link>
+            </a>
           ) : null}
         </Panel>
       </div>
