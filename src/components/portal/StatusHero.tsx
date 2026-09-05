@@ -19,44 +19,46 @@ function Dots({ built, total }: { built: number; total: number }) {
 
 function Stepper({ steps }: { steps: ProjectData["steps"] }) {
   return (
-    <div className="mt-6">
-      <div className="flex items-center">
-        {steps.map((s, i) => (
-          <div key={s.label} className="flex flex-1 items-center last:flex-none">
-            <span
-              className={`h-2.5 w-2.5 shrink-0 rounded-full ${
-                s.state === "done"
-                  ? "bg-[var(--p-accent)]"
-                  : s.state === "now"
-                    ? "bg-[var(--p-accent)] ring-4 ring-[var(--p-accent-weak)]"
-                    : "border border-[var(--p-border)] bg-transparent"
-              }`}
-            />
-            {i < steps.length - 1 ? (
+    <div className="mt-6 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <div className="min-w-[420px]">
+        <div className="flex items-center">
+          {steps.map((s, i) => (
+            <div key={s.label} className="flex flex-1 items-center last:flex-none">
               <span
-                className={`mx-1 h-px flex-1 ${
+                className={`h-2.5 w-2.5 shrink-0 rounded-full ${
                   s.state === "done"
-                    ? "bg-[var(--p-accent)]/50"
-                    : "bg-[var(--p-border)]"
+                    ? "bg-[var(--p-accent)]"
+                    : s.state === "now"
+                      ? "bg-[var(--p-accent)] ring-4 ring-[var(--p-accent-weak)]"
+                      : "border border-[var(--p-border)] bg-transparent"
                 }`}
               />
-            ) : null}
-          </div>
-        ))}
-      </div>
-      <div className="mt-2 flex items-center">
-        {steps.map((s, i) => (
-          <div
-            key={s.label}
-            className={`flex-1 text-[12px] last:flex-none ${
-              s.state === "now"
-                ? "font-semibold text-[var(--p-text)]"
-                : "text-[var(--p-text-dim)]"
-            } ${i === steps.length - 1 ? "text-right" : ""}`}
-          >
-            {s.label}
-          </div>
-        ))}
+              {i < steps.length - 1 ? (
+                <span
+                  className={`mx-1 h-px flex-1 ${
+                    s.state === "done"
+                      ? "bg-[var(--p-accent)]/50"
+                      : "bg-[var(--p-border)]"
+                  }`}
+                />
+              ) : null}
+            </div>
+          ))}
+        </div>
+        <div className="mt-2 flex items-center">
+          {steps.map((s, i) => (
+            <div
+              key={s.label}
+              className={`flex-1 text-[12px] last:flex-none ${
+                s.state === "now"
+                  ? "font-semibold text-[var(--p-text)]"
+                  : "text-[var(--p-text-dim)]"
+              } ${i === steps.length - 1 ? "text-right" : ""}`}
+            >
+              {s.label}
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
@@ -96,9 +98,9 @@ function Stat({
 export function StatusHero({ data }: { data: ProjectData }) {
   const s = data.status;
   return (
-    <div className="rounded-2xl border border-[var(--p-border)] bg-[var(--p-hero)] p-6">
+    <div className="rounded-2xl border border-[var(--p-border)] bg-[var(--p-hero)] p-4 sm:p-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
-        <div className="grid flex-1 gap-6 sm:grid-cols-3">
+        <div className="grid flex-1 gap-4 sm:grid-cols-3 sm:gap-6">
           <Stat
             label="Current phase"
             value={s.currentPhase}
@@ -123,10 +125,10 @@ export function StatusHero({ data }: { data: ProjectData }) {
             <Dots built={s.screensBuilt} total={s.screensTotal} />
           </div>
         </div>
-        <div className="text-right">
+        <div className="w-full sm:w-auto sm:text-right">
           <StatusChip label={s.statusLabel} tone={statusTone(s.statusLabel)} />
           {s.statusBody ? (
-            <p className="mt-2 max-w-[240px] text-[12px] text-[var(--p-text-dim)]">
+            <p className="mt-2 text-[12px] text-[var(--p-text-dim)] sm:ml-auto sm:max-w-[240px]">
               {s.statusBody}
             </p>
           ) : null}

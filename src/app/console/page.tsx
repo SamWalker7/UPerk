@@ -30,11 +30,13 @@ export default async function ConsolePage({
         role={role}
         showConsoleLink={false}
         crumb={
-          <span className="flex items-center gap-2">
-            <span>Console</span>
+          <span className="flex min-w-0 items-center gap-1.5 sm:gap-2">
+            <span className="hidden shrink-0 sm:inline">Console</span>
             {projects.length > 0 ? (
               <>
-                <span className="text-[var(--p-border)]">/</span>
+                <span className="hidden shrink-0 text-[var(--p-border)] sm:inline">
+                  /
+                </span>
                 <ConsoleProjectPicker
                   projects={projects.map((x) => ({
                     slug: x.slug,
@@ -49,7 +51,7 @@ export default async function ConsolePage({
         }
       />
 
-      <div className="mx-auto w-full max-w-5xl px-4 pb-24 pt-8">
+      <div className="mx-auto w-full max-w-5xl px-3 pb-24 pt-6 sm:px-4 sm:pt-8">
         {data ? (
           <ConsoleEditor key={data.slug} initialData={data} slug={data.slug} />
         ) : (

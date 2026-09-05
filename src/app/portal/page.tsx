@@ -18,8 +18,8 @@ export default async function ProjectsPage() {
     <main>
       <PortalTopBar role={role} crumb="Projects" />
 
-      <div className="mx-auto w-full max-w-6xl px-4 py-10">
-        <div className="mb-6 flex items-center justify-between">
+      <div className="mx-auto w-full max-w-6xl px-3 py-6 sm:px-4 sm:py-10">
+        <div className="mb-6 flex items-center justify-between gap-3">
           <div>
             <h1 className="text-2xl font-bold tracking-tight">Projects</h1>
             <p className="mt-1 text-[13px] text-[var(--p-text-dim)]">

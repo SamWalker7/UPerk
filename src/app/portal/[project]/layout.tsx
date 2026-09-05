@@ -32,7 +32,7 @@ export default async function ProjectLayout({
       <PortalTopBar role={role} crumb={data.project.name} showConsoleLink={false} />
       <ProjectHeader project={data.project} slug={data.slug} role={role} />
 
-      <div className="mx-auto mt-4 w-full max-w-6xl px-4">
+      <div className="mx-auto mt-4 w-full max-w-6xl px-3 sm:px-4">
         <StatusHero data={data} />
       </div>
 
@@ -40,7 +40,9 @@ export default async function ProjectLayout({
 
       <TabNav openRequests={openRequests} />
 
-      <div className="mx-auto w-full max-w-6xl px-4 py-8">{children}</div>
+      <div className="mx-auto w-full max-w-6xl px-3 py-6 sm:px-4 sm:py-8">
+        {children}
+      </div>
     </main>
   );
 }

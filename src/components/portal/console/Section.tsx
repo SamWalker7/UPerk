@@ -30,33 +30,33 @@ export function Section({
         aria-expanded={open}
         aria-controls={panelId}
         onClick={onToggle}
-        className="flex w-full items-center gap-3 px-5 py-4 text-left hover:bg-[var(--p-surface-2)]/60"
+        className="flex w-full items-center gap-2.5 px-4 py-3.5 text-left hover:bg-[var(--p-surface-2)]/60 sm:gap-3 sm:px-5 sm:py-4"
       >
         <span
           className={
-            "text-[var(--p-text-dim)] transition-transform " +
+            "shrink-0 text-[var(--p-text-dim)] transition-transform " +
             (open ? "rotate-90" : "")
           }
           aria-hidden
         >
           ▶
         </span>
-        <span className="flex items-center gap-2 text-[14px] font-bold">
-          {title}
+        <span className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-[14px] font-bold">
+          <span className="truncate">{title}</span>
           {typeof badge === "number" ? (
-            <span className="rounded-full bg-[var(--p-surface-2)] px-2 py-0.5 text-[11px] font-semibold text-[var(--p-text-dim)]">
+            <span className="shrink-0 rounded-full bg-[var(--p-surface-2)] px-2 py-0.5 text-[11px] font-semibold text-[var(--p-text-dim)]">
               {badge}
             </span>
           ) : null}
           {dirty ? (
             <span
-              className="h-1.5 w-1.5 rounded-full bg-[var(--p-warn)]"
+              className="h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--p-warn)]"
               title="Unsaved changes in this section"
             />
           ) : null}
         </span>
         {summary ? (
-          <span className="ml-auto truncate text-[12px] text-[var(--p-text-dim)]">
+          <span className="ml-auto hidden shrink-0 max-w-[45%] truncate pl-2 text-[12px] text-[var(--p-text-dim)] sm:block">
             {summary}
           </span>
         ) : null}
@@ -64,7 +64,7 @@ export function Section({
       {open ? (
         <div
           id={panelId}
-          className="space-y-4 border-t border-[var(--p-border)] px-5 py-5"
+          className="space-y-4 border-t border-[var(--p-border)] px-4 py-4 sm:px-5 sm:py-5"
         >
           {children}
         </div>

@@ -14,7 +14,7 @@ export function BrandLogo({ href = "/portal" }: { href?: string }) {
         alt="Universal Perk"
         className="[.dark_&]:brightness-0 [.dark_&]:invert"
       />
-      <span className="text-[10px] font-extrabold uppercase leading-tight tracking-widest">
+      <span className="hidden text-[10px] font-extrabold uppercase leading-tight tracking-widest sm:inline">
         Universal Perk
         <br />
         Portal

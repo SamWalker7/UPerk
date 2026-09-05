@@ -1,5 +1,6 @@
 import { PmAnnotation } from "./PmAnnotation";
 import { Card, SectionTitle } from "./ui";
+import { formatDate } from "@/lib/portal/format";
 import type { BuildInfo, PortalRole, PrototypeLinks } from "@/lib/portal/types";
 
 function LinkButton({
@@ -92,7 +93,10 @@ export function SeeItWorking({
           </div>
 
           <Card className="mt-4 py-2">
-            <Fact label="Latest build" value={`${build.version} — ${build.date}`} />
+            <Fact
+              label="Latest build"
+              value={`${build.version} — ${formatDate(build.date)}`}
+            />
             <Fact
               label="Screens in prototype"
               value={`${build.screensBuilt} of ${build.screensTotal}`}

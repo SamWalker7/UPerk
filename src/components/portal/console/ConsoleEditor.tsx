@@ -235,76 +235,78 @@ export default function ConsoleEditor({
   const blocking = openRequests.filter((r) => r.blocking).length;
 
   return (
-    <div className="mt-6 space-y-4">
+    <div className="mt-6 space-y-3 sm:space-y-4">
       {/* Sticky save bar */}
-      <div className="sticky top-14 z-20 -mx-4 flex flex-wrap items-center gap-3 border-b border-[var(--p-border)] bg-[var(--p-bg)]/90 px-4 py-3 backdrop-blur">
-        <button
-          onClick={save}
-          disabled={saving || !dirty}
-          className="flex items-center gap-2 rounded-lg bg-[var(--p-accent)] px-4 py-2 text-[13px] font-semibold text-white hover:opacity-90 disabled:opacity-40"
-        >
-          {saving ? (
-            <>
-              <Spinner className="h-3.5 w-3.5" />
-              Saving…
-            </>
-          ) : dirty ? (
-            "Save changes"
-          ) : (
-            "Saved"
-          )}
-        </button>
-
-        {dirty ? (
+      <div className="sticky top-14 z-20 -mx-3 border-b border-[var(--p-border)] bg-[var(--p-bg)]/90 px-3 py-2.5 backdrop-blur sm:-mx-4 sm:px-4 sm:py-3">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
           <button
-            onClick={discard}
-            disabled={saving}
-            className="rounded-lg border border-[var(--p-border)] px-3 py-2 text-[13px] font-medium text-[var(--p-text-dim)] hover:bg-[var(--p-surface)] disabled:opacity-40"
+            onClick={save}
+            disabled={saving || !dirty}
+            className="flex items-center gap-2 rounded-lg bg-[var(--p-accent)] px-4 py-2 text-[13px] font-semibold text-white hover:opacity-90 disabled:opacity-40"
           >
-            Discard
+            {saving ? (
+              <>
+                <Spinner className="h-3.5 w-3.5" />
+                Saving…
+              </>
+            ) : dirty ? (
+              "Save changes"
+            ) : (
+              "Saved"
+            )}
           </button>
-        ) : null}
 
-        <span className="text-[12px] text-[var(--p-text-dim)]">
           {dirty ? (
-            <span className="flex items-center gap-1.5">
-              <span className="h-1.5 w-1.5 rounded-full bg-[var(--p-warn)]" />
-              Unsaved changes
-            </span>
-          ) : (
-            "No unsaved changes"
-          )}
-        </span>
+            <button
+              onClick={discard}
+              disabled={saving}
+              className="rounded-lg border border-[var(--p-border)] px-3 py-2 text-[13px] font-medium text-[var(--p-text-dim)] hover:bg-[var(--p-surface)] disabled:opacity-40"
+            >
+              Discard
+            </button>
+          ) : null}
 
-        {message ? (
-          <span
-            className={
-              "text-[13px] " +
-              (message.kind === "ok"
-                ? "text-[var(--p-ok)]"
-                : message.kind === "warn"
-                  ? "text-[var(--p-warn)]"
-                  : "text-[var(--p-risk)]")
-            }
-          >
-            {message.text}
+          <span className="text-[12px] text-[var(--p-text-dim)]">
+            {dirty ? (
+              <span className="flex items-center gap-1.5">
+                <span className="h-1.5 w-1.5 rounded-full bg-[var(--p-warn)]" />
+                Unsaved changes
+              </span>
+            ) : (
+              "No unsaved changes"
+            )}
           </span>
-        ) : null}
 
-        <span className="ml-auto flex items-center gap-3 text-[12px] text-[var(--p-text-dim)]">
-          <button
-            onClick={() => setAll(true)}
-            className="underline underline-offset-2 hover:text-[var(--p-text)]"
-          >
-            Expand all
-          </button>
-          <button
-            onClick={() => setAll(false)}
-            className="underline underline-offset-2 hover:text-[var(--p-text)]"
-          >
-            Collapse all
-          </button>
-        </span>
+          {message ? (
+            <span
+              className={
+                "text-[13px] " +
+                (message.kind === "ok"
+                  ? "text-[var(--p-ok)]"
+                  : message.kind === "warn"
+                    ? "text-[var(--p-warn)]"
+                    : "text-[var(--p-risk)]")
+              }
+            >
+              {message.text}
+            </span>
+          ) : null}
+
+          <span className="ml-auto flex items-center gap-3 text-[12px] text-[var(--p-text-dim)]">
+            <button
+              onClick={() => setAll(true)}
+              className="underline underline-offset-2 hover:text-[var(--p-text)]"
+            >
+              Expand all
+            </button>
+            <button
+              onClick={() => setAll(false)}
+              className="underline underline-offset-2 hover:text-[var(--p-text)]"
+            >
+              Collapse all
+            </button>
+          </span>
+        </div>
       </div>
 
       {/* ---------- Header ---------- */}

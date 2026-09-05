@@ -1,5 +1,6 @@
 import { PmAnnotation } from "./PmAnnotation";
 import { SectionTitle } from "./ui";
+import { formatDate } from "@/lib/portal/format";
 import type { FinishedScreen, PortalRole } from "@/lib/portal/types";
 
 export function JustFinished({
@@ -35,7 +36,9 @@ export function JustFinished({
                 )}
               </div>
               <p className="mt-2 text-[13px] font-medium">{s.name}</p>
-              <p className="text-[12px] text-[var(--p-text-dim)]">{s.date}</p>
+              <p className="text-[12px] text-[var(--p-text-dim)]">
+                {formatDate(s.date)}
+              </p>
             </div>
           ))}
         </div>

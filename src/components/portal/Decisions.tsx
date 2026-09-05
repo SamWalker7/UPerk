@@ -1,5 +1,6 @@
 import { PmAnnotation } from "./PmAnnotation";
 import { Card, SectionTitle } from "./ui";
+import { formatDate } from "@/lib/portal/format";
 import type { Decision, PortalRole } from "@/lib/portal/types";
 
 export function Decisions({
@@ -31,14 +32,14 @@ export function Decisions({
             {decisions.map((d, i) => (
               <li
                 key={d.id}
-                className={`flex gap-4 p-5 ${
+                className={`flex gap-3 p-4 sm:gap-4 sm:p-5 ${
                   i < decisions.length - 1
                     ? "border-b border-[var(--p-border)]"
                     : ""
                 } ${d.supersededBy ? "opacity-50" : ""}`}
               >
-                <span className="w-16 shrink-0 text-[13px] font-medium text-[var(--p-accent)]">
-                  {d.date}
+                <span className="w-14 shrink-0 text-[13px] font-medium text-[var(--p-accent)] sm:w-16">
+                  {formatDate(d.date)}
                 </span>
                 <div>
                   <p className="text-[14px] leading-relaxed">{d.body}</p>

@@ -12,7 +12,7 @@ export function ProjectHeader({
   role: PortalRole;
 }) {
   return (
-    <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center gap-x-4 gap-y-2 px-4 pt-6">
+    <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center gap-x-4 gap-y-2 px-3 pt-5 sm:px-4 sm:pt-6">
       <div>
         <Link
           href="/portal"

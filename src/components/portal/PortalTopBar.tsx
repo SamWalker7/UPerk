@@ -17,15 +17,17 @@ export function PortalTopBar({
 }) {
   return (
     <header className="sticky top-0 z-40 h-14 border-b border-[var(--p-border)] bg-[var(--p-surface)]/90 backdrop-blur">
-      <div className="mx-auto flex h-full w-full max-w-6xl items-center gap-x-4 px-4">
+      <div className="mx-auto flex h-full w-full max-w-6xl items-center gap-x-2 px-3 sm:gap-x-4 sm:px-4">
         <BrandLogo />
         {crumb ? (
           <>
             <span className="text-[var(--p-border)]">/</span>
-            <div className="text-[14px] text-[var(--p-text-dim)]">{crumb}</div>
+            <div className="min-w-0 flex-1 truncate text-[13px] text-[var(--p-text-dim)] sm:text-[14px]">
+              {crumb}
+            </div>
           </>
         ) : null}
-        <div className="ml-auto flex items-center gap-2">
+        <div className="ml-auto flex shrink-0 items-center gap-2 sm:gap-3">
           <ThemeToggle />
           {role === "pm" && showConsoleLink ? (
             <Link

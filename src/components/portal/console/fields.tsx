@@ -512,9 +512,9 @@ export function ItemCard({
   children: ReactNode;
 }) {
   return (
-    <div className="rounded-xl border border-[var(--p-border)] bg-[var(--p-surface-2)]/40 p-4">
+    <div className="rounded-xl border border-[var(--p-border)] bg-[var(--p-surface-2)]/40 p-3 sm:p-4">
       <div className="mb-3 flex items-center justify-between gap-2">
-        <span className="truncate text-[12px] font-semibold text-[var(--p-text)]">
+        <span className="min-w-0 truncate text-[12px] font-semibold text-[var(--p-text)]">
           {title || "Untitled"}
         </span>
         <div className="flex shrink-0 items-center gap-1">
@@ -568,7 +568,7 @@ function IconBtn({
       title={label}
       disabled={disabled}
       onClick={onClick}
-      className="flex h-6 w-6 items-center justify-center rounded-md border border-[var(--p-border)] text-[12px] leading-none text-[var(--p-text-dim)] hover:bg-[var(--p-surface)] disabled:opacity-30"
+      className="flex h-7 w-7 items-center justify-center rounded-md border border-[var(--p-border)] text-[12px] leading-none text-[var(--p-text-dim)] hover:bg-[var(--p-surface)] disabled:opacity-30"
     >
       {children}
     </button>
