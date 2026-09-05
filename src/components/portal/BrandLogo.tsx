@@ -7,7 +7,13 @@ export function BrandLogo({ href = "/portal" }: { href?: string }) {
       href={href}
       className="flex flex-shrink-0 cursor-pointer items-center gap-2.5"
     >
-      <Image src="/icons/logo.svg" width={30} height={30} alt="Universal Perk" />
+      <Image
+        src="/icons/logo.svg"
+        width={30}
+        height={30}
+        alt="Universal Perk"
+        className="[.dark_&]:brightness-0 [.dark_&]:invert"
+      />
       <span className="text-[10px] font-extrabold uppercase leading-tight tracking-widest">
         Universal Perk
         <br />

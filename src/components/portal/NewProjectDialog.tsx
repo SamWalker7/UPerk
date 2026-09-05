@@ -41,9 +41,10 @@ export function NewProjectDialog() {
     <>
       <button
         onClick={() => setOpen(true)}
-        className="rounded-lg bg-[var(--p-accent)] px-3.5 py-2 text-[13px] font-semibold text-white transition-opacity hover:opacity-90"
+        title="New project"
+        className="flex items-center gap-1 rounded-md border border-[var(--p-border)] px-2 py-1 text-[13px] font-medium text-[var(--p-text-dim)] transition-colors hover:bg-[var(--p-surface-2)] hover:text-[var(--p-text)]"
       >
-        New project
+        <span aria-hidden>+</span> New
       </button>
 
       {open ? (

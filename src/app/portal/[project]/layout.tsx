@@ -38,9 +38,7 @@ export default async function ProjectLayout({
 
       {role === "pm" ? <PmBanner /> : null}
 
-      <div className="mt-6">
-        <TabNav openRequests={openRequests} />
-      </div>
+      <TabNav openRequests={openRequests} />
 
       <div className="mx-auto w-full max-w-6xl px-4 py-8">{children}</div>
     </main>

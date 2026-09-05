@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ProjectData, PortalRole } from "@/lib/portal/types";
+import { formatDateTime } from "@/lib/portal/format";
 
 export function ProjectHeader({
   project,
@@ -27,10 +28,7 @@ export function ProjectHeader({
         </h1>
       </div>
       <div className="ml-auto flex items-center gap-3 text-[13px] text-[var(--p-text-dim)]">
-        <span>
-          Updated {project.updatedAt}
-          {project.updatedBy ? ` by ${project.updatedBy}` : ""}
-        </span>
+        <span>Updated {formatDateTime(project.updatedAt)}</span>
         {role === "pm" ? (
           <Link
             href={`/console?p=${slug}`}

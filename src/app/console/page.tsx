@@ -26,23 +26,30 @@ export default async function ConsolePage({
 
   return (
     <main>
-      <PortalTopBar role={role} crumb="PM console" showConsoleLink={false} />
+      <PortalTopBar
+        role={role}
+        showConsoleLink={false}
+        crumb={
+          <span className="flex items-center gap-2">
+            <span>Console</span>
+            {projects.length > 0 ? (
+              <>
+                <span className="text-[var(--p-border)]">/</span>
+                <ConsoleProjectPicker
+                  projects={projects.map((x) => ({
+                    slug: x.slug,
+                    name: x.name,
+                  }))}
+                  selected={selected}
+                />
+              </>
+            ) : null}
+            <NewProjectDialog />
+          </span>
+        }
+      />
 
-      <div className="mx-auto w-full max-w-4xl px-4 pb-24 pt-8">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <h1 className="text-lg font-semibold">PM console</h1>
-            <ConsoleProjectPicker
-              projects={projects.map((x) => ({ slug: x.slug, name: x.name }))}
-              selected={selected}
-            />
-          </div>
-          <NewProjectDialog />
-        </div>
-        <p className="mt-1 text-[13px] text-[var(--p-text-dim)]">
-          Edits save directly to the portal API.
-        </p>
-
+      <div className="mx-auto w-full max-w-5xl px-4 pb-24 pt-8">
         {data ? (
           <ConsoleEditor key={data.slug} initialData={data} slug={data.slug} />
         ) : (

@@ -71,7 +71,7 @@ export function TabNav({ openRequests }: { openRequests: number }) {
   }
 
   return (
-    <div className="sticky top-14 z-30 border-b border-[var(--p-border)] bg-[var(--p-bg)]/90 backdrop-blur">
+    <div className="sticky top-14 z-30 mt-6 border-b border-t border-[var(--p-border)] bg-[var(--p-bg)]/90 backdrop-blur">
       <nav className="mx-auto flex w-full max-w-6xl gap-1 overflow-x-auto px-4 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
         {PROJECT_TABS.map((tab) => {
           const isActive = active === tab;

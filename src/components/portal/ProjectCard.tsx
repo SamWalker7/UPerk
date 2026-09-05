@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ProjectSummary } from "@/lib/portal/types";
+import { formatDateTime } from "@/lib/portal/format";
 import { StatusChip, ProgressBar } from "./ui";
 
 export function ProjectCard({ p }: { p: ProjectSummary }) {
@@ -56,7 +57,9 @@ export function ProjectCard({ p }: { p: ProjectSummary }) {
         ) : (
           <span className="text-[var(--p-text-dim)]">Nothing waiting</span>
         )}
-        <span className="text-[var(--p-text-dim)]">Updated {p.updatedAt}</span>
+        <span className="text-[var(--p-text-dim)]">
+          Updated {formatDateTime(p.updatedAt)}
+        </span>
       </div>
     </Link>
   );
