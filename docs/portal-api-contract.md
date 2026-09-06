@@ -82,6 +82,20 @@ PUT /api/projects/:slug
 The portal recomputes the project's summary after a successful PUT; a real backend
 should keep its own summary/list projection in sync.
 
+### Delete (PM only) — what the console's "Danger zone" and per-item Remove use
+
+```
+DELETE /api/projects/:slug                    200: { "ok": true }
+DELETE /api/projects/:slug/requests/:id        200: { "ok": true }
+DELETE /api/projects/:slug/screens/:id         200: { "ok": true }
+  403: { "error": "PM access required" }
+  404: { "error": "Not found" }
+```
+
+Deleting the project removes it and everything in it; the backend keeps its
+summary/list projection in sync. Request and screen deletes are hard deletes
+(decisions are *not* deletable — supersede instead).
+
 ### Granular routes (optional, nicer for the console later)
 
 ```

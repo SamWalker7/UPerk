@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { readProject, writeProject } from "@/lib/portal/data";
+import { deleteProject, readProject, writeProject } from "@/lib/portal/data";
 import { getPortalSession } from "@/lib/portal/session";
 import type { ProjectData } from "@/lib/portal/types";
 
@@ -37,6 +37,26 @@ export async function PUT(
   }
 
   const result = await writeProject(session.apiToken, project, data);
+  if (!result.ok) {
+    const status =
+      result.reason === "forbidden" ? 403 : result.reason === "read-only" ? 503 : 500;
+    return NextResponse.json({ error: result.message }, { status });
+  }
+  return NextResponse.json({ ok: true });
+}
+
+export async function DELETE(
+  _req: Request,
+  { params }: { params: Promise<{ project: string }> },
+) {
+  const session = await getPortalSession();
+  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (session.role !== "pm") {
+    return NextResponse.json({ error: "PM access required" }, { status: 403 });
+  }
+  const { project } = await params;
+
+  const result = await deleteProject(session.apiToken, project);
   if (!result.ok) {
     const status =
       result.reason === "forbidden" ? 403 : result.reason === "read-only" ? 503 : 500;

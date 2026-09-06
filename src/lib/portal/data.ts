@@ -88,6 +88,46 @@ export async function writeProject(
   }
 }
 
+/* ---------- delete (PM only) ---------- */
+
+export async function deleteProject(
+  token: string,
+  slug: string,
+): Promise<WriteResult> {
+  try {
+    await backend.deleteProject(token, slug);
+    return { ok: true };
+  } catch (err) {
+    return toWriteResult(err);
+  }
+}
+
+export async function deleteRequest(
+  token: string,
+  slug: string,
+  id: string,
+): Promise<WriteResult> {
+  try {
+    await backend.deleteRequest(token, slug, id);
+    return { ok: true };
+  } catch (err) {
+    return toWriteResult(err);
+  }
+}
+
+export async function deleteScreen(
+  token: string,
+  slug: string,
+  id: string,
+): Promise<WriteResult> {
+  try {
+    await backend.deleteScreen(token, slug, id);
+    return { ok: true };
+  } catch (err) {
+    return toWriteResult(err);
+  }
+}
+
 /* ---------- create ---------- */
 
 export function slugify(name: string): string {

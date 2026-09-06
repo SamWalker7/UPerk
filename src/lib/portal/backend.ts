@@ -116,4 +116,24 @@ export const backend = {
       `/api/projects/${encodeURIComponent(slug)}/requests/${encodeURIComponent(id)}/done`,
       { method: "POST", token },
     ),
+
+  // PM-only deletes. Backend removes the record and keeps its own summary/list
+  // projection in sync.
+  deleteProject: (token: string, slug: string) =>
+    request<{ ok: true }>(`/api/projects/${encodeURIComponent(slug)}`, {
+      method: "DELETE",
+      token,
+    }),
+
+  deleteRequest: (token: string, slug: string, id: string) =>
+    request<{ ok: true }>(
+      `/api/projects/${encodeURIComponent(slug)}/requests/${encodeURIComponent(id)}`,
+      { method: "DELETE", token },
+    ),
+
+  deleteScreen: (token: string, slug: string, id: string) =>
+    request<{ ok: true }>(
+      `/api/projects/${encodeURIComponent(slug)}/screens/${encodeURIComponent(id)}`,
+      { method: "DELETE", token },
+    ),
 };

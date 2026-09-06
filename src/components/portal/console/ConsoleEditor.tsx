@@ -23,6 +23,7 @@ import {
 } from "./fields";
 import { Section } from "./Section";
 import { Spinner } from "../Spinner";
+import { ConfirmDialog } from "./ConfirmDialog";
 import { formatDateTime } from "@/lib/portal/format";
 
 function uid(prefix: string) {
@@ -206,6 +207,73 @@ export default function ConsoleEditor({
     setData(saved);
     setMessage(null);
   }
+
+  // ---- Destructive deletes (dedicated PM-only endpoints, modal-confirmed) ----
+
+  const [confirmDeleteProject, setConfirmDeleteProject] = useState(false);
+
+  async function deleteProject() {
+    const res = await fetch(`/portal/api/projects/${slug}`, { method: "DELETE" });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      throw new Error(body.error || "Could not delete the project.");
+    }
+    // Leave the console for the projects list — this project is gone.
+    router.push("/console");
+    router.refresh();
+  }
+
+  /** DELETE a persisted list item, then drop it from both draft and saved state. */
+  async function deleteItem(
+    path: string,
+    apply: (d: ProjectData) => void,
+    label: string,
+  ) {
+    const res = await fetch(path, { method: "DELETE" });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      throw new Error(body.error || `Could not delete ${label}.`);
+    }
+    setData((prev) => {
+      const next = structuredClone(prev) as ProjectData;
+      apply(next);
+      return next;
+    });
+    setSaved((prev) => {
+      const next = structuredClone(prev) as ProjectData;
+      apply(next);
+      return next;
+    });
+    setMessage({ kind: "ok", text: `${label} deleted.` });
+    router.refresh();
+  }
+
+  const deleteRequest = (id: string) =>
+    deleteItem(
+      `/portal/api/projects/${slug}/requests/${id}`,
+      (d) => (d.requests = d.requests.filter((r) => r.id !== id)),
+      "Request",
+    );
+
+  const deleteScreen = (id: string) =>
+    deleteItem(
+      `/portal/api/projects/${slug}/screens/${id}`,
+      (d) =>
+        (d.finishedScreens = d.finishedScreens.filter((sc) => sc.id !== id)),
+      "Screen",
+    );
+
+  // An id that exists in the last-saved data is persisted on the backend and
+  // must go through the DELETE endpoint; anything else is a local-only draft
+  // row that we can just drop.
+  const savedRequestIds = useMemo(
+    () => new Set(saved.requests.map((r) => r.id)),
+    [saved.requests],
+  );
+  const savedScreenIds = useMemo(
+    () => new Set(saved.finishedScreens.map((sc) => sc.id)),
+    [saved.finishedScreens],
+  );
 
   // Cmd/Ctrl+S to save.
   useEffect(() => {
@@ -469,6 +537,8 @@ export default function ConsoleEditor({
         <RequestsEditor
           requests={data.requests}
           onChange={(requests) => patch((d) => (d.requests = requests))}
+          isPersisted={(id) => savedRequestIds.has(id)}
+          onDelete={deleteRequest}
         />
       </Section>
 
@@ -576,6 +646,8 @@ export default function ConsoleEditor({
         <ScreensEditor
           screens={data.finishedScreens}
           onChange={(screens) => patch((d) => (d.finishedScreens = screens))}
+          isPersisted={(id) => savedScreenIds.has(id)}
+          onDelete={deleteScreen}
         />
       </Section>
 
@@ -622,6 +694,47 @@ export default function ConsoleEditor({
           />
         </Grid>
       </Section>
+
+      {/* ---------- Danger zone ---------- */}
+      <section className="rounded-2xl border border-[var(--p-risk)]/40 bg-[var(--p-risk-bg)]/40 p-4 sm:p-5">
+        <h2 className="text-[14px] font-bold text-[var(--p-risk)]">Danger zone</h2>
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+          <div className="min-w-0">
+            <p className="text-[13px] font-medium text-[var(--p-text)]">
+              Delete this project
+            </p>
+            <p className="text-[12px] text-[var(--p-text-dim)]">
+              Removes {saved.project.name} and everything in it. This cannot be
+              undone.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setConfirmDeleteProject(true)}
+            className="shrink-0 rounded-lg border border-[var(--p-risk)] px-3.5 py-2 text-[13px] font-semibold text-[var(--p-risk)] hover:bg-[var(--p-risk)] hover:text-white"
+          >
+            Delete project
+          </button>
+        </div>
+      </section>
+
+      <ConfirmDialog
+        open={confirmDeleteProject}
+        title="Delete this project?"
+        body={
+          <>
+            <span className="font-medium text-[var(--p-text)]">
+              {saved.project.name}
+            </span>{" "}
+            and all of its requests, screens, decisions and plan will be
+            permanently deleted. This cannot be undone.
+          </>
+        }
+        confirmLabel="Delete project"
+        confirmPhrase={saved.slug}
+        onConfirm={deleteProject}
+        onClose={() => setConfirmDeleteProject(false)}
+      />
     </div>
   );
 }
@@ -631,10 +744,17 @@ export default function ConsoleEditor({
 function RequestsEditor({
   requests,
   onChange,
+  isPersisted,
+  onDelete,
 }: {
   requests: ClientRequest[];
   onChange: (r: ClientRequest[]) => void;
+  /** true if this id exists on the backend (needs the DELETE endpoint) */
+  isPersisted: (id: string) => boolean;
+  onDelete: (id: string) => Promise<void>;
 }) {
+  const [pendingDelete, setPendingDelete] = useState<ClientRequest | null>(null);
+
   function update(i: number, fn: (r: ClientRequest) => void) {
     const next = structuredClone(requests);
     fn(next[i]);
@@ -670,7 +790,11 @@ function RequestsEditor({
           index={i}
           count={requests.length}
           onMove={(dir) => move(i, dir)}
-          onRemove={() => onChange(requests.filter((_, j) => j !== i))}
+          onRemove={() =>
+            isPersisted(r.id)
+              ? setPendingDelete(r)
+              : onChange(requests.filter((_, j) => j !== i))
+          }
         >
           <Grid>
             <Field
@@ -765,6 +889,26 @@ function RequestsEditor({
         </ItemCard>
       ))}
       <AddButton label="+ New client request" onClick={add} />
+
+      <ConfirmDialog
+        open={pendingDelete !== null}
+        title="Delete this request?"
+        body={
+          <>
+            <span className="font-medium text-[var(--p-text)]">
+              {pendingDelete?.title}
+            </span>{" "}
+            will be permanently removed from the client&apos;s portal. This
+            cannot be undone.
+          </>
+        }
+        confirmLabel="Delete request"
+        onConfirm={async () => {
+          if (pendingDelete) await onDelete(pendingDelete.id);
+          setPendingDelete(null);
+        }}
+        onClose={() => setPendingDelete(null)}
+      />
     </>
   );
 }
@@ -910,10 +1054,16 @@ function PhasesEditor({
 function ScreensEditor({
   screens,
   onChange,
+  isPersisted,
+  onDelete,
 }: {
   screens: FinishedScreen[];
   onChange: (s: FinishedScreen[]) => void;
+  isPersisted: (id: string) => boolean;
+  onDelete: (id: string) => Promise<void>;
 }) {
+  const [pendingDelete, setPendingDelete] = useState<FinishedScreen | null>(null);
+
   function update(i: number, fn: (s: FinishedScreen) => void) {
     const next = structuredClone(screens);
     fn(next[i]);
@@ -934,7 +1084,11 @@ function ScreensEditor({
           index={i}
           count={screens.length}
           onMove={(dir) => move(i, dir)}
-          onRemove={() => onChange(screens.filter((_, j) => j !== i))}
+          onRemove={() =>
+            isPersisted(sc.id)
+              ? setPendingDelete(sc)
+              : onChange(screens.filter((_, j) => j !== i))
+          }
         >
           <Grid>
             <Field
@@ -961,6 +1115,26 @@ function ScreensEditor({
         onClick={() =>
           onChange([{ id: uid("scr"), name: "New screen", date: "" }, ...screens])
         }
+      />
+
+      <ConfirmDialog
+        open={pendingDelete !== null}
+        title="Delete this screen?"
+        body={
+          <>
+            <span className="font-medium text-[var(--p-text)]">
+              {pendingDelete?.name}
+            </span>{" "}
+            will be permanently removed from the client&apos;s portal. This
+            cannot be undone.
+          </>
+        }
+        confirmLabel="Delete screen"
+        onConfirm={async () => {
+          if (pendingDelete) await onDelete(pendingDelete.id);
+          setPendingDelete(null);
+        }}
+        onClose={() => setPendingDelete(null)}
       />
     </>
   );
