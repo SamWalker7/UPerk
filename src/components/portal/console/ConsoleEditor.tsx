@@ -203,7 +203,7 @@ export default function ConsoleEditor({
           text: body.error || "Read-only in production.",
         });
       } else {
-        setMessage({ kind: "err", text: body.error || "Save failed." });
+        setMessage({ kind: "err", text: res.status === 413 ? "An image is too large to save. Use a smaller image, let the portal compress it, or paste an image URL." : body.error || "Save failed." });
       }
     } catch {
       setMessage({ kind: "err", text: "Network error." });

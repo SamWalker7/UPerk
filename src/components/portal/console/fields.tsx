@@ -312,7 +312,9 @@ export function SmartDateField({
 
 /* ---------- image (URL or uploaded file → base64 data URI) ---------- */
 
-const MAX_IMAGE_BYTES = 5 * 1024 * 1024; // 5 MB
+const MAX_SOURCE_IMAGE_BYTES = 25 * 1024 * 1024; // Browser-safe upload limit.
+const TARGET_IMAGE_BYTES = 350 * 1024; // Keeps project saves well below gateway limits.
+const MAX_IMAGE_DIMENSION = 1600;
 
 function readFileAsDataUrl(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -321,6 +323,43 @@ function readFileAsDataUrl(file: File): Promise<string> {
     r.onerror = () => reject(r.error);
     r.readAsDataURL(file);
   });
+}
+
+/** Resize and JPEG-compress uploaded raster images before embedding them. */
+async function compressImage(file: File): Promise<File> {
+  // SVG is already text/vector data and should not be rasterised here.
+  if (file.type === "image/svg+xml") return file;
+  const url = URL.createObjectURL(file);
+  try {
+    const image = await new Promise<HTMLImageElement>((resolve, reject) => {
+      const element = new Image();
+      element.onload = () => resolve(element);
+      element.onerror = () => reject(new Error("This image format could not be read."));
+      element.src = url;
+    });
+    let scale = Math.min(1, MAX_IMAGE_DIMENSION / Math.max(image.naturalWidth, image.naturalHeight));
+    for (let attempt = 0; attempt < 4; attempt += 1) {
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.max(1, Math.round(image.naturalWidth * scale));
+      canvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
+      const context = canvas.getContext("2d");
+      if (!context) throw new Error("Image compression is not available in this browser.");
+      // JPEG does not support transparency; use a white background for PNGs.
+      context.fillStyle = "#ffffff";
+      context.fillRect(0, 0, canvas.width, canvas.height);
+      context.drawImage(image, 0, 0, canvas.width, canvas.height);
+      for (const quality of [0.85, 0.7, 0.55, 0.4]) {
+        const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/jpeg", quality));
+        if (blob && blob.size <= TARGET_IMAGE_BYTES) {
+          return new File([blob], `${file.name.replace(/\.[^.]+$/, "") || "image"}.jpg`, { type: "image/jpeg" });
+        }
+      }
+      scale *= 0.7;
+    }
+    throw new Error("This image is still too large after compression. Please use a smaller image or paste an image URL.");
+  } finally {
+    URL.revokeObjectURL(url);
+  }
 }
 
 /**
@@ -341,27 +380,33 @@ export function ImageField({
 }) {
   const id = useId();
   const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
   const [busy, setBusy] = useState(false);
   const isData = value.startsWith("data:");
 
   async function pick(file: File | undefined) {
     setError("");
+    setNotice("");
     if (!file) return;
     if (!file.type.startsWith("image/")) {
       setError("That file isn’t an image.");
       return;
     }
-    if (file.size > MAX_IMAGE_BYTES) {
+    if (file.size > MAX_SOURCE_IMAGE_BYTES) {
       setError(
-        `Image is ${(file.size / 1024 / 1024).toFixed(1)} MB — max 5 MB.`,
+        `This image is ${(file.size / 1024 / 1024).toFixed(1)} MB. Please choose an image smaller than 25 MB, then it will be compressed automatically.`,
       );
       return;
     }
     setBusy(true);
     try {
-      onChange(await readFileAsDataUrl(file));
-    } catch {
-      setError("Couldn’t read that file.");
+      const compressed = await compressImage(file);
+      onChange(await readFileAsDataUrl(compressed));
+      if (compressed.size < file.size) {
+        setNotice(`Compressed from ${(file.size / 1024 / 1024).toFixed(1)} MB to ${(compressed.size / 1024).toFixed(0)} KB.`);
+      }
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Couldn’t read or compress that image.");
     } finally {
       setBusy(false);
     }
@@ -434,6 +479,7 @@ export function ImageField({
           {error ? (
             <p className="text-[11px] text-[var(--p-risk)]">{error}</p>
           ) : null}
+          {notice ? <p className="text-[11px] text-[var(--p-ok)]">{notice}</p> : null}
         </div>
       </div>
     </div>
