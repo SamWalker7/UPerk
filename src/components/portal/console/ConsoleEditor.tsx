@@ -169,12 +169,24 @@ export default function ConsoleEditor({
     const payload = structuredClone(data) as ProjectData;
     payload.project.updatedAt = nowStamp();
     payload.project.updatedBy = who || payload.project.updatedBy || "PM";
+    // Send only changed sections. In particular, this prevents an unchanged
+    // uploaded screen image from making an ordinary text save exceed the API
+    // gateway request-size limit.
+    const changes: Record<string, unknown> = {};
+    const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
+    const sections: Array<keyof ProjectData> = [
+      "project", "status", "steps", "requests", "build", "prototype",
+      "plan", "finishedScreens", "decisionsIntro", "nextCall",
+    ];
+    for (const section of sections) {
+      if (!same(payload[section], saved[section])) changes[section] = payload[section];
+    }
 
     try {
       const res = await fetch(`/portal/api/projects/${slug}`, {
-        method: "PUT",
+        method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(changes),
       });
       const body = await res.json().catch(() => ({}));
       if (res.ok && body.data) {

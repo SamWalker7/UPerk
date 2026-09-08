@@ -88,6 +88,19 @@ export async function writeProject(
   }
 }
 
+export async function patchProject(
+  token: string,
+  slug: string,
+  changes: Record<string, unknown>,
+): Promise<WriteResult> {
+  try {
+    await backend.patchProject(token, slug, changes);
+    return { ok: true };
+  } catch (err) {
+    return toWriteResult(err);
+  }
+}
+
 export async function appendDecision(
   token: string,
   slug: string,

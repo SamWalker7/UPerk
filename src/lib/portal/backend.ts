@@ -99,6 +99,13 @@ export const backend = {
       body: data as Json,
     }),
 
+  patchProject: (token: string, slug: string, changes: unknown) =>
+    request<{ ok: true }>(`/api/projects/${encodeURIComponent(slug)}`, {
+      method: "PATCH",
+      token,
+      body: changes as Json,
+    }),
+
   appendDecision: (token: string, slug: string, data: unknown) =>
     request<{ id: string; decision?: unknown }>(
       `/api/projects/${encodeURIComponent(slug)}/decisions`,
