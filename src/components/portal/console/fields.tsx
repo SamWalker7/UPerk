@@ -241,6 +241,7 @@ export function SmartDateField({
   placeholder,
   hint,
   onIsoChange,
+  allowFreeText = true,
 }: {
   label: string;
   value: string;
@@ -249,6 +250,8 @@ export function SmartDateField({
   hint?: string;
   /** Called only when a calendar date is picked, with YYYY-MM-DD. */
   onIsoChange?: (v: string) => void;
+  /** Set false when a date must come from the calendar picker. */
+  allowFreeText?: boolean;
 }) {
   const id = useId();
   const parsedIso = humanDateToIso(value);
@@ -259,15 +262,17 @@ export function SmartDateField({
     <label htmlFor={id} className="block">
       <span className="mb-1 flex items-center justify-between gap-2 text-[12px] font-medium text-[var(--p-text-dim)]">
         {label}
-        <button
-          type="button"
-          onClick={() => setFreeText((f) => !f)}
-          className="font-normal text-[var(--p-accent)] underline underline-offset-2"
-        >
-          {freeText ? "pick a date" : "type it instead"}
-        </button>
+        {allowFreeText ? (
+          <button
+            type="button"
+            onClick={() => setFreeText((f) => !f)}
+            className="font-normal text-[var(--p-accent)] underline underline-offset-2"
+          >
+            {freeText ? "pick a date" : "type it instead"}
+          </button>
+        ) : null}
       </span>
-      {freeText ? (
+      {freeText && allowFreeText ? (
         <input
           id={id}
           type="text"

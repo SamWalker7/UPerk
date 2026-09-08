@@ -520,6 +520,7 @@ export default function ConsoleEditor({
             value={s.launchDate}
             onChange={(v) => patch((d) => (d.status.launchDate = v))}
             onIsoChange={(iso) => patch((d) => (d.status.daysToLaunch = daysUntil(iso)))}
+            allowFreeText={false}
           />
           <Field
             label="Launch note"
