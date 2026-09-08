@@ -312,8 +312,8 @@ export function SmartDateField({
 
 /* ---------- image (URL or uploaded file → base64 data URI) ---------- */
 
-const MAX_SOURCE_IMAGE_BYTES = 25 * 1024 * 1024; // Browser-safe upload limit.
-const TARGET_IMAGE_BYTES = 350 * 1024; // Keeps project saves well below gateway limits.
+const MAX_SOURCE_IMAGE_BYTES = 1 * 1024 * 1024; // Accept uploads up to 1 MB.
+const TARGET_IMAGE_BYTES = 200 * 1024; // Allows base64 storage within DynamoDB's item limit.
 const MAX_IMAGE_DIMENSION = 1600;
 
 function readFileAsDataUrl(file: File): Promise<string> {
@@ -394,7 +394,7 @@ export function ImageField({
     }
     if (file.size > MAX_SOURCE_IMAGE_BYTES) {
       setError(
-        `This image is ${(file.size / 1024 / 1024).toFixed(1)} MB. Please choose an image smaller than 25 MB, then it will be compressed automatically.`,
+        `This image is ${(file.size / 1024 / 1024).toFixed(1)} MB. The maximum upload size is 1 MB. Please compress it first or paste an image URL.`,
       );
       return;
     }

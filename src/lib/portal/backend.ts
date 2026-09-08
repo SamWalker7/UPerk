@@ -155,4 +155,15 @@ export const backend = {
       `/api/projects/${encodeURIComponent(slug)}/screens/${encodeURIComponent(id)}`,
       { method: "DELETE", token },
     ),
+
+  updateScreen: (token: string, slug: string, id: string, screen: unknown) =>
+    request<{ ok: true }>(
+      `/api/projects/${encodeURIComponent(slug)}/screens/${encodeURIComponent(id)}`,
+      { method: "PATCH", token, body: screen as Json },
+    ),
+
+  addScreen: (token: string, slug: string, screen: unknown) =>
+    request<{ id: string }>(`/api/projects/${encodeURIComponent(slug)}/screens`, {
+      method: "POST", token, body: screen as Json,
+    }),
 };

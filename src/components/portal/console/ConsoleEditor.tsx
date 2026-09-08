@@ -176,13 +176,33 @@ export default function ConsoleEditor({
     const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
     const sections: Array<keyof ProjectData> = [
       "project", "status", "steps", "requests", "build", "prototype",
-      "plan", "finishedScreens", "decisionsIntro", "nextCall",
+      "plan", "decisionsIntro", "nextCall",
     ];
     for (const section of sections) {
       if (!same(payload[section], saved[section])) changes[section] = payload[section];
     }
 
     try {
+      // Screens are saved one at a time so projects with many images never
+      // combine them into one request that exceeds the 1 MB gateway limit.
+      const oldScreens = new Map(saved.finishedScreens.map((screen) => [screen.id, screen]));
+      for (const screen of payload.finishedScreens) {
+        const old = oldScreens.get(screen.id);
+        const endpoint = old
+          ? `/portal/api/projects/${slug}/screens/${screen.id}`
+          : `/portal/api/projects/${slug}/screens`;
+        if (!old || !same(screen, old)) {
+          const screenRes = await fetch(endpoint, {
+            method: old ? "PATCH" : "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(screen),
+          });
+          if (!screenRes.ok) {
+            const screenBody = await screenRes.json().catch(() => ({}));
+            throw new Error(screenRes.status === 413 ? "This screen image is too large. Choose a smaller image or use an image URL." : screenBody.error || "Could not save screen.");
+          }
+        }
+      }
       const res = await fetch(`/portal/api/projects/${slug}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },

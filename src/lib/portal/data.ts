@@ -164,6 +164,14 @@ export async function deleteScreen(
   }
 }
 
+export async function updateScreen(token: string, slug: string, id: string, screen: Record<string, unknown>): Promise<WriteResult> {
+  try { await backend.updateScreen(token, slug, id, screen); return { ok: true }; } catch (err) { return toWriteResult(err); }
+}
+
+export async function addScreen(token: string, slug: string, screen: Record<string, unknown>): Promise<{ ok: true; id: string } | WriteResult> {
+  try { return { ok: true, ...(await backend.addScreen(token, slug, screen)) }; } catch (err) { return toWriteResult(err); }
+}
+
 /* ---------- create ---------- */
 
 export function slugify(name: string): string {
