@@ -99,6 +99,18 @@ export const backend = {
       body: data as Json,
     }),
 
+  appendDecision: (token: string, slug: string, data: unknown) =>
+    request<{ id: string; decision?: unknown }>(
+      `/api/projects/${encodeURIComponent(slug)}/decisions`,
+      { method: "POST", token, body: data as Json },
+    ),
+
+  publishProject: (token: string, slug: string) =>
+    request<{ ok: true; publication: unknown }>(
+      `/api/projects/${encodeURIComponent(slug)}/publish`,
+      { method: "POST", token },
+    ),
+
   respondToRequest: (token: string, slug: string, id: string, choice: string) =>
     request<{ ok: true }>(
       `/api/projects/${encodeURIComponent(slug)}/requests/${encodeURIComponent(id)}/respond`,

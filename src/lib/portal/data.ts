@@ -88,6 +88,29 @@ export async function writeProject(
   }
 }
 
+export async function appendDecision(
+  token: string,
+  slug: string,
+  decision: Record<string, unknown>,
+): Promise<{ ok: true; id: string; decision?: unknown } | WriteResult> {
+  try {
+    return { ok: true, ...(await backend.appendDecision(token, slug, decision)) };
+  } catch (err) {
+    return toWriteResult(err);
+  }
+}
+
+export async function publishProject(
+  token: string,
+  slug: string,
+): Promise<{ ok: true; publication: unknown } | WriteResult> {
+  try {
+    return await backend.publishProject(token, slug);
+  } catch (err) {
+    return toWriteResult(err);
+  }
+}
+
 /* ---------- delete (PM only) ---------- */
 
 export async function deleteProject(

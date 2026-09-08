@@ -42,7 +42,11 @@ export async function PUT(
       result.reason === "forbidden" ? 403 : result.reason === "read-only" ? 503 : 500;
     return NextResponse.json({ error: result.message }, { status });
   }
-  return NextResponse.json({ ok: true });
+  // Read the saved record back before reporting success. This lets the console
+  // use the API as the source of truth and catches failed/non-persistent saves.
+  const persisted = await readProject(session.apiToken, project);
+  if (!persisted) return NextResponse.json({ error: "Save could not be verified" }, { status: 502 });
+  return NextResponse.json({ ok: true, data: persisted });
 }
 
 export async function DELETE(

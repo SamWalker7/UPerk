@@ -35,6 +35,15 @@ function nowStamp() {
   return new Date().toISOString();
 }
 
+/** Calendar-day difference, clamped to zero for launch dates in the past. */
+function daysUntil(isoDate: string) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(isoDate)) return 0;
+  const today = new Date();
+  const todayUtc = Date.UTC(today.getFullYear(), today.getMonth(), today.getDate());
+  const [year, month, day] = isoDate.split("-").map(Number);
+  return Math.max(0, Math.round((Date.UTC(year, month - 1, day) - todayUtc) / 86_400_000));
+}
+
 const UPDATED_BY_KEY = "uperk.console.updatedBy";
 
 const PHASE_OPTIONS = [
@@ -71,6 +80,7 @@ export default function ConsoleEditor({
   const [saved, setSaved] = useState<ProjectData>(initialData);
   const [data, setData] = useState<ProjectData>(initialData);
   const [saving, setSaving] = useState(false);
+  const [publishing, setPublishing] = useState(false);
   const [message, setMessage] = useState<{
     kind: "ok" | "warn" | "err";
     text: string;
@@ -85,8 +95,7 @@ export default function ConsoleEditor({
     decisions: false,
     nextCall: false,
   });
-  // The PM's name, remembered locally and asked for once. Used to stamp
-  // "Updated by" on save — it is audit metadata, not an editable field.
+  // Optional display name remembered locally for the updated-by metadata.
   const [pmName, setPmName] = useState("");
 
   // Field-level dirtiness, per section, via JSON compare of the relevant slice.
@@ -107,7 +116,8 @@ export default function ConsoleEditor({
         !eq(data.prototype, saved.prototype) || !eq(data.build, saved.build),
       plan: !eq(data.plan, saved.plan),
       screens: !eq(data.finishedScreens, saved.finishedScreens),
-      decisions: !eq(data.decisions, saved.decisions),
+      // Decisions are committed immediately through the audit-log endpoint.
+      decisions: false,
       nextCall: !eq(data.nextCall, saved.nextCall),
     } as Record<SectionKey, boolean>;
   }, [data, saved]);
@@ -148,22 +158,9 @@ export default function ConsoleEditor({
   async function save() {
     if (savingRef.current) return;
 
-    // "Updated by" is stamped from the PM's identity, not typed into the form.
-    // We don't have it in the session, so ask once and remember it.
-    let who = pmName;
-    if (!who) {
-      who = (window.prompt("Your name (shown as “Updated by”)") || "").trim();
-      if (!who) {
-        setMessage({ kind: "warn", text: "Save cancelled — a name is needed." });
-        return;
-      }
-      setPmName(who);
-      try {
-        localStorage.setItem(UPDATED_BY_KEY, who);
-      } catch {
-        /* ignore */
-      }
-    }
+    // The backend stamps the authenticated PM identity. A remembered display
+    // name is optional and must never prevent a project save.
+    const who = pmName;
 
     savingRef.current = true;
     setSaving(true);
@@ -171,7 +168,7 @@ export default function ConsoleEditor({
 
     const payload = structuredClone(data) as ProjectData;
     payload.project.updatedAt = nowStamp();
-    payload.project.updatedBy = who;
+    payload.project.updatedBy = who || payload.project.updatedBy || "PM";
 
     try {
       const res = await fetch(`/portal/api/projects/${slug}`, {
@@ -180,11 +177,14 @@ export default function ConsoleEditor({
         body: JSON.stringify(payload),
       });
       const body = await res.json().catch(() => ({}));
-      if (res.ok) {
-        setData(payload);
-        setSaved(payload);
-        setMessage({ kind: "ok", text: "Saved." });
+      if (res.ok && body.data) {
+        const persisted = body.data as ProjectData;
+        setData(persisted);
+        setSaved(persisted);
+        setMessage({ kind: "ok", text: "Saved as a draft. Publish when ready for the client." });
         router.refresh();
+      } else if (res.ok) {
+        setMessage({ kind: "err", text: "Save could not be verified. Please try again." });
       } else if (res.status === 503) {
         setMessage({
           kind: "warn",
@@ -206,6 +206,53 @@ export default function ConsoleEditor({
     if (!confirm("Discard all unsaved changes?")) return;
     setData(saved);
     setMessage(null);
+  }
+
+  async function logDecision(supersedes?: string) {
+    const body = (window.prompt(supersedes ? "Replacement decision" : "Decision") || "").trim();
+    if (!body) return;
+    const attribution = (window.prompt("Who agreed this? (optional)") || "").trim();
+    setSaving(true);
+    setMessage(null);
+    try {
+      const res = await fetch(`/portal/api/projects/${slug}/decisions`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ body, ...(attribution ? { attribution } : {}), ...(supersedes ? { supersedes } : {}) }),
+      });
+      const result = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(result.error || "Could not log decision.");
+      const decision = result.decision as Decision;
+      const apply = (project: ProjectData) => {
+        if (supersedes) {
+          const prior = project.decisions.find((item) => item.id === supersedes);
+          if (prior) prior.supersededBy = result.id;
+        }
+        project.decisions.push(decision);
+      };
+      setData((previous) => { const next = structuredClone(previous) as ProjectData; apply(next); return next; });
+      setSaved((previous) => { const next = structuredClone(previous) as ProjectData; apply(next); return next; });
+      setMessage({ kind: "ok", text: supersedes ? "Replacement decision logged." : "Decision logged." });
+      router.refresh();
+    } catch (error) {
+      setMessage({ kind: "err", text: error instanceof Error ? error.message : "Could not log decision." });
+    } finally { setSaving(false); }
+  }
+
+  async function publish() {
+    if (dirty) { setMessage({ kind: "warn", text: "Save or discard your edits before publishing." }); return; }
+    setPublishing(true); setMessage(null);
+    try {
+      const res = await fetch(`/portal/api/projects/${slug}/publish`, { method: "POST" });
+      const result = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(result.error || "Could not publish changes.");
+      setData((previous) => ({ ...previous, publication: result.publication }));
+      setSaved((previous) => ({ ...previous, publication: result.publication }));
+      setMessage({ kind: "ok", text: "Published to the client portal." });
+      router.refresh();
+    } catch (error) {
+      setMessage({ kind: "err", text: error instanceof Error ? error.message : "Could not publish changes." });
+    } finally { setPublishing(false); }
   }
 
   // ---- Destructive deletes (dedicated PM-only endpoints, modal-confirmed) ----
@@ -322,6 +369,15 @@ export default function ConsoleEditor({
             ) : (
               "Saved"
             )}
+          </button>
+
+          <button
+            onClick={publish}
+            disabled={saving || publishing}
+            title="Make the current draft visible in the client portal"
+            className="rounded-lg bg-[var(--p-ok)] px-3 py-2 text-[13px] font-semibold text-white hover:opacity-90 disabled:opacity-40"
+          >
+            {publishing ? "Publishing…" : "Publish changes"}
           </button>
 
           {dirty ? (
@@ -454,16 +510,16 @@ export default function ConsoleEditor({
             value={s.phaseSubtitle}
             onChange={(v) => patch((d) => (d.status.phaseSubtitle = v))}
           />
-          <NumberField
+          <ReadOnlyStat
             label="Days to launch"
-            value={s.daysToLaunch}
-            min={0}
-            onChange={(v) => patch((d) => (d.status.daysToLaunch = v))}
+            value={`${s.daysToLaunch} days`}
+            note="Calculated automatically from the launch date"
           />
           <SmartDateField
             label="Launch date"
             value={s.launchDate}
             onChange={(v) => patch((d) => (d.status.launchDate = v))}
+            onIsoChange={(iso) => patch((d) => (d.status.daysToLaunch = daysUntil(iso)))}
           />
           <Field
             label="Launch note"
@@ -661,7 +717,8 @@ export default function ConsoleEditor({
       >
         <DecisionsEditor
           decisions={data.decisions}
-          onChange={(decisions) => patch((d) => (d.decisions = decisions))}
+          onLog={() => logDecision()}
+          onSupersede={logDecision}
         />
       </Section>
 
@@ -1144,88 +1201,27 @@ function ScreensEditor({
 
 function DecisionsEditor({
   decisions,
-  onChange,
+  onLog,
+  onSupersede,
 }: {
   decisions: Decision[];
-  onChange: (d: Decision[]) => void;
+  onLog: () => void;
+  onSupersede: (id: string) => void;
 }) {
-  function update(i: number, fn: (d: Decision) => void) {
-    const next = structuredClone(decisions);
-    fn(next[i]);
-    onChange(next);
-  }
-  function move(i: number, dir: -1 | 1) {
-    const next = structuredClone(decisions);
-    const j = i + dir;
-    [next[i], next[j]] = [next[j], next[i]];
-    onChange(next);
-  }
   return (
     <>
-      {decisions.map((d, i) => (
-        <ItemCard
+      {decisions.map((d) => (
+        <div
           key={d.id}
-          title={d.body || d.date}
-          index={i}
-          count={decisions.length}
-          onMove={(dir) => move(i, dir)}
-          onRemove={() => onChange(decisions.filter((_, j) => j !== i))}
+          className="rounded-xl border border-[var(--p-border)] bg-[var(--p-surface)] p-4"
         >
-          <Grid cols={3}>
-            <SmartDateField
-              label="Date"
-              value={d.date}
-              onChange={(v) => update(i, (x) => (x.date = v))}
-            />
-            <Field
-              label="Link label (optional)"
-              value={d.link?.label || ""}
-              onChange={(v) =>
-                update(i, (x) => {
-                  x.link = v ? { label: v, url: x.link?.url || "#" } : undefined;
-                })
-              }
-            />
-            <Field
-              label="Link URL (optional)"
-              value={d.link?.url || ""}
-              onChange={(v) =>
-                update(i, (x) => {
-                  if (x.link) x.link.url = v;
-                  else if (v) x.link = { label: "Link", url: v };
-                })
-              }
-            />
-          </Grid>
-          <Field
-            label="Decision (one line)"
-            value={d.body}
-            onChange={(v) => update(i, (x) => (x.body = v))}
-            textarea
-          />
-          <Field
-            label="Attribution"
-            value={d.attribution}
-            onChange={(v) => update(i, (x) => (x.attribution = v))}
-          />
-          <CheckField
-            label="Superseded (kept, greyed out — never deleted)"
-            checked={!!d.supersededBy}
-            onChange={(v) =>
-              update(i, (x) => (x.supersededBy = v ? "superseded" : undefined))
-            }
-          />
-        </ItemCard>
+          <p className="text-[13px] text-[var(--p-text-dim)]">{formatDateTime(d.date)}</p>
+          <p className="mt-1 text-sm text-[var(--p-text)]">{d.body}</p>
+          <p className="mt-1 text-[12px] text-[var(--p-text-dim)]">{d.attribution}</p>
+          {d.supersededBy ? <p className="mt-2 text-[12px] text-[var(--p-text-dim)]">Superseded — retained as audit history</p> : <button onClick={() => onSupersede(d.id)} className="mt-3 rounded-md border border-[var(--p-border)] px-2.5 py-1.5 text-xs font-medium hover:bg-[var(--p-bg)]">Supersede decision</button>}
+        </div>
       ))}
-      <AddButton
-        label="+ Log a decision"
-        onClick={() =>
-          onChange([
-            { id: uid("dec"), date: "", body: "", attribution: "" },
-            ...decisions,
-          ])
-        }
-      />
+      <AddButton label="+ Log decision" onClick={onLog} />
     </>
   );
 }

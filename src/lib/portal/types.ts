@@ -86,6 +86,9 @@ export type Decision = {
   /** e.g. "Agreed by Kaya and Dr. Renner on the Monday call" */
   attribution: string;
   link?: { label: string; url: string };
+  agreedBy?: string;
+  where?: "call" | "email" | "portal-reply" | "workshop" | "other";
+  referenceUrl?: string;
   /** id of the decision that replaces this one; never delete */
   supersededBy?: string;
 };
@@ -147,6 +150,15 @@ export type ProjectData = {
   decisionsIntro?: string;
   decisions: Decision[];
   nextCall?: { label: string; agendaUrl?: string };
+  publication?: { unpublishedChanges: number; lastPublishedAt?: string };
+  notes?: Array<{
+    id: string;
+    body: string;
+    visibility: "internal" | "client";
+    pinned?: boolean;
+    date: string;
+    attribution: string;
+  }>;
 };
 
 /** @deprecated use ProjectData */

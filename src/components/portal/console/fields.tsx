@@ -91,6 +91,9 @@ export function NumberField({
         min={min}
         max={max}
         value={Number.isFinite(value) ? value : 0}
+        // Replacing the whole default value prevents values such as `010`
+        // when a PM starts typing into a field containing 0.
+        onFocus={(e) => e.currentTarget.select()}
         onChange={(e) => {
           let n = Number(e.target.value);
           if (!Number.isFinite(n)) n = 0;
@@ -237,12 +240,15 @@ export function SmartDateField({
   onChange,
   placeholder,
   hint,
+  onIsoChange,
 }: {
   label: string;
   value: string;
   onChange: (v: string) => void;
   placeholder?: string;
   hint?: string;
+  /** Called only when a calendar date is picked, with YYYY-MM-DD. */
+  onIsoChange?: (v: string) => void;
 }) {
   const id = useId();
   const parsedIso = humanDateToIso(value);
@@ -276,9 +282,11 @@ export function SmartDateField({
             id={id}
             type="date"
             value={parsedIso}
-            onChange={(e) =>
-              onChange(e.target.value ? formatHumanDate(e.target.value) : "")
-            }
+            onChange={(e) => {
+              const iso = e.target.value;
+              onChange(iso ? formatHumanDate(iso) : "");
+              onIsoChange?.(iso);
+            }}
             className="w-full rounded-lg border border-[var(--p-border)] bg-transparent px-3 py-2 text-[13px] outline-none focus:border-[var(--p-accent)]"
           />
           {value && !parsedIso ? (
