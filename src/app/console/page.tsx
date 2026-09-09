@@ -1,10 +1,10 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { getPortalSession } from "@/lib/portal/session";
 import { listProjects, readProject } from "@/lib/portal/data";
 import { PortalTopBar } from "@/components/portal/PortalTopBar";
 import ConsoleEditor from "@/components/portal/console/ConsoleEditor";
 import { ConsoleProjectPicker } from "@/components/portal/console/ConsoleProjectPicker";
-import { NewProjectDialog } from "@/components/portal/NewProjectDialog";
 
 export const dynamic = "force-dynamic";
 
@@ -31,12 +31,9 @@ export default async function ConsolePage({
         showConsoleLink={false}
         crumb={
           <span className="flex min-w-0 items-center gap-1.5 sm:gap-2">
-            <span className="hidden shrink-0 sm:inline">Console</span>
+            <span className="hidden shrink-0 sm:inline">PM console —</span>
             {projects.length > 0 ? (
               <>
-                <span className="hidden shrink-0 text-[var(--p-border)] sm:inline">
-                  /
-                </span>
                 <ConsoleProjectPicker
                   projects={projects.map((x) => ({
                     slug: x.slug,
@@ -46,14 +43,19 @@ export default async function ConsolePage({
                 />
               </>
             ) : null}
-            <NewProjectDialog />
+            <span className="hidden rounded-full bg-[#dceeff] px-2.5 py-1 text-[12px] font-semibold text-[#0b5f9f] sm:inline">● PM</span>
           </span>
         }
       />
 
-      <div className="mx-auto w-full max-w-5xl px-3 pb-24 pt-6 sm:px-4 sm:pt-8">
+      <div className="mx-auto w-full max-w-[1256px] px-3 pb-24 pt-0 sm:px-0">
         {data ? (
-          <ConsoleEditor key={data.slug} initialData={data} slug={data.slug} />
+          <>
+            <div className="-mt-[58px] flex justify-end">
+              <Link href={`/portal/${data.slug}`} className="rounded-lg border border-[#b8c3d0] bg-white px-3 py-2 text-[13px] font-semibold text-[var(--p-text)] shadow-sm">View as client</Link>
+            </div>
+            <ConsoleEditor key={data.slug} initialData={data} slug={data.slug} />
+          </>
         ) : (
           <p className="mt-8 text-[13px] text-[var(--p-text-dim)]">
             No projects yet. Create one to start editing.

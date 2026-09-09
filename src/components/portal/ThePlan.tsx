@@ -46,7 +46,7 @@ export function ThePlan({
     <div>
       <SectionTitle title="The plan" aside={plan.rangeLabel} />
       <Card>
-        <div className="overflow-x-auto pt-4">
+        <div className="overflow-x-auto overflow-y-hidden pt-4">
           <div className="min-w-[640px]">
             {/* Today marker overlays the bar track, offset past the label column */}
             <div className="relative">

@@ -1,6 +1,8 @@
 import type { ProjectData } from "@/lib/portal/types";
 import { statusTone } from "@/lib/portal/data";
 import { StatusChip } from "./ui";
+import { OverviewTab } from "./OverviewTab";
+import type { PortalRole } from "@/lib/portal/types";
 
 function Dots({ built, total }: { built: number; total: number }) {
   return (
@@ -80,10 +82,10 @@ function Stat({
       <p className="text-[11px] font-semibold uppercase tracking-wide text-[var(--p-text-dim)]">
         {label}
       </p>
-      <p className="mt-1 text-2xl font-bold leading-tight">
+      <p className="mt-1 text-[38px] font-bold leading-none tracking-[-0.035em] sm:text-[44px]">
         {value}
         {suffix ? (
-          <span className="ml-1 text-[14px] font-medium text-[var(--p-text-dim)]">
+          <span className="ml-2 text-[14px] font-medium tracking-normal text-[var(--p-text-dim)]">
             {suffix}
           </span>
         ) : null}
@@ -95,12 +97,13 @@ function Stat({
   );
 }
 
-export function StatusHero({ data }: { data: ProjectData }) {
+export function StatusHero({ data, role }: { data: ProjectData; role: PortalRole }) {
   const s = data.status;
   return (
-    <div className="rounded-2xl border border-[var(--p-border)] bg-[var(--p-hero)] p-4 sm:p-6">
+    <section id="overview" className="scroll-mt-6 overflow-hidden rounded-2xl bg-[var(--p-hero)] text-[var(--p-hero-text)] shadow-[0_18px_38px_rgba(20,55,86,.16)] [--p-accent:#65b5ee] [--p-accent-weak:#2a577c] [--p-border:#4c7090] [--p-text-dim:var(--p-hero-dim)]">
+      <div className="p-5 sm:p-8">
       <div className="flex flex-wrap items-start justify-between gap-4">
-        <div className="grid flex-1 gap-4 sm:grid-cols-3 sm:gap-6">
+        <div className="grid flex-1 gap-6 sm:grid-cols-3 sm:gap-10">
           <Stat
             label="Current phase"
             value={s.currentPhase}
@@ -116,19 +119,19 @@ export function StatusHero({ data }: { data: ProjectData }) {
             <p className="text-[11px] font-semibold uppercase tracking-wide text-[var(--p-text-dim)]">
               Screens built
             </p>
-            <p className="mt-1 text-2xl font-bold leading-tight">
+            <p className="mt-1 text-[38px] font-bold leading-none tracking-[-0.035em] sm:text-[44px]">
               {s.screensBuilt}
-              <span className="ml-1 text-[14px] font-medium text-[var(--p-text-dim)]">
+              <span className="ml-2 text-[14px] font-medium tracking-normal text-[var(--p-text-dim)]">
                 of {s.screensTotal}
               </span>
             </p>
             <Dots built={s.screensBuilt} total={s.screensTotal} />
           </div>
         </div>
-        <div className="w-full sm:w-auto sm:text-right">
-          <StatusChip label={s.statusLabel} tone={statusTone(s.statusLabel)} />
+        <div className="w-full sm:w-auto sm:text-left">
+          <StatusChip label={s.statusLabel} tone={statusTone(s.statusLabel)} className="bg-white/10 text-white ring-1 ring-white/20" />
           {s.statusBody ? (
-            <p className="mt-2 text-[12px] text-[var(--p-text-dim)] sm:ml-auto sm:max-w-[240px]">
+            <p className="mt-3 text-[12px] leading-relaxed text-[var(--p-hero-dim)] sm:max-w-[220px]">
               {s.statusBody}
             </p>
           ) : null}
@@ -136,6 +139,10 @@ export function StatusHero({ data }: { data: ProjectData }) {
       </div>
 
       <Stepper steps={data.steps} />
-    </div>
+      </div>
+      <div className="grid border-t border-white/15 md:grid-cols-3">
+        <OverviewTab data={data} role={role} embedded />
+      </div>
+    </section>
   );
 }

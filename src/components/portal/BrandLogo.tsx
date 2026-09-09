@@ -5,19 +5,17 @@ export function BrandLogo({ href = "/portal" }: { href?: string }) {
   return (
     <Link
       href={href}
-      className="flex flex-shrink-0 cursor-pointer items-center gap-2.5"
+      className="flex flex-shrink-0 cursor-pointer items-center gap-2"
     >
       <Image
         src="/icons/logo.svg"
-        width={30}
-        height={30}
+        width={20}
+        height={20}
         alt="Universal Perk"
-        className="[.dark_&]:brightness-0 [.dark_&]:invert"
+        className="h-5 w-5 rounded-[5px] [.dark_&]:brightness-0 [.dark_&]:invert"
       />
-      <span className="hidden text-[10px] font-extrabold uppercase leading-tight tracking-widest sm:inline">
+      <span className="hidden text-[15px] font-bold tracking-tight sm:inline">
         Universal Perk
-        <br />
-        Portal
       </span>
     </Link>
   );

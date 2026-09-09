@@ -89,11 +89,11 @@ export default function ConsoleEditor({
     header: true,
     status: true,
     requests: true,
-    links: false,
-    plan: false,
-    screens: false,
-    decisions: false,
-    nextCall: false,
+    links: true,
+    plan: true,
+    screens: true,
+    decisions: true,
+    nextCall: true,
   });
   // Optional display name remembered locally for the updated-by metadata.
   const [pmName, setPmName] = useState("");
@@ -382,14 +382,21 @@ export default function ConsoleEditor({
   const blocking = openRequests.filter((r) => r.blocking).length;
 
   return (
-    <div className="mt-6 space-y-3 sm:space-y-4">
-      {/* Sticky save bar */}
-      <div className="sticky top-14 z-20 -mx-3 border-b border-[var(--p-border)] bg-[var(--p-bg)]/90 px-3 py-2.5 backdrop-blur sm:-mx-4 sm:px-4 sm:py-3">
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+    <div className="console-editor mt-0 grid gap-x-8 gap-y-8 pb-12 lg:grid-cols-2">
+      {/* Publish state */}
+      <div className="console-publish rounded-2xl bg-[#10395a] px-6 py-5 text-white shadow-[0_18px_38px_rgba(20,55,86,.16)] lg:col-span-2">
+        <div className="flex flex-wrap items-center gap-x-8 gap-y-4">
+          <div className="min-w-[210px]">
+            <p className="text-[11px] font-bold uppercase tracking-wide text-[#63afe7]">Publish state</p>
+            <p className="mt-1 flex items-center gap-2 text-[24px] font-bold leading-none"><span className="h-2.5 w-2.5 rounded-full bg-[#efa72f]" />{dirty ? "Draft changes" : "Up to date"}</p>
+            <p className="mt-2 text-[12px] text-[#b8d0e5]">Edits remain drafts until you publish.</p>
+          </div>
+          <p className="max-w-[300px] text-[13px] leading-relaxed text-[#d5e5f3]">Publish sends one digest to the client, so they see a clear update rather than every individual edit.</p>
+          <div className="flex w-full flex-wrap items-center justify-end gap-2 lg:ml-auto lg:w-auto">
           <button
             onClick={save}
             disabled={saving || !dirty}
-            className="flex items-center gap-2 rounded-lg bg-[var(--p-accent)] px-4 py-2 text-[13px] font-semibold text-white hover:opacity-90 disabled:opacity-40"
+            className="flex h-10 items-center gap-2 rounded-lg bg-[#0b86d9] px-4 text-[13px] font-semibold text-white hover:bg-[#0876c2] disabled:opacity-40"
           >
             {saving ? (
               <>
@@ -397,7 +404,7 @@ export default function ConsoleEditor({
                 Saving…
               </>
             ) : dirty ? (
-              "Save changes"
+              "Save draft"
             ) : (
               "Saved"
             )}
@@ -407,7 +414,7 @@ export default function ConsoleEditor({
             onClick={publish}
             disabled={saving || publishing}
             title="Make the current draft visible in the client portal"
-            className="rounded-lg bg-[var(--p-ok)] px-3 py-2 text-[13px] font-semibold text-white hover:opacity-90 disabled:opacity-40"
+            className="h-10 rounded-lg border border-white/25 px-3 text-[13px] font-semibold text-white hover:bg-white/10 disabled:opacity-40"
           >
             {publishing ? "Publishing…" : "Publish changes"}
           </button>
@@ -416,13 +423,13 @@ export default function ConsoleEditor({
             <button
               onClick={discard}
               disabled={saving}
-              className="rounded-lg border border-[var(--p-border)] px-3 py-2 text-[13px] font-medium text-[var(--p-text-dim)] hover:bg-[var(--p-surface)] disabled:opacity-40"
+              className="h-10 rounded-lg border border-white/25 px-3 text-[13px] font-medium text-white hover:bg-white/10 disabled:opacity-40"
             >
               Discard
             </button>
           ) : null}
 
-          <span className="text-[12px] text-[var(--p-text-dim)]">
+          <span className="text-[12px] text-[#b8d0e5]">
             {dirty ? (
               <span className="flex items-center gap-1.5">
                 <span className="h-1.5 w-1.5 rounded-full bg-[var(--p-warn)]" />
@@ -448,7 +455,7 @@ export default function ConsoleEditor({
             </span>
           ) : null}
 
-          <span className="ml-auto flex items-center gap-3 text-[12px] text-[var(--p-text-dim)]">
+          <span className="ml-auto flex items-center gap-3 text-[12px] text-[#b8d0e5]">
             <button
               onClick={() => setAll(true)}
               className="underline underline-offset-2 hover:text-[var(--p-text)]"
@@ -463,6 +470,7 @@ export default function ConsoleEditor({
             </button>
           </span>
         </div>
+      </div>
       </div>
 
       {/* ---------- Header ---------- */}
@@ -524,7 +532,7 @@ export default function ConsoleEditor({
 
       {/* ---------- Status hero ---------- */}
       <Section
-        title="Status hero"
+        title="This week"
         dirty={dirtyMap.status}
         open={open.status}
         onToggle={() => toggle("status")}
@@ -742,7 +750,7 @@ export default function ConsoleEditor({
 
       {/* ---------- Decisions ---------- */}
       <Section
-        title="Decisions"
+        title="Log a decision"
         badge={data.decisions.length}
         dirty={dirtyMap.decisions}
         open={open.decisions}

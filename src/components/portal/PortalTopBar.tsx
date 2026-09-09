@@ -2,7 +2,6 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import type { PortalRole } from "@/lib/portal/types";
 import { BrandLogo } from "./BrandLogo";
-import { ThemeToggle } from "./ThemeToggle";
 
 /** Shared sticky top bar: brand on the left, actions on the right. `crumb`
  *  renders between the brand and the actions (project name, "Projects", etc.). */
@@ -16,23 +15,22 @@ export function PortalTopBar({
   showConsoleLink?: boolean;
 }) {
   return (
-    <header className="sticky top-0 z-40 h-14 border-b border-[var(--p-border)] bg-[var(--p-surface)]/90 backdrop-blur">
-      <div className="mx-auto flex h-full w-full max-w-6xl items-center gap-x-2 px-3 sm:gap-x-4 sm:px-4">
+    <header className="h-[84px]">
+      <div className="mx-auto flex h-full w-full max-w-[1176px] items-center gap-x-2 px-3 sm:gap-x-3 sm:px-0">
         <BrandLogo />
         {crumb ? (
           <>
-            <span className="text-[var(--p-border)]">/</span>
+            <span className="text-[var(--p-border)]">|</span>
             <div className="min-w-0 flex-1 truncate text-[13px] text-[var(--p-text-dim)] sm:text-[14px]">
               {crumb}
             </div>
           </>
         ) : null}
         <div className="ml-auto flex shrink-0 items-center gap-2 sm:gap-3">
-          <ThemeToggle />
           {role === "pm" && showConsoleLink ? (
             <Link
               href="/console"
-              className="cursor-pointer rounded-lg border border-[var(--p-border)] px-3 py-1.5 text-[13px] font-medium hover:bg-[var(--p-surface-2)]"
+              className="cursor-pointer rounded-lg border border-[#b8c3d0] bg-white px-3 py-1.5 text-[13px] font-semibold shadow-sm hover:bg-[var(--p-surface-2)]"
             >
               PM console
             </Link>

@@ -28,7 +28,7 @@ export function Field({
 }) {
   const id = useId();
   const control =
-    "w-full rounded-lg border bg-transparent px-3 py-2 text-[13px] outline-none transition-colors focus:border-[var(--p-accent)] " +
+    "w-full rounded-lg border bg-[var(--p-surface)] px-3 py-2.5 text-[13px] outline-none transition-colors focus:border-[var(--p-accent)] " +
     (invalid
       ? "border-[var(--p-risk)]"
       : "border-[var(--p-border)]");
@@ -101,7 +101,7 @@ export function NumberField({
           if (max != null) n = Math.min(max, n);
           onChange(n);
         }}
-        className="w-full rounded-lg border border-[var(--p-border)] bg-transparent px-3 py-2 text-[13px] outline-none focus:border-[var(--p-accent)]"
+        className="w-full rounded-lg border border-[var(--p-border)] bg-[var(--p-surface)] px-3 py-2.5 text-[13px] outline-none focus:border-[var(--p-accent)]"
       />
     </label>
   );
@@ -140,7 +140,7 @@ export function SelectField<T extends string>({
         id={id}
         value={value}
         onChange={(e) => onChange(e.target.value as T)}
-        className="w-full rounded-lg border border-[var(--p-border)] bg-[var(--p-surface)] px-3 py-2 text-[13px] outline-none focus:border-[var(--p-accent)]"
+        className="w-full rounded-lg border border-[var(--p-border)] bg-[var(--p-surface)] px-3 py-2.5 text-[13px] outline-none focus:border-[var(--p-accent)]"
       >
         {!hasCurrent && value ? (
           <option value={value}>{value} (current)</option>
@@ -183,7 +183,7 @@ export function DateField({
         type="date"
         value={/^\d{4}-\d{2}-\d{2}$/.test(value) ? value : ""}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full rounded-lg border border-[var(--p-border)] bg-transparent px-3 py-2 text-[13px] outline-none focus:border-[var(--p-accent)]"
+        className="w-full rounded-lg border border-[var(--p-border)] bg-[var(--p-surface)] px-3 py-2.5 text-[13px] outline-none focus:border-[var(--p-accent)]"
       />
     </label>
   );

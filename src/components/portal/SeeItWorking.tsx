@@ -59,7 +59,7 @@ export function SeeItWorking({
   return (
     <div>
       <SectionTitle title="See it working" aside={prototype.caption} />
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,420px)_1fr]">
+      <div className="grid gap-4 lg:grid-cols-2 lg:gap-5">
         <Card className="flex items-center justify-center">
           {prototype.embedUrl ? (
             <iframe

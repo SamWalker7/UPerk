@@ -20,10 +20,10 @@ export function JustFinished({
           No finished screens yet.
         </div>
       ) : (
-        <div className="flex gap-4 overflow-x-auto pb-2">
+        <div className="flex gap-3 overflow-x-auto pb-2">
           {screens.map((s) => (
-            <div key={s.id} className="w-40 shrink-0">
-              <div className="flex h-56 items-center justify-center rounded-xl border border-[var(--p-border)] bg-[var(--p-surface-2)] text-[12px] text-[var(--p-text-dim)]">
+            <div key={s.id} className="w-36 shrink-0">
+              <div className="flex h-[280px] items-center justify-center rounded-xl border border-[var(--p-border)] bg-[var(--p-surface-2)] text-[12px] text-[var(--p-text-dim)]">
                 {s.imageUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img

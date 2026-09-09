@@ -6,11 +6,13 @@ function Panel({
   label,
   body,
   children,
+  embedded,
 }: {
   tone: "ok" | "accent" | "warn";
   label: string;
   body: string;
   children?: React.ReactNode;
+  embedded?: boolean;
 }) {
   const dot =
     tone === "ok"
@@ -19,12 +21,12 @@ function Panel({
         ? "bg-[var(--p-warn)]"
         : "bg-[var(--p-accent)]";
   return (
-    <div className="rounded-2xl border border-[var(--p-border)] bg-[var(--p-surface)] p-5">
+    <div className={embedded ? "border-b border-white/15 p-5 text-white md:border-b-0 md:border-r md:border-white/15 sm:p-7" : "rounded-2xl border border-[var(--p-border)] bg-[var(--p-surface)] p-5"}>
       <p className="flex items-center gap-2 text-[13px] font-semibold">
         <span className={`h-2 w-2 rounded-full ${dot}`} />
         {label}
       </p>
-      <p className="mt-2 text-[13px] leading-relaxed text-[var(--p-text-dim)]">
+      <p className={`mt-3 text-[14px] leading-relaxed ${embedded ? "text-[var(--p-hero-dim)]" : "text-[var(--p-text-dim)]"}`}>
         {body || "—"}
       </p>
       {children}
@@ -35,9 +37,11 @@ function Panel({
 export function OverviewTab({
   data,
   role,
+  embedded = false,
 }: {
   data: ProjectData;
   role: PortalRole;
+  embedded?: boolean;
 }) {
   const s = data.status;
   const open = data.requests.filter((r) => r.status === "open").length;
@@ -48,11 +52,11 @@ export function OverviewTab({
     : [];
 
   return (
-    <div className="space-y-4">
-      <div className="grid gap-4 md:grid-cols-3">
-        <Panel tone="ok" label="This week — shipped" body={s.thisWeek} />
-        <Panel tone="accent" label="Up next" body={s.upNext} />
-        <Panel tone="warn" label="Needed from you" body={s.neededFromYou}>
+    <div className={embedded ? "contents" : "space-y-4"}>
+      <div className={embedded ? "contents" : "grid gap-4 md:grid-cols-3"}>
+        <Panel embedded={embedded} tone="ok" label="This week — shipped" body={s.thisWeek} />
+        <Panel embedded={embedded} tone="accent" label="Up next" body={s.upNext} />
+        <Panel embedded={embedded} tone="warn" label="Needed from you" body={s.neededFromYou}>
           {open > 0 ? (
             <a
               href="#requests"
@@ -64,7 +68,7 @@ export function OverviewTab({
         </Panel>
       </div>
 
-      {clientNotes.length ? (
+      {!embedded && clientNotes.length ? (
         <div className="rounded-2xl border border-[var(--p-border)] bg-[var(--p-surface)] p-5">
           <p className="text-[13px] font-semibold">Project notes</p>
           <ul className="mt-3 space-y-3">
@@ -78,7 +82,7 @@ export function OverviewTab({
         </div>
       ) : null}
 
-      {role === "pm" ? (
+      {role === "pm" && !embedded ? (
         <PmAnnotation
           linkLabel="Edit the weekly update"
           href={`/console?p=${data.slug}`}

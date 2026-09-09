@@ -3,10 +3,8 @@ import { notFound, redirect } from "next/navigation";
 import { getPortalSession } from "@/lib/portal/session";
 import { readProject } from "@/lib/portal/data";
 import { PortalTopBar } from "@/components/portal/PortalTopBar";
-import { ProjectHeader } from "@/components/portal/ProjectHeader";
 import { StatusHero } from "@/components/portal/StatusHero";
 import { PmBanner } from "@/components/portal/PmAnnotation";
-import { TabNav } from "@/components/portal/TabNav";
 
 export const dynamic = "force-dynamic";
 
@@ -25,22 +23,17 @@ export default async function ProjectLayout({
   const data = await readProject(session.apiToken, project);
   if (!data) notFound();
 
-  const openRequests = data.requests.filter((r) => r.status === "open").length;
-
   return (
     <main className="pb-20">
-      <PortalTopBar role={role} crumb={data.project.name} showConsoleLink={false} />
-      <ProjectHeader project={data.project} slug={data.slug} role={role} />
+      <PortalTopBar role={role} crumb={`Client portal — ${data.project.name}`} />
 
-      <div className="mx-auto mt-4 w-full max-w-6xl px-3 sm:px-4">
-        <StatusHero data={data} />
+      <div className="mx-auto w-full max-w-[1176px] px-3 sm:px-0">
+        <StatusHero data={data} role={role} />
       </div>
 
       {role === "pm" ? <PmBanner /> : null}
 
-      <TabNav openRequests={openRequests} />
-
-      <div className="mx-auto w-full max-w-6xl px-3 py-6 sm:px-4 sm:py-8">
+      <div className="mx-auto w-full max-w-[1176px] px-3 py-10 sm:px-0 sm:py-11">
         {children}
       </div>
     </main>
