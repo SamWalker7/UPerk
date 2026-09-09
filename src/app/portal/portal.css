@@ -60,7 +60,7 @@
 
   /* The top-left panel is the client-facing weekly update. Phase metadata
      remains available below in the plan editor rather than crowding it. */
-  .console-editor > section:nth-of-type(2) > div > :nth-child(-n + 2) {
+  .console-editor > section:nth-of-type(2) > .console-section-body > :nth-child(-n + 2) {
     display: none;
   }
 }

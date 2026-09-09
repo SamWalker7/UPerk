@@ -2,6 +2,7 @@ import type { ProjectData } from "@/lib/portal/types";
 import { statusTone } from "@/lib/portal/data";
 import { StatusChip } from "./ui";
 import { OverviewTab } from "./OverviewTab";
+import { WeeklyHistoryDrawer } from "./WeeklyHistoryDrawer";
 import type { PortalRole } from "@/lib/portal/types";
 
 function Dots({ built, total }: { built: number; total: number }) {
@@ -100,7 +101,7 @@ function Stat({
 export function StatusHero({ data, role }: { data: ProjectData; role: PortalRole }) {
   const s = data.status;
   return (
-    <section id="overview" className="scroll-mt-6 overflow-hidden rounded-2xl bg-[var(--p-hero)] text-[var(--p-hero-text)] shadow-[0_18px_38px_rgba(20,55,86,.16)] [--p-accent:#65b5ee] [--p-accent-weak:#2a577c] [--p-border:#4c7090] [--p-text-dim:var(--p-hero-dim)]">
+    <section id="overview" className="relative scroll-mt-6 overflow-hidden rounded-2xl bg-[var(--p-hero)] text-[var(--p-hero-text)] shadow-[0_18px_38px_rgba(20,55,86,.16)] [--p-accent:#65b5ee] [--p-accent-weak:#2a577c] [--p-border:#4c7090] [--p-text-dim:var(--p-hero-dim)]">
       <div className="p-5 sm:p-8">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="grid flex-1 gap-6 sm:grid-cols-3 sm:gap-10">
@@ -142,6 +143,9 @@ export function StatusHero({ data, role }: { data: ProjectData; role: PortalRole
       </div>
       <div className="grid border-t border-white/15 md:grid-cols-3">
         <OverviewTab data={data} role={role} embedded />
+      </div>
+      <div className="border-t border-white/15 px-5 py-3 text-right sm:px-8">
+        <WeeklyHistoryDrawer updates={data.weeklyHistory} className="text-[13px] font-semibold text-[#a9d9fb] underline underline-offset-4 hover:text-white" />
       </div>
     </section>
   );

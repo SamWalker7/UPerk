@@ -25,7 +25,10 @@ export type RequestOption = {
 export type RequestAction = {
   label: string;
   kind: "primary" | "secondary";
+  intent?: "approve" | "decline" | "choice" | "discuss" | "other";
 };
+
+export type RequestResponseType = "approval" | "choice";
 
 export type ClientRequest = {
   id: string;
@@ -42,6 +45,9 @@ export type ClientRequest = {
   options?: RequestOption[];
   /** rendered as buttons; display-only in v1 */
   actions: RequestAction[];
+  /** Controls whether the client sees Approve/Decline or choice buttons. */
+  responseType?: RequestResponseType;
+  response?: { choice: string; respondedAt: string; respondedBy?: string };
   /** text shown inside the dashed PM annotation box */
   pmNote?: string;
 };
@@ -80,8 +86,10 @@ export type FinishedScreen = {
 
 export type Decision = {
   id: string;
-  /** human date, e.g. "2 Sept" */
+  /** Date the decision was made, selected by the PM. */
   date: string;
+  /** ISO timestamp assigned by the backend when the entry was created. */
+  createdAt?: string;
   body: string;
   /** e.g. "Agreed by Kaya and Dr. Renner on the Monday call" */
   attribution: string;
@@ -114,11 +122,36 @@ export type PortalStatus = {
   /** e.g. "No milestone has moved. One decision is waiting on you." */
   statusBody: string;
   thisWeek: string;
+  /** Set by the API when the current weekly update is saved. */
+  weeklyUpdatedAt?: string;
   upNext: string;
   neededFromYou: string;
   neededLinkLabel?: string;
   /** anchor/URL the "Go to it" link points at */
   neededLink?: string;
+};
+
+/** A previous weekly update. The current update remains on `status`; entries
+ * here are immutable snapshots created when the PM starts the next week. */
+export type WeeklyUpdate = {
+  id: string;
+  recordedAt: string;
+  recordedBy: string;
+  thisWeek: string;
+  upNext: string;
+  neededFromYou: string;
+};
+
+export type ProjectHistorySection = "requests" | "links" | "plan" | "screens";
+
+/** PM-facing snapshot retained before one of the main console sections changes. */
+export type ProjectHistoryEntry = {
+  id: string;
+  section: ProjectHistorySection;
+  recordedAt: string;
+  recordedBy: string;
+  summary: string;
+  data: unknown;
 };
 
 export type ProjectData = {
@@ -133,6 +166,8 @@ export type ProjectData = {
     updatedBy: string;
   };
   status: PortalStatus;
+  weeklyHistory?: WeeklyUpdate[];
+  projectHistory?: ProjectHistoryEntry[];
   steps: { label: string; state: StepState }[];
   requests: ClientRequest[];
   build: BuildInfo;

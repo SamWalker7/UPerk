@@ -146,6 +146,16 @@ const Navebar: React.FC<NavbarProps> = () => {
                 </button>
               )}
 
+              <Link
+                href="/portal/login"
+                data-analytics-event="nav_link_click"
+                data-analytics-category="navigation"
+                data-analytics-label="Client Login"
+                className="hidden sm:inline-flex items-center rounded-lg border border-gray-300/80 px-3.5 py-2 text-[13px] font-semibold text-gray-700 transition-colors hover:border-blue-400 hover:text-blue-600 dark:border-gray-700 dark:text-gray-200 dark:hover:border-blue-500 dark:hover:text-blue-400"
+              >
+                Client Login
+              </Link>
+
               {/* Get Started CTA */}
               <button
                 onClick={() => {
@@ -220,6 +230,13 @@ const Navebar: React.FC<NavbarProps> = () => {
               </Link>
             ))}
             <div className="pt-2">
+              <Link
+                href="/portal/login"
+                onClick={() => setIsMenuOpen(false)}
+                className="mb-2 flex w-full items-center justify-center rounded-xl border border-gray-300 py-3 text-[14px] font-semibold text-gray-700 transition-colors hover:border-blue-400 hover:text-blue-600 dark:border-gray-700 dark:text-gray-200"
+              >
+                Client Login
+              </Link>
               <button
                 onClick={() => {
                   trackEvent("quote_form_open", {

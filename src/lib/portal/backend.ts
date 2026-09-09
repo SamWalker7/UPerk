@@ -112,6 +112,17 @@ export const backend = {
       { method: "POST", token, body: data as Json },
     ),
 
+  weeklyHistory: (token: string, slug: string) =>
+    request<{ updates: unknown[]; total: number }>(
+      `/api/projects/${encodeURIComponent(slug)}/weekly-history`, { token },
+    ),
+
+  projectHistory: (token: string, slug: string, section?: string) =>
+    request<{ entries: unknown[]; total: number }>(
+      `/api/projects/${encodeURIComponent(slug)}/history${section ? `?section=${encodeURIComponent(section)}` : ""}`,
+      { token },
+    ),
+
   publishProject: (token: string, slug: string) =>
     request<{ ok: true; publication: unknown }>(
       `/api/projects/${encodeURIComponent(slug)}/publish`,

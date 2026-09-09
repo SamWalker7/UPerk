@@ -64,6 +64,29 @@ empty project (4 standard phases, empty requests/decisions/screens).
 ### Read one
 
 ```
+
+### Weekly update history
+
+```
+GET /api/projects/:slug/weekly-history
+  200: { "updates": WeeklyUpdate[], "total": number }
+```
+
+`status.thisWeek`, `status.upNext`, and `status.neededFromYou` are the current
+update. When a PM changes any of them, the backend automatically appends the
+previous set to `weeklyHistory` (newest first). History is read-only to callers,
+so prior client updates cannot be edited or removed accidentally.
+
+The PM console also keeps section snapshots for requests, links/build details,
+the plan, and finished screens:
+
+```
+GET /api/projects/:slug/history?section=requests|links|plan|screens
+  200: { "entries": ProjectHistoryEntry[], "total": number }
+```
+
+These snapshots are append-only and PM-only. The backend creates them before a
+section changes; uploaded image data is intentionally excluded from snapshots.
 GET /api/projects/:slug
   200: ProjectData
   404: { "error": "Not found" }
@@ -139,10 +162,13 @@ ProjectData = {
   project:  { name, client, updatedAt, updatedBy }
   status:   { currentPhase, phaseSubtitle, daysToLaunch, launchDate, launchNote,
               screensBuilt, screensTotal, statusLabel, statusBody,
-              thisWeek, upNext, neededFromYou, neededLinkLabel?, neededLink? }
+              thisWeek, upNext, neededFromYou, weeklyUpdatedAt?, neededLinkLabel?, neededLink? }
+  weeklyHistory?: { id, recordedAt, recordedBy, thisWeek, upNext, neededFromYou }[]
+  projectHistory?: { id, section, recordedAt, recordedBy, summary, data }[]
   steps:    { label, state: "done"|"now"|"upcoming" }[]
   requests: ClientRequest[]     // id,title,status,daysOpen,blocking,body,note?,subNote?,
-                                // options?[{label,imageUrl?}], actions[{label,kind}], pmNote?
+                                // responseType?: "approval"|"choice", response?,
+                                // options?[{label,imageUrl?}], actions[{label,kind,intent?}], pmNote?
   build:    { version, date, screensBuilt, screensTotal, knownIssues, testedOn }
   prototype:{ prototypeUrl?, installUrl?, figmaUrl?, embedUrl?, caption?, frameLabel?,
               installLabel?, pmNote? }
@@ -151,7 +177,7 @@ ProjectData = {
               milestones[{ title, body }] }
   finishedScreens: { id, name, date, imageUrl? }[]
   decisionsIntro?: string
-  decisions: { id, date, body, attribution, link?{label,url}, supersededBy? }[]
+  decisions: { id, date, createdAt?, body, attribution, link?{label,url}, supersededBy? }[]
   nextCall?: { label, agendaUrl? }
 }
 ```

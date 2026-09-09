@@ -14,9 +14,19 @@ function actionEndpoint(label: string): "done" | "resend" | "respond" {
   return "respond";
 }
 
+function actionIntent(label: string) {
+  const value = label.toLowerCase();
+  if (value.includes("approve")) return "approve";
+  if (value.includes("decline") || value.includes("reject")) return "decline";
+  if (value.includes("discuss")) return "discuss";
+  if (value.includes("choose") || value.includes("select")) return "choice";
+  return "other";
+}
+
 function ActionButton({
   label,
   kind,
+  intent,
   slug,
   requestId,
   disabled,
@@ -24,6 +34,7 @@ function ActionButton({
 }: {
   label: string;
   kind: string;
+  intent?: string;
   slug: string;
   requestId: string;
   disabled: boolean;
@@ -66,11 +77,13 @@ function ActionButton({
         type="button"
         onClick={run}
         disabled={disabled || busy}
-        className={
-          kind === "primary"
-            ? `${base} bg-[var(--p-accent)] text-white hover:opacity-90`
-            : `${base} border border-[var(--p-border)] text-[var(--p-text)] hover:bg-[var(--p-surface-2)]`
-        }
+        className={intent === "approve"
+          ? `${base} bg-[var(--p-ok)] text-white hover:brightness-95`
+          : intent === "decline"
+            ? `${base} border border-[var(--p-risk)] text-[var(--p-risk)] hover:bg-[var(--p-risk-bg)]`
+            : kind === "primary"
+              ? `${base} bg-[var(--p-accent)] text-white hover:opacity-90`
+              : `${base} border border-[var(--p-border)] text-[var(--p-text)] hover:bg-[var(--p-surface-2)]`}
       >
         {busy ? <Spinner className="h-3.5 w-3.5" /> : null}
         {label}
@@ -163,6 +176,7 @@ function RequestCard({
             key={a.label}
             label={a.label}
             kind={a.kind}
+            intent={a.intent || actionIntent(a.label)}
             slug={slug}
             requestId={req.id}
             disabled={resolved}

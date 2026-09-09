@@ -24,7 +24,12 @@ import {
 import { Section } from "./Section";
 import { Spinner } from "../Spinner";
 import { ConfirmDialog } from "./ConfirmDialog";
-import { formatDateTime } from "@/lib/portal/format";
+import { DecisionDialog, type DecisionInput } from "./DecisionDialog";
+import { RequestDialog, type NewRequestInput } from "./RequestDialog";
+import { DecisionHistoryDrawer } from "./DecisionHistoryDrawer";
+import { SectionHistoryDrawer } from "./SectionHistoryDrawer";
+import { formatDate, formatDateTime } from "@/lib/portal/format";
+import { WeeklyHistoryDrawer } from "../WeeklyHistoryDrawer";
 
 function uid(prefix: string) {
   return `${prefix}-${Math.random().toString(36).slice(2, 8)}`;
@@ -97,6 +102,7 @@ export default function ConsoleEditor({
   });
   // Optional display name remembered locally for the updated-by metadata.
   const [pmName, setPmName] = useState("");
+  const [decisionDialog, setDecisionDialog] = useState<{ supersedes?: string } | null>(null);
 
   // Field-level dirtiness, per section, via JSON compare of the relevant slice.
   // "Updated by / at" are stamped on save, not user-edited, so they don't
@@ -240,17 +246,14 @@ export default function ConsoleEditor({
     setMessage(null);
   }
 
-  async function logDecision(supersedes?: string) {
-    const body = (window.prompt(supersedes ? "Replacement decision" : "Decision") || "").trim();
-    if (!body) return;
-    const attribution = (window.prompt("Who agreed this? (optional)") || "").trim();
+  async function logDecision(input: DecisionInput, supersedes?: string) {
     setSaving(true);
     setMessage(null);
     try {
       const res = await fetch(`/portal/api/projects/${slug}/decisions`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ body, ...(attribution ? { attribution } : {}), ...(supersedes ? { supersedes } : {}) }),
+        body: JSON.stringify({ ...input, ...(supersedes ? { supersedes } : {}) }),
       });
       const result = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(result.error || "Could not log decision.");
@@ -268,6 +271,7 @@ export default function ConsoleEditor({
       router.refresh();
     } catch (error) {
       setMessage({ kind: "err", text: error instanceof Error ? error.message : "Could not log decision." });
+      throw error;
     } finally { setSaving(false); }
   }
 
@@ -537,6 +541,12 @@ export default function ConsoleEditor({
         open={open.status}
         onToggle={() => toggle("status")}
         summary={`${s.statusLabel} · ${s.daysToLaunch}d to launch`}
+        headerAction={
+          <WeeklyHistoryDrawer
+            updates={data.weeklyHistory}
+            className="rounded-lg border border-[var(--p-border)] bg-[var(--p-surface)] px-3 py-1.5 text-[12px] font-semibold text-[var(--p-accent)] shadow-sm hover:bg-[var(--p-accent-weak)]"
+          />
+        }
       >
         <Grid>
           <SelectField
@@ -625,6 +635,13 @@ export default function ConsoleEditor({
         dirty={dirtyMap.requests}
         open={open.requests}
         onToggle={() => toggle("requests")}
+        headerAction={
+          <SectionHistoryDrawer
+            history={data.projectHistory}
+            section="requests"
+            className="rounded-lg border border-[var(--p-border)] bg-[var(--p-surface)] px-3 py-1.5 text-[12px] font-semibold text-[var(--p-accent)] shadow-sm hover:bg-[var(--p-accent-weak)]"
+          />
+        }
         summary={
           openRequests.length === 0
             ? "nothing open"
@@ -646,6 +663,13 @@ export default function ConsoleEditor({
         open={open.links}
         onToggle={() => toggle("links")}
         summary={`build ${data.build.version}`}
+        headerAction={
+          <SectionHistoryDrawer
+            history={data.projectHistory}
+            section="links"
+            className="rounded-lg border border-[var(--p-border)] bg-[var(--p-surface)] px-3 py-1.5 text-[12px] font-semibold text-[var(--p-accent)] shadow-sm hover:bg-[var(--p-accent-weak)]"
+          />
+        }
       >
         <Grid>
           <Field
@@ -725,6 +749,13 @@ export default function ConsoleEditor({
         open={open.plan}
         onToggle={() => toggle("plan")}
         summary={data.plan.rangeLabel}
+        headerAction={
+          <SectionHistoryDrawer
+            history={data.projectHistory}
+            section="plan"
+            className="rounded-lg border border-[var(--p-border)] bg-[var(--p-surface)] px-3 py-1.5 text-[12px] font-semibold text-[var(--p-accent)] shadow-sm hover:bg-[var(--p-accent-weak)]"
+          />
+        }
       >
         <PhasesEditor
           plan={data.plan}
@@ -739,6 +770,13 @@ export default function ConsoleEditor({
         dirty={dirtyMap.screens}
         open={open.screens}
         onToggle={() => toggle("screens")}
+        headerAction={
+          <SectionHistoryDrawer
+            history={data.projectHistory}
+            section="screens"
+            className="rounded-lg border border-[var(--p-border)] bg-[var(--p-surface)] px-3 py-1.5 text-[12px] font-semibold text-[var(--p-accent)] shadow-sm hover:bg-[var(--p-accent-weak)]"
+          />
+        }
       >
         <ScreensEditor
           screens={data.finishedScreens}
@@ -751,15 +789,21 @@ export default function ConsoleEditor({
       {/* ---------- Decisions ---------- */}
       <Section
         title="Log a decision"
-        badge={data.decisions.length}
+        badge={data.decisions.filter((decision) => !decision.supersededBy).length}
         dirty={dirtyMap.decisions}
         open={open.decisions}
         onToggle={() => toggle("decisions")}
+        headerAction={
+          <DecisionHistoryDrawer
+            decisions={data.decisions}
+            className="rounded-lg border border-[var(--p-border)] bg-[var(--p-surface)] px-3 py-1.5 text-[12px] font-semibold text-[var(--p-accent)] shadow-sm hover:bg-[var(--p-accent-weak)]"
+          />
+        }
       >
         <DecisionsEditor
           decisions={data.decisions}
-          onLog={() => logDecision()}
-          onSupersede={logDecision}
+          onLog={() => setDecisionDialog({})}
+          onSupersede={(id) => setDecisionDialog({ supersedes: id })}
         />
       </Section>
 
@@ -833,6 +877,12 @@ export default function ConsoleEditor({
         onConfirm={deleteProject}
         onClose={() => setConfirmDeleteProject(false)}
       />
+      <DecisionDialog
+        open={decisionDialog !== null}
+        superseding={decisionDialog?.supersedes ? data.decisions.find((decision) => decision.id === decisionDialog.supersedes) : null}
+        onSubmit={(input) => logDecision(input, decisionDialog?.supersedes)}
+        onClose={() => setDecisionDialog(null)}
+      />
     </div>
   );
 }
@@ -852,6 +902,7 @@ function RequestsEditor({
   onDelete: (id: string) => Promise<void>;
 }) {
   const [pendingDelete, setPendingDelete] = useState<ClientRequest | null>(null);
+  const [requestDialogOpen, setRequestDialogOpen] = useState(false);
 
   function update(i: number, fn: (r: ClientRequest) => void) {
     const next = structuredClone(requests);
@@ -864,21 +915,16 @@ function RequestsEditor({
     [next[i], next[j]] = [next[j], next[i]];
     onChange(next);
   }
-  function add() {
+  function add(request: NewRequestInput) {
     onChange([
       ...requests,
       {
         id: uid("req"),
-        title: "New request",
         status: "open",
-        daysOpen: 0,
-        blocking: false,
-        body: "",
-        actions: [{ label: "Mark as done", kind: "secondary" }],
+        ...request,
       },
     ]);
   }
-
   return (
     <>
       {requests.map((r, i) => (
@@ -947,23 +993,23 @@ function RequestsEditor({
           </div>
           <Grid>
             <Field
-              label="Action button labels"
-              hint="comma-separated"
+              label="Client button labels"
+              hint="comma-separated · write any labels"
               value={r.actions.map((a) => a.label).join(", ")}
-              onChange={(v) =>
-                update(
-                  i,
-                  (x) =>
-                    (x.actions = v
-                      .split(",")
-                      .map((l) => l.trim())
-                      .filter(Boolean)
-                      .map((label, idx) => ({
-                        label,
-                        kind: idx < 2 ? "primary" : "secondary",
-                      }))),
-                )
-              }
+              onChange={(v) => update(i, (x) => {
+                x.actions = v.split(",").map((label) => label.trim()).filter(Boolean).map((label, idx) => ({
+                  label,
+                  kind: idx < 2 ? "primary" : "secondary",
+                  intent: label.toLowerCase().includes("approve")
+                    ? "approve"
+                    : label.toLowerCase().includes("decline") || label.toLowerCase().includes("reject")
+                      ? "decline"
+                      : label.toLowerCase().includes("discuss")
+                        ? "discuss"
+                        : "choice",
+                }));
+              })}
+              placeholder="Approve, Decline — or Choose A, Choose B, Discuss Friday"
             />
             <Field
               label="Option labels"
@@ -986,7 +1032,13 @@ function RequestsEditor({
           </Grid>
         </ItemCard>
       ))}
-      <AddButton label="+ New client request" onClick={add} />
+      <AddButton label="+ New client request" onClick={() => setRequestDialogOpen(true)} />
+
+      <RequestDialog
+        open={requestDialogOpen}
+        onSubmit={add}
+        onClose={() => setRequestDialogOpen(false)}
+      />
 
       <ConfirmDialog
         open={pendingDelete !== null}
@@ -1251,15 +1303,18 @@ function DecisionsEditor({
 }) {
   return (
     <>
-      {decisions.map((d) => (
+      {decisions.filter((decision) => !decision.supersededBy).map((d) => (
         <div
           key={d.id}
           className="rounded-xl border border-[var(--p-border)] bg-[var(--p-surface)] p-4"
         >
-          <p className="text-[13px] text-[var(--p-text-dim)]">{formatDateTime(d.date)}</p>
+          <div className="flex flex-wrap items-center justify-between gap-2 text-[12px] text-[var(--p-text-dim)]">
+            <p><span className="font-semibold text-[var(--p-text)]">Decision date</span> · {formatDate(d.date)}</p>
+            {d.createdAt ? <p>Created {formatDateTime(d.createdAt)}</p> : null}
+          </div>
           <p className="mt-1 text-sm text-[var(--p-text)]">{d.body}</p>
           <p className="mt-1 text-[12px] text-[var(--p-text-dim)]">{d.attribution}</p>
-          {d.supersededBy ? <p className="mt-2 text-[12px] text-[var(--p-text-dim)]">Superseded — retained as audit history</p> : <button onClick={() => onSupersede(d.id)} className="mt-3 rounded-md border border-[var(--p-border)] px-2.5 py-1.5 text-xs font-medium hover:bg-[var(--p-bg)]">Supersede decision</button>}
+          <button onClick={() => onSupersede(d.id)} className="mt-3 rounded-md border border-[var(--p-border)] px-2.5 py-1.5 text-xs font-medium hover:bg-[var(--p-bg)]">Supersede decision</button>
         </div>
       ))}
       <AddButton label="+ Log decision" onClick={onLog} />
