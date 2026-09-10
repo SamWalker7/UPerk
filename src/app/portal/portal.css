@@ -105,33 +105,9 @@
   cursor: not-allowed;
 }
 
-/* PM console: a two-pane workspace. On wide screens the two-column rows are:
-   row 1  This week          | Log a decision
-   row 2  Client requests    | Preview & build links
-   row 3  Client requests …  | Finished screens
-   row 4  Phases & status    | Notes
-   then full width: Header, Plan, Next call, Who can do what, Danger.
-   Section order in the markup: 1 Header · 2 This week · 3 Phases & status ·
-   4 Client requests · 5 Preview & build links · 6 Plan · 7 Finished screens ·
-   8 Log a decision · 9 Notes · 10 Next call · 11 Who can do what ·
-   12 Danger zone. */
-@media (min-width: 1024px) {
-  .console-editor > section:nth-of-type(2)  { order: 1; }  /* This week */
-  .console-editor > section:nth-of-type(8)  { order: 2; }  /* Log a decision */
-  .console-editor > section:nth-of-type(4)  { order: 3; }  /* Client requests */
-  .console-editor > section:nth-of-type(5)  { order: 4; }  /* Preview & build links */
-  .console-editor > section:nth-of-type(3)  { order: 5; }  /* Phases & status */
-  .console-editor > section:nth-of-type(7)  { order: 6; }  /* Finished screens */
-  .console-editor > section:nth-of-type(9)  { order: 7; }  /* Notes */
-  .console-editor > section:nth-of-type(1)  { order: 8; }  /* Header */
-  .console-editor > section:nth-of-type(6)  { order: 9; }  /* Plan */
-  .console-editor > section:nth-of-type(10) { order: 10; } /* Next call */
-  .console-editor > section:nth-of-type(11) { order: 11; } /* Who can do what */
-  .console-editor > section:nth-of-type(12) { order: 12; } /* Danger zone */
-
-  /* Full-width rows: everything except the six two-column panes. */
-  .console-editor
-    > section:not(:nth-of-type(2)):not(:nth-of-type(3)):not(:nth-of-type(4)):not(:nth-of-type(5)):not(:nth-of-type(7)):not(:nth-of-type(8)):not(:nth-of-type(9)) {
-    grid-column: 1 / -1;
-  }
-}
+/* PM console layout.
+   `.console-editor` is a single vertical stack: the publish banner, then
+   `.console-panes` (two independent flex-stack columns so a tall card on one
+   side never leaves a gap on the other), then the full-width sections (Header,
+   Plan, Next call, Who can do what, Danger). Single column below 1024px —
+   `.console-panes` only becomes two-up at `lg`. */

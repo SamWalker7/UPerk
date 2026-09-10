@@ -59,6 +59,33 @@ const PHASE_OPTIONS = [
   "Support",
 ] as const;
 
+// Where each fine-grained phase sits on the client hero's coarse funnel.
+const PHASE_TO_STEP: Record<(typeof PHASE_OPTIONS)[number], number> = {
+  Discovery: 0,
+  Design: 1,
+  Build: 2,
+  Beta: 2,
+  Launch: 3,
+  Support: 3,
+};
+
+/**
+ * Rebuild `data.steps` so the client hero's stepper matches the current phase.
+ * Steps before the current one are "done", the current one is "now", the rest
+ * "upcoming". Falls back to the existing labels so a custom funnel is kept.
+ */
+function stepsForPhase(
+  phase: string,
+  current: ProjectData["steps"],
+): ProjectData["steps"] {
+  const idx = PHASE_TO_STEP[phase as (typeof PHASE_OPTIONS)[number]];
+  if (idx == null || current.length === 0) return current;
+  return current.map((step, i) => ({
+    ...step,
+    state: i < idx ? "done" : i === idx ? "now" : "upcoming",
+  }));
+}
+
 type StatusLabel = "On track" | "Watch" | "At risk";
 
 const SECTION_KEYS = [
@@ -398,9 +425,9 @@ export default function ConsoleEditor({
   const clientNames = data.project.client || "the client";
 
   return (
-    <div className="console-editor mt-0 grid gap-x-8 gap-y-8 pb-12 lg:grid-cols-2">
+    <div className="console-editor mt-0 flex flex-col gap-8 pb-12">
       {/* Publish state */}
-      <div className="console-publish rounded-2xl bg-[#10395a] px-6 py-5 text-white shadow-[0_18px_38px_rgba(20,55,86,.16)] lg:col-span-2">
+      <div className="console-publish rounded-2xl bg-[#10395a] px-6 py-5 text-white shadow-[0_18px_38px_rgba(20,55,86,.16)]">
         <div className="flex flex-col gap-x-10 gap-y-5 lg:flex-row lg:items-start">
           <div className="min-w-[220px] shrink-0">
             <p className="text-[11px] font-bold uppercase tracking-[0.09em] text-[#63afe7]">
@@ -474,13 +501,6 @@ export default function ConsoleEditor({
             ) : null}
           </div>
 
-          <div className="hidden shrink-0 text-[12px] leading-relaxed text-[#b8d0e5] xl:block xl:max-w-[220px]">
-            <span className="font-semibold text-white">Admin</span> full access ·{" "}
-            <span className="font-semibold text-white">PM</span> all but billing
-            and roles ·{" "}
-            <span className="font-semibold text-white">Client</span> read plus
-            replies
-          </div>
         </div>
 
         <div className="mt-4 flex items-center gap-3 border-t border-white/12 pt-3 text-[12px] text-[#9fbdd6]">
@@ -574,102 +594,178 @@ export default function ConsoleEditor({
         ) : null}
       </Section>
 
-      {/* ---------- This week (weekly update composer) ---------- */}
-      <Section
-        title="This week"
-        dirty={dirtyMap.status}
-        open={open.status}
-        onToggle={() => toggle("status")}
-        summary="Draft — shows in the client header"
-        headerAction={
-          <WeeklyHistoryDrawer
-            updates={data.weeklyHistory}
-            className="rounded-lg border border-[var(--p-border)] bg-[var(--p-surface)] px-3 py-1.5 text-[12px] font-semibold text-[var(--p-accent)] shadow-sm hover:bg-[var(--p-accent-weak)]"
-          />
-        }
-      >
-        <ThisWeekComposer
-          status={s}
-          lastWeek={data.weeklyHistory?.[0]}
-          onChange={(fn) => patch((d) => fn(d.status))}
-          onSave={save}
-          saving={saving}
-          dirty={dirtyMap.status}
-          updatedBy={saved.project.updatedBy}
-          updatedAt={saved.project.updatedAt}
-        />
-      </Section>
+      {/* ---------- Two-pane workspace ---------- */}
+      <div className="console-panes lg:grid lg:grid-cols-2 lg:items-start lg:gap-x-8">
+        {/* Left column */}
+        <div className="flex flex-col gap-8">
+          {/* This week (weekly update composer) */}
+          <Section
+            title="This week"
+            dirty={dirtyMap.status}
+            open={open.status}
+            onToggle={() => toggle("status")}
+            summary="Draft — shows in the client header"
+            headerAction={
+              <WeeklyHistoryDrawer
+                updates={data.weeklyHistory}
+                className="rounded-lg border border-[var(--p-border)] bg-[var(--p-surface)] px-3 py-1.5 text-[12px] font-semibold text-[var(--p-accent)] shadow-sm hover:bg-[var(--p-accent-weak)]"
+              />
+            }
+          >
+            <ThisWeekComposer
+              status={s}
+              lastWeek={data.weeklyHistory?.[0]}
+              onChange={(fn) => patch((d) => fn(d.status))}
+              onSave={save}
+              saving={saving}
+              dirty={dirtyMap.status}
+              updatedBy={saved.project.updatedBy}
+              updatedAt={saved.project.updatedAt}
+            />
+          </Section>
 
-      {/* ---------- Phases & status ---------- */}
-      <Section
-        title="Phases & status"
-        dirty={dirtyMap.status}
-        open={open.statusMeta}
-        onToggle={() => toggle("statusMeta")}
-        summary="Drives the client header and plan chart"
-      >
-        <PhasesStatusEditor
-          status={s}
-          savedStatus={saved.status}
-          onChange={(fn) => patch((d) => fn(d.status))}
-          onSave={save}
-          onRevert={discard}
-          saving={saving}
-          dirty={dirtyMap.status}
-        />
-      </Section>
+          {/* Client requests */}
+          <Section
+            title="Client requests"
+            dirty={dirtyMap.requests}
+            open={open.requests}
+            onToggle={() => toggle("requests")}
+            headerAction={
+              <SectionHistoryDrawer
+                history={data.projectHistory}
+                section="requests"
+                className="rounded-lg border border-[var(--p-border)] bg-[var(--p-surface)] px-3 py-1.5 text-[12px] font-semibold text-[var(--p-accent)] shadow-sm hover:bg-[var(--p-accent-weak)]"
+              />
+            }
+            summary={`${openRequests.length} open · ${data.requests.length - openRequests.length} closed`}
+          >
+            <RequestsEditor
+              requests={data.requests}
+              onChange={(requests) => patch((d) => (d.requests = requests))}
+              isPersisted={(id) => savedRequestIds.has(id)}
+              onDelete={deleteRequest}
+              onSave={save}
+              saving={saving}
+            />
+          </Section>
 
-      {/* ---------- Client requests ---------- */}
-      <Section
-        title="Client requests"
-        dirty={dirtyMap.requests}
-        open={open.requests}
-        onToggle={() => toggle("requests")}
-        headerAction={
-          <SectionHistoryDrawer
-            history={data.projectHistory}
-            section="requests"
-            className="rounded-lg border border-[var(--p-border)] bg-[var(--p-surface)] px-3 py-1.5 text-[12px] font-semibold text-[var(--p-accent)] shadow-sm hover:bg-[var(--p-accent-weak)]"
-          />
-        }
-        summary={`${openRequests.length} open · ${data.requests.length - openRequests.length} closed`}
-      >
-        <RequestsEditor
-          requests={data.requests}
-          onChange={(requests) => patch((d) => (d.requests = requests))}
-          isPersisted={(id) => savedRequestIds.has(id)}
-          onDelete={deleteRequest}
-          onSave={save}
-          saving={saving}
-        />
-      </Section>
+          {/* Phases & status */}
+          <Section
+            title="Phases & status"
+            dirty={dirtyMap.status}
+            open={open.statusMeta}
+            onToggle={() => toggle("statusMeta")}
+            summary="Drives the client header and plan chart"
+          >
+            <PhasesStatusEditor
+              status={s}
+              savedStatus={saved.status}
+              onChange={(fn) => patch((d) => fn(d.status))}
+              onPhaseChange={(phase) =>
+                patch((d) => {
+                  d.status.currentPhase = phase;
+                  d.steps = stepsForPhase(phase, d.steps);
+                })
+              }
+              onSave={save}
+              onRevert={discard}
+              saving={saving}
+              dirty={dirtyMap.status}
+            />
+          </Section>
+        </div>
 
-      {/* ---------- Preview & build links ---------- */}
-      <Section
-        title="Preview & build links"
-        dirty={dirtyMap.links}
-        open={open.links}
-        onToggle={() => toggle("links")}
-        summary={'Feeds "See it working"'}
-        headerAction={
-          <SectionHistoryDrawer
-            history={data.projectHistory}
-            section="links"
-            className="rounded-lg border border-[var(--p-border)] bg-[var(--p-surface)] px-3 py-1.5 text-[12px] font-semibold text-[var(--p-accent)] shadow-sm hover:bg-[var(--p-accent-weak)]"
-          />
-        }
-      >
-        <LinksEditor
-          prototype={data.prototype}
-          build={data.build}
-          onChange={(fn) =>
-            patch((d) => fn(d.prototype, d.build))
-          }
-          onSave={save}
-          saving={saving}
-          dirty={dirtyMap.links}
-        />
-      </Section>
+        {/* Right column */}
+        <div className="mt-8 flex flex-col gap-8 lg:mt-0">
+          {/* Log a decision */}
+          <Section
+            title="Log a decision"
+            dirty={false}
+            open={open.decisions}
+            onToggle={() => toggle("decisions")}
+            summary={`Append-only · ${data.decisions.length} ${data.decisions.length === 1 ? "entry" : "entries"}`}
+            headerAction={
+              <DecisionHistoryDrawer
+                decisions={data.decisions}
+                className="rounded-lg border border-[var(--p-border)] bg-[var(--p-surface)] px-3 py-1.5 text-[12px] font-semibold text-[var(--p-accent)] shadow-sm hover:bg-[var(--p-accent-weak)]"
+              />
+            }
+          >
+            <DecisionComposer
+              decisions={data.decisions}
+              onLog={(input) => logDecision(input)}
+              onSupersede={(id) => setDecisionDialog({ supersedes: id })}
+              busy={saving}
+            />
+          </Section>
+
+          {/* Notes */}
+          <Section
+            title="Notes"
+            dirty={dirtyMap.notes}
+            open={open.notes}
+            onToggle={() => toggle("notes")}
+            summary="Choose who sees each note"
+          >
+            <NotesEditor
+              notes={data.notes || []}
+              onChange={(notes) => patch((d) => (d.notes = notes))}
+              onSave={save}
+              saving={saving}
+            />
+          </Section>
+
+          {/* Preview & build links */}
+          <Section
+            title="Preview & build links"
+            dirty={dirtyMap.links}
+            open={open.links}
+            onToggle={() => toggle("links")}
+            summary={'Feeds "See it working"'}
+            headerAction={
+              <SectionHistoryDrawer
+                history={data.projectHistory}
+                section="links"
+                className="rounded-lg border border-[var(--p-border)] bg-[var(--p-surface)] px-3 py-1.5 text-[12px] font-semibold text-[var(--p-accent)] shadow-sm hover:bg-[var(--p-accent-weak)]"
+              />
+            }
+          >
+            <LinksEditor
+              prototype={data.prototype}
+              build={data.build}
+              onChange={(fn) => patch((d) => fn(d.prototype, d.build))}
+              onSave={save}
+              saving={saving}
+              dirty={dirtyMap.links}
+            />
+          </Section>
+
+          {/* Finished screens */}
+          <Section
+            title="Finished screens"
+            dirty={dirtyMap.screens}
+            open={open.screens}
+            onToggle={() => toggle("screens")}
+            headerAction={
+              <SectionHistoryDrawer
+                history={data.projectHistory}
+                section="screens"
+                className="rounded-lg border border-[var(--p-border)] bg-[var(--p-surface)] px-3 py-1.5 text-[12px] font-semibold text-[var(--p-accent)] shadow-sm hover:bg-[var(--p-accent-weak)]"
+              />
+            }
+          >
+            <ScreensEditor
+              screens={data.finishedScreens}
+              onChange={(screens) => patch((d) => (d.finishedScreens = screens))}
+              isPersisted={(id) => savedScreenIds.has(id)}
+              onDelete={deleteScreen}
+              onSave={save}
+              saving={saving}
+              dirty={dirtyMap.screens}
+            />
+          </Section>
+        </div>
+      </div>
 
       {/* ---------- Plan ---------- */}
       <Section
@@ -690,70 +786,6 @@ export default function ConsoleEditor({
         <PhasesEditor
           plan={data.plan}
           onChange={(plan) => patch((d) => (d.plan = plan))}
-        />
-      </Section>
-
-      {/* ---------- Finished screens ---------- */}
-      <Section
-        title="Finished screens"
-        dirty={dirtyMap.screens}
-        open={open.screens}
-        onToggle={() => toggle("screens")}
-        summary={'Feeds "Just finished"'}
-        headerAction={
-          <SectionHistoryDrawer
-            history={data.projectHistory}
-            section="screens"
-            className="rounded-lg border border-[var(--p-border)] bg-[var(--p-surface)] px-3 py-1.5 text-[12px] font-semibold text-[var(--p-accent)] shadow-sm hover:bg-[var(--p-accent-weak)]"
-          />
-        }
-      >
-        <ScreensEditor
-          screens={data.finishedScreens}
-          onChange={(screens) => patch((d) => (d.finishedScreens = screens))}
-          isPersisted={(id) => savedScreenIds.has(id)}
-          onDelete={deleteScreen}
-          onSave={save}
-          saving={saving}
-          dirty={dirtyMap.screens}
-        />
-      </Section>
-
-      {/* ---------- Notes ---------- */}
-      <Section
-        title="Notes"
-        dirty={dirtyMap.notes}
-        open={open.notes}
-        onToggle={() => toggle("notes")}
-        summary="Choose who sees each note"
-      >
-        <NotesEditor
-          notes={data.notes || []}
-          onChange={(notes) => patch((d) => (d.notes = notes))}
-          onSave={save}
-          saving={saving}
-        />
-      </Section>
-
-      {/* ---------- Log a decision ---------- */}
-      <Section
-        title="Log a decision"
-        dirty={false}
-        open={open.decisions}
-        onToggle={() => toggle("decisions")}
-        summary={`Append-only · ${data.decisions.length} ${data.decisions.length === 1 ? "entry" : "entries"}`}
-        headerAction={
-          <DecisionHistoryDrawer
-            decisions={data.decisions}
-            className="rounded-lg border border-[var(--p-border)] bg-[var(--p-surface)] px-3 py-1.5 text-[12px] font-semibold text-[var(--p-accent)] shadow-sm hover:bg-[var(--p-accent-weak)]"
-          />
-        }
-      >
-        <DecisionComposer
-          decisions={data.decisions}
-          onLog={(input) => logDecision(input)}
-          onSupersede={(id) => setDecisionDialog({ supersedes: id })}
-          busy={saving}
         />
       </Section>
 
@@ -786,14 +818,6 @@ export default function ConsoleEditor({
           />
         </Grid>
       </Section>
-
-      {/* ---------- Who can do what ---------- */}
-      <section className="console-editor__perms">
-        <h2 className="pb-3 text-[18px] font-bold tracking-tight">
-          Who can do what
-        </h2>
-        <PermissionsTable />
-      </section>
 
       {/* ---------- Danger zone ---------- */}
       <section className="console-editor__danger rounded-2xl border border-[var(--p-risk)]/40 bg-[var(--p-risk-bg)]/40 p-4 sm:p-5">
@@ -974,6 +998,7 @@ function PhasesStatusEditor({
   status,
   savedStatus,
   onChange,
+  onPhaseChange,
   onSave,
   onRevert,
   saving,
@@ -982,6 +1007,8 @@ function PhasesStatusEditor({
   status: ProjectData["status"];
   savedStatus: ProjectData["status"];
   onChange: (fn: (s: ProjectData["status"]) => void) => void;
+  /** sets currentPhase AND rebuilds data.steps so the client hero matches */
+  onPhaseChange: (phase: string) => void;
   onSave: () => void;
   onRevert: () => void;
   saving: boolean;
@@ -1001,6 +1028,11 @@ function PhasesStatusEditor({
     status.launchDate !== savedStatus.launchDate ||
     rank(status.statusLabel) > rank(savedStatus.statusLabel);
 
+  const hasLaunchDate = /^\d{4}-\d{2}-\d{2}$/.test(status.launchDate);
+  // Once the project is in Launch, the client hero shows a launch countdown —
+  // a real date is required.
+  const launchDateMissing = status.currentPhase === "Launch" && !hasLaunchDate;
+
   return (
     <div className="space-y-4">
       <Grid>
@@ -1008,27 +1040,35 @@ function PhasesStatusEditor({
           label="Current phase"
           value={status.currentPhase}
           options={PHASE_OPTIONS}
-          onChange={(v) => onChange((s) => (s.currentPhase = v))}
+          onChange={(v) => onPhaseChange(v)}
         />
         <label className="block">
-          <span className="mb-1 block text-[12px] font-medium text-[var(--p-text-dim)]">
+          <span className="mb-1 flex items-center justify-between text-[12px] font-medium text-[var(--p-text-dim)]">
             Launch date
+            {status.currentPhase === "Launch" ? (
+              <span className="text-[var(--p-risk)]">required</span>
+            ) : null}
           </span>
           <input
             type="date"
-            value={
-              /^\d{4}-\d{2}-\d{2}$/.test(status.launchDate)
-                ? status.launchDate
-                : ""
-            }
+            value={hasLaunchDate ? status.launchDate : ""}
             onChange={(e) =>
               onChange((s) => {
                 s.launchDate = e.target.value;
                 s.daysToLaunch = daysUntil(e.target.value);
               })
             }
-            className="w-full rounded-lg border border-[var(--p-border)] bg-[var(--p-surface)] px-3 py-2.5 text-[13px] outline-none focus:border-[var(--p-accent)]"
+            className={`w-full rounded-lg border bg-[var(--p-surface)] px-3 py-2.5 text-[13px] outline-none focus:border-[var(--p-accent)] ${
+              launchDateMissing
+                ? "border-[var(--p-risk)]"
+                : "border-[var(--p-border)]"
+            }`}
           />
+          {launchDateMissing ? (
+            <span className="mt-1 block text-[11px] text-[var(--p-risk)]">
+              Set a launch date before saving while the phase is Launch.
+            </span>
+          ) : null}
         </label>
       </Grid>
 
@@ -1081,13 +1121,6 @@ function PhasesStatusEditor({
         </div>
       </div>
 
-      <div className="rounded-xl bg-[var(--p-warn-bg)] px-4 py-3 text-[13px] leading-relaxed text-[var(--p-warn)]">
-        <span className="mr-1 inline-block h-2 w-2 rounded-full bg-current align-middle" />
-        Moving a date or dropping the status below On track requires a one-line
-        reason. It publishes with the change so the client always sees why, not
-        just what.
-      </div>
-
       <Field
         label="Reason for this change"
         value={status.launchNote}
@@ -1103,6 +1136,7 @@ function PhasesStatusEditor({
           disabled={
             saving ||
             !dirty ||
+            launchDateMissing ||
             (needsReason && !status.launchNote.trim())
           }
           className="flex h-9 items-center gap-2 rounded-lg bg-[var(--p-accent)] px-4 text-[13px] font-semibold text-white hover:brightness-95 disabled:opacity-40"
@@ -1120,55 +1154,6 @@ function PhasesStatusEditor({
           </button>
         ) : null}
       </div>
-    </div>
-  );
-}
-
-/* ---------- Who can do what ---------- */
-
-function PermissionsTable() {
-  const rows: Array<[string, string, string, string]> = [
-    ["Edit “this week”, phases, dates", "Yes", "Yes", "No"],
-    ["Log or supersede a decision", "Yes", "Yes", "Comment only"],
-    ["Add Figma and build links, screenshots", "Yes", "Yes", "No"],
-    ["Publish to clients", "Yes", "Yes", "—"],
-    ["Answer a request, reply to a note", "Yes", "Yes", "Yes"],
-    ["Change roles, billing", "Yes", "No", "No"],
-  ];
-  const cell = (v: string) =>
-    v === "Yes" ? (
-      <span className="text-[var(--p-text)]">Yes</span>
-    ) : (
-      <span className="text-[var(--p-text-dim)]">{v}</span>
-    );
-
-  return (
-    <div className="overflow-hidden rounded-2xl border border-[var(--p-border)] bg-[var(--p-surface)]">
-      <table className="w-full text-[13px]">
-        <thead>
-          <tr className="border-b border-[var(--p-border)] bg-[var(--p-surface-2)]/50 text-left">
-            <th className="px-4 py-3 font-semibold">Action</th>
-            <th className="px-4 py-3 font-semibold">Admin</th>
-            <th className="px-4 py-3 font-semibold">PM</th>
-            <th className="px-4 py-3 font-semibold">Client</th>
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map(([action, admin, pm, client], i) => (
-            <tr
-              key={action}
-              className={
-                i < rows.length - 1 ? "border-b border-[var(--p-border)]" : ""
-              }
-            >
-              <td className="px-4 py-3">{action}</td>
-              <td className="px-4 py-3">{cell(admin)}</td>
-              <td className="px-4 py-3">{cell(pm)}</td>
-              <td className="px-4 py-3">{cell(client)}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
     </div>
   );
 }
@@ -1599,6 +1584,9 @@ function LinksEditor({
   saving: boolean;
   dirty: boolean;
 }) {
+  const [testOpen, setTestOpen] = useState(false);
+  const embedSrc = toEmbeddable(prototype.embedUrl || prototype.figmaUrl);
+
   return (
     <div className="space-y-4">
       <Field
@@ -1647,21 +1635,23 @@ function LinksEditor({
           {saving ? <Spinner className="h-3.5 w-3.5" /> : null}
           Save links
         </button>
-        <a
-          href={
-            toEmbeddable(prototype.embedUrl || prototype.figmaUrl) || undefined
-          }
-          target="_blank"
-          rel="noreferrer"
-          className={`h-9 rounded-lg border border-[var(--p-border)] bg-[var(--p-surface)] px-3 text-[13px] font-medium leading-9 hover:bg-[var(--p-surface-2)] ${
-            prototype.figmaUrl || prototype.embedUrl
-              ? ""
-              : "pointer-events-none opacity-40"
-          }`}
+        <button
+          type="button"
+          onClick={() => setTestOpen(true)}
+          disabled={!embedSrc}
+          className="h-9 rounded-lg border border-[var(--p-border)] bg-[var(--p-surface)] px-3 text-[13px] font-medium hover:bg-[var(--p-surface-2)] disabled:opacity-40"
         >
           Test the embed
-        </a>
+        </button>
       </div>
+
+      {testOpen && embedSrc ? (
+        <EmbedTestModal
+          src={embedSrc}
+          title={prototype.frameLabel || "Prototype embed"}
+          onClose={() => setTestOpen(false)}
+        />
+      ) : null}
     </div>
   );
 }
@@ -1673,6 +1663,64 @@ function toEmbeddable(url: string | undefined): string | null {
     return `https://www.figma.com/embed?embed_host=share&url=${encodeURIComponent(u)}`;
   }
   return u;
+}
+
+/** Full-screen preview of the prototype embed, so the PM can check the link
+ *  renders before publishing — without leaving the console. */
+function EmbedTestModal({
+  src,
+  title,
+  onClose,
+}: {
+  src: string;
+  title: string;
+  onClose: () => void;
+}) {
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, []);
+
+  return (
+    <div
+      className="fixed inset-0 z-[70] flex items-center justify-center bg-[#061827]/60 p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Prototype embed preview"
+    >
+      <div className="flex h-[80vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl border border-[var(--p-border)] bg-[var(--p-surface)] shadow-[0_24px_70px_rgba(6,24,39,.35)]">
+        <header className="flex items-center justify-between gap-3 border-b border-[var(--p-border)] px-4 py-3">
+          <p className="text-[13px] font-semibold">Embed preview — {title}</p>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close"
+            className="flex h-8 w-8 items-center justify-center rounded-lg text-[var(--p-text-dim)] hover:bg-[var(--p-surface-2)] hover:text-[var(--p-text)]"
+          >
+            <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4" aria-hidden>
+              <path
+                d="M6 6l12 12M18 6L6 18"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+              />
+            </svg>
+          </button>
+        </header>
+        <div className="min-h-0 flex-1 bg-[var(--p-surface-2)]">
+          <iframe
+            src={src}
+            title={title}
+            className="h-full w-full"
+            allow="fullscreen; clipboard-write"
+          />
+        </div>
+      </div>
+    </div>
+  );
 }
 
 /* ---------- Notes ---------- */

@@ -20,6 +20,38 @@ function Dots({ built, total }: { built: number; total: number }) {
   );
 }
 
+// The client hero shows a coarse 4-stage funnel. Where each fine-grained
+// project phase sits on it:
+const PHASE_TO_STEP: Record<string, number> = {
+  Discovery: 0,
+  Design: 1,
+  Build: 2,
+  Beta: 2,
+  Launch: 3,
+  Support: 3,
+};
+
+/**
+ * The stepper the client sees. Its state is derived from `currentPhase` so it
+ * can never drift from the phase shown above it. `storedSteps` is used only for
+ * the stage *labels* (so a project with a custom funnel keeps its wording);
+ * the highlighted stage always comes from the current phase.
+ */
+function deriveSteps(
+  currentPhase: string,
+  storedSteps: ProjectData["steps"],
+): ProjectData["steps"] {
+  const labels =
+    storedSteps.length > 0
+      ? storedSteps.map((s) => s.label)
+      : ["Discovery", "Design", "Build", "Launch"];
+  const active = PHASE_TO_STEP[currentPhase] ?? 0;
+  return labels.map((label, i) => ({
+    label,
+    state: i < active ? "done" : i === active ? "now" : "upcoming",
+  }));
+}
+
 function Stepper({ steps }: { steps: ProjectData["steps"] }) {
   return (
     <div className="mt-7 overflow-x-auto px-1 py-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
@@ -153,7 +185,7 @@ export function StatusHero({ data, role }: { data: ProjectData; role: PortalRole
         </div>
       </div>
 
-      <Stepper steps={data.steps} />
+      <Stepper steps={deriveSteps(s.currentPhase, data.steps)} />
       </div>
       <div className="grid border-t border-white/15 md:grid-cols-3">
         <OverviewTab data={data} role={role} embedded />

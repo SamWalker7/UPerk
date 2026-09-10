@@ -58,15 +58,10 @@ export function WeeklyHistoryDrawer({
   useEffect(() => {
     if (!open) return;
     const raf = requestAnimationFrame(() => setShown(true));
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpen(false);
-    };
-    document.addEventListener("keydown", onKeyDown);
     const prevOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     return () => {
       cancelAnimationFrame(raf);
-      document.removeEventListener("keydown", onKeyDown);
       document.body.style.overflow = prevOverflow;
       setShown(false);
     };
@@ -93,10 +88,8 @@ export function WeeklyHistoryDrawer({
           aria-modal="true"
           aria-label="Project update history"
         >
-          <button
-            type="button"
-            aria-label="Close history"
-            onClick={() => setOpen(false)}
+          <div
+            aria-hidden
             className={`sheet-backdrop absolute inset-0 bg-[#061827]/50 ${
               shown ? "is-open" : ""
             }`}

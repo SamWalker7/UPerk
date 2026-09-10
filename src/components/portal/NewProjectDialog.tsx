@@ -50,10 +50,10 @@ export function NewProjectDialog() {
       {open ? (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
-          onClick={() => setOpen(false)}
+          role="dialog"
+          aria-modal="true"
         >
           <form
-            onClick={(e) => e.stopPropagation()}
             onSubmit={create}
             className="w-full max-w-sm rounded-2xl border border-[var(--p-border)] bg-[var(--p-surface)] p-6"
           >

@@ -42,16 +42,6 @@ export function ConfirmDialog({
     cancelRef.current?.focus();
   }, [open]);
 
-  // Esc to cancel (ignored while the action is running).
-  useEffect(() => {
-    if (!open) return;
-    const h = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && !busy) onClose();
-    };
-    window.addEventListener("keydown", h);
-    return () => window.removeEventListener("keydown", h);
-  }, [open, busy, onClose]);
-
   if (!open) return null;
 
   const phraseOk = !confirmPhrase || typed.trim() === confirmPhrase;
@@ -71,15 +61,11 @@ export function ConfirmDialog({
   return (
     <div
       className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 p-4"
-      onClick={() => !busy && onClose()}
       role="dialog"
       aria-modal="true"
       aria-label={title}
     >
-      <div
-        onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-sm rounded-2xl border border-[var(--p-border)] bg-[var(--p-surface)] p-6"
-      >
+      <div className="w-full max-w-sm rounded-2xl border border-[var(--p-border)] bg-[var(--p-surface)] p-6">
         <h2 className="text-[15px] font-bold">{title}</h2>
         <div className="mt-1.5 text-[13px] leading-relaxed text-[var(--p-text-dim)]">
           {body}

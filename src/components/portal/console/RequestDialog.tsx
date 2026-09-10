@@ -39,15 +39,6 @@ export function RequestDialog({
     window.setTimeout(() => titleRef.current?.focus(), 0);
   }, [open]);
 
-  useEffect(() => {
-    if (!open) return;
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [open, onClose]);
-
   if (!open) return null;
 
   function submit(event: React.FormEvent) {
@@ -92,9 +83,6 @@ export function RequestDialog({
       role="dialog"
       aria-modal="true"
       aria-labelledby="request-dialog-title"
-      onMouseDown={(event) => {
-        if (event.target === event.currentTarget) onClose();
-      }}
     >
       <form onSubmit={submit} className="flex max-h-[calc(100vh-2rem)] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-[var(--p-border)] bg-[var(--p-surface)] shadow-[0_24px_70px_rgba(6,24,39,.3)]">
         <header className="flex items-start justify-between gap-4 border-b border-[var(--p-border)] px-5 py-4 sm:px-6 sm:py-5">

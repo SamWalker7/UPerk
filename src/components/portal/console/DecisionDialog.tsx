@@ -45,15 +45,6 @@ export function DecisionDialog({
     window.setTimeout(() => bodyRef.current?.focus(), 0);
   }, [open, superseding]);
 
-  useEffect(() => {
-    if (!open) return;
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape" && !busy) onClose();
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [open, busy, onClose]);
-
   if (!open) return null;
 
   async function submit(event: React.FormEvent) {
@@ -80,9 +71,6 @@ export function DecisionDialog({
       role="dialog"
       aria-modal="true"
       aria-labelledby="decision-dialog-title"
-      onMouseDown={(event) => {
-        if (event.target === event.currentTarget && !busy) onClose();
-      }}
     >
       <form onSubmit={submit} className="w-full max-w-lg overflow-hidden rounded-2xl border border-[var(--p-border)] bg-[var(--p-surface)] shadow-[0_24px_70px_rgba(6,24,39,.3)]">
         <header className="border-b border-[var(--p-border)] px-5 py-4 sm:px-6 sm:py-5">

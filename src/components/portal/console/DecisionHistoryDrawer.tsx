@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import type { Decision } from "@/lib/portal/types";
 import { formatDate, formatDateTime } from "@/lib/portal/format";
 
@@ -32,14 +32,6 @@ export function DecisionHistoryDrawer({
     return [...result.entries()];
   }, [decisions]);
 
-  useEffect(() => {
-    if (!open) return;
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setOpen(false);
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [open]);
 
   return (
     <>
@@ -54,7 +46,7 @@ export function DecisionHistoryDrawer({
 
       {open ? (
         <div className="fixed inset-0 z-[65]" role="dialog" aria-modal="true" aria-label="Decision history">
-          <button type="button" className="absolute inset-0 bg-[#061827]/55 backdrop-blur-[1px]" aria-label="Close decision history" onClick={() => setOpen(false)} />
+          <div aria-hidden className="absolute inset-0 bg-[#061827]/55 backdrop-blur-[1px]" />
           <aside className="absolute inset-y-0 right-0 flex w-full max-w-[480px] flex-col bg-[var(--p-surface)] shadow-[-16px_0_42px_rgba(6,24,39,.24)]">
             <header className="flex items-start justify-between gap-4 border-b border-[var(--p-border)] px-5 py-5 sm:px-6">
               <div>
