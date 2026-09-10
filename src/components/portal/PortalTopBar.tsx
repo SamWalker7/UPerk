@@ -16,7 +16,7 @@ export function PortalTopBar({
 }) {
   return (
     <header className="h-[84px]">
-      <div className="mx-auto flex h-full w-full max-w-[1176px] items-center gap-x-2 px-3 sm:gap-x-3 sm:px-0">
+      <div className="mx-auto flex h-full w-full max-w-[1440px] items-center gap-x-2 px-3 sm:gap-x-3 sm:px-6">
         <BrandLogo />
         {crumb ? (
           <>

@@ -30,7 +30,7 @@ export function PmAnnotation({
 
 export function PmBanner() {
   return (
-    <div className="mx-auto mt-4 w-full max-w-6xl px-4">
+    <div className="mx-auto mt-4 w-full max-w-[1440px] px-3 sm:px-6">
       <div className="flex flex-wrap items-center gap-x-2 gap-y-1 rounded-xl border border-[var(--p-border)] bg-[var(--p-surface)] px-4 py-3 text-[13px] text-[var(--p-text-dim)]">
         <span className="inline-block h-2 w-2 rounded-full bg-[var(--p-accent)]" />
         <span className="font-semibold text-[var(--p-text)]">PM annotations are on.</span>

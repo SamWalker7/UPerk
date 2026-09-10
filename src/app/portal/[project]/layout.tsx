@@ -27,13 +27,13 @@ export default async function ProjectLayout({
     <main className="pb-20">
       <PortalTopBar role={role} crumb={`Client portal — ${data.project.name}`} />
 
-      <div className="mx-auto w-full max-w-[1176px] px-3 sm:px-0">
+      <div className="mx-auto w-full max-w-[1440px] px-3 sm:px-6">
         <StatusHero data={data} role={role} />
       </div>
 
       {role === "pm" ? <PmBanner /> : null}
 
-      <div className="mx-auto w-full max-w-[1176px] px-3 py-10 sm:px-0 sm:py-11">
+      <div className="mx-auto w-full max-w-[1440px] px-3 py-10 sm:px-6 sm:py-11">
         {children}
       </div>
     </main>

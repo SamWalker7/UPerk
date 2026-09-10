@@ -1,7 +1,21 @@
 import { PmAnnotation } from "./PmAnnotation";
 import { Card, SectionTitle } from "./ui";
-import { formatDate } from "@/lib/portal/format";
+import { formatDate, formatTime } from "@/lib/portal/format";
 import type { Decision, PortalRole } from "@/lib/portal/types";
+
+/**
+ * The right-aligned date/time on a decision row. Prefers a real timestamp
+ * (from `date` if it carries a time, else `createdAt`) so we can show
+ * "8 Sept 2026 · 4:30pm"; falls back to whatever date string we have.
+ */
+function decisionStamp(d: Decision): string {
+  const withTime = /\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}/.test(d.date)
+    ? d.date
+    : d.createdAt || "";
+  const time = formatTime(withTime);
+  const date = formatDate(withTime || d.date);
+  return time ? `${date} · ${time}` : date;
+}
 
 export function Decisions({
   decisions,
@@ -32,18 +46,15 @@ export function Decisions({
             {decisions.map((d, i) => (
               <li
                 key={d.id}
-                className={`flex gap-3 p-4 sm:gap-4 sm:p-5 ${
+                className={`px-3 py-2.5 ${
                   i < decisions.length - 1
                     ? "border-b border-[var(--p-border)]"
                     : ""
                 } ${d.supersededBy ? "opacity-50" : ""}`}
               >
-                <span className="w-14 shrink-0 text-[13px] font-medium text-[var(--p-accent)] sm:w-16">
-                  {formatDate(d.date)}
-                </span>
-                <div>
-                  <p className="text-[14px] leading-relaxed">{d.body}</p>
-                  <p className="mt-1 text-[12px] text-[var(--p-text-dim)]">
+                <p className="text-[13px] leading-snug">{d.body}</p>
+                <p className="mt-1 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5 text-[12px] text-[var(--p-text-dim)]">
+                  <span className="min-w-0">
                     {d.attribution}
                     {d.link ? (
                       <>
@@ -59,8 +70,13 @@ export function Decisions({
                       </>
                     ) : null}
                     {d.supersededBy ? " · superseded" : ""}
-                  </p>
-                </div>
+                  </span>
+                  {decisionStamp(d) ? (
+                    <span className="shrink-0 font-medium text-[var(--p-accent)]">
+                      {decisionStamp(d)}
+                    </span>
+                  ) : null}
+                </p>
               </li>
             ))}
           </ul>

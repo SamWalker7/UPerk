@@ -29,10 +29,12 @@ export function SectionTitle({
   aside?: ReactNode;
 }) {
   return (
-    <div className="mb-4 flex items-end justify-between gap-4">
-      <h2 className="text-lg font-bold tracking-tight">{title}</h2>
+    <div className="mb-5 flex items-end justify-between gap-4">
+      <h2 className="text-[20px] font-bold tracking-[-0.01em]">{title}</h2>
       {aside ? (
-        <div className="text-[13px] text-[var(--p-text-dim)]">{aside}</div>
+        <div className="shrink-0 text-right text-[13px] text-[var(--p-text-dim)]">
+          {aside}
+        </div>
       ) : null}
     </div>
   );

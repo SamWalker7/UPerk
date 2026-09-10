@@ -22,11 +22,11 @@ function Panel({
         : "bg-[var(--p-accent)]";
   return (
     <div className={embedded ? "border-b border-white/15 p-5 text-white md:border-b-0 md:border-r md:border-white/15 sm:p-7" : "rounded-2xl border border-[var(--p-border)] bg-[var(--p-surface)] p-5"}>
-      <p className="flex items-center gap-2 text-[13px] font-semibold">
+      <p className={`flex items-center gap-2 text-[13px] font-semibold ${embedded ? "text-white" : ""}`}>
         <span className={`h-2 w-2 rounded-full ${dot}`} />
         {label}
       </p>
-      <p className={`mt-3 text-[14px] leading-relaxed ${embedded ? "text-[var(--p-hero-dim)]" : "text-[var(--p-text-dim)]"}`}>
+      <p className={`mt-3 text-[14px] leading-relaxed ${embedded ? "text-white/80" : "text-[var(--p-text-dim)]"}`}>
         {body || "—"}
       </p>
       {children}

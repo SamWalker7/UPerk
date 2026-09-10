@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Figtree } from "next/font/google";
 import { Suspense } from "react";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -11,6 +11,14 @@ import "./globals.css";
 const inter = Inter({
   subsets: ["latin"],
   display: "swap",
+});
+
+// The client portal (/portal) uses Figtree; wired in as a CSS variable that
+// portal.css picks up via --p-font.
+const figtree = Figtree({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-figtree",
 });
 
 export const metadata: Metadata = {
@@ -26,7 +34,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.className} antialiased`}>
+      <body className={`${inter.className} ${figtree.variable} antialiased`}>
         <Suspense fallback={null}>
           <GoogleAnalytics />
         </Suspense>

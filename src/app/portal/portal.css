@@ -23,9 +23,69 @@
   --p-risk: #dc2626;
   --p-risk-bg: #fef2f2;
 
+  --p-font: var(--font-figtree), ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+
   background: var(--p-bg);
   color: var(--p-text);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--p-font);
+}
+
+.portal-scope :where(button, input, select, textarea) {
+  font-family: inherit;
+}
+
+/* Right-hand side sheet: backdrop fade + panel slide. Add .is-open to play the
+   in-transition; without it the sheet sits off-screen. */
+.portal-scope .sheet-backdrop {
+  opacity: 0;
+  transition: opacity 0.22s ease;
+}
+.portal-scope .sheet-panel {
+  transform: translateX(100%);
+  transition: transform 0.28s cubic-bezier(0.32, 0.72, 0, 1);
+}
+.portal-scope .sheet-backdrop.is-open {
+  opacity: 1;
+}
+.portal-scope .sheet-panel.is-open {
+  transform: translateX(0);
+}
+@media (prefers-reduced-motion: reduce) {
+  .portal-scope .sheet-backdrop,
+  .portal-scope .sheet-panel {
+    transition: none;
+  }
+}
+
+/* The "now" phase marker: a solid dot with a soft pulsing halo. The halo is a
+   ::after ring that expands and fades on a loop. Respects reduced-motion. */
+.portal-scope .phase-now-dot {
+  position: relative;
+}
+.portal-scope .phase-now-dot::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  background: var(--p-accent);
+  animation: phase-now-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+@keyframes phase-now-pulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.55;
+  }
+  70%,
+  100% {
+    transform: scale(2.6);
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .portal-scope .phase-now-dot::after {
+    animation: none;
+  }
 }
 
 /* Every actionable element in the portal gets a pointer cursor;
@@ -45,22 +105,33 @@
   cursor: not-allowed;
 }
 
-/* PM console: a fixed two-column workspace, matching the project-management
-   canvas rather than the portal's client-facing reading layout. */
+/* PM console: a two-pane workspace. On wide screens the two-column rows are:
+   row 1  This week          | Log a decision
+   row 2  Client requests    | Preview & build links
+   row 3  Client requests …  | Finished screens
+   row 4  Phases & status    | Notes
+   then full width: Header, Plan, Next call, Who can do what, Danger.
+   Section order in the markup: 1 Header · 2 This week · 3 Phases & status ·
+   4 Client requests · 5 Preview & build links · 6 Plan · 7 Finished screens ·
+   8 Log a decision · 9 Notes · 10 Next call · 11 Who can do what ·
+   12 Danger zone. */
 @media (min-width: 1024px) {
-  .console-editor > section:nth-of-type(1) { display: none; }
-  .console-editor > section:nth-of-type(2) { order: 1; }
-  .console-editor > section:nth-of-type(7) { order: 2; }
-  .console-editor > section:nth-of-type(3) { order: 3; }
-  .console-editor > section:nth-of-type(4) { order: 4; }
-  .console-editor > section:nth-of-type(5) { order: 5; }
-  .console-editor > section:nth-of-type(6) { order: 6; }
-  .console-editor > section:nth-of-type(8) { order: 7; }
-  .console-editor > section:nth-of-type(9) { order: 8; }
+  .console-editor > section:nth-of-type(2)  { order: 1; }  /* This week */
+  .console-editor > section:nth-of-type(8)  { order: 2; }  /* Log a decision */
+  .console-editor > section:nth-of-type(4)  { order: 3; }  /* Client requests */
+  .console-editor > section:nth-of-type(5)  { order: 4; }  /* Preview & build links */
+  .console-editor > section:nth-of-type(3)  { order: 5; }  /* Phases & status */
+  .console-editor > section:nth-of-type(7)  { order: 6; }  /* Finished screens */
+  .console-editor > section:nth-of-type(9)  { order: 7; }  /* Notes */
+  .console-editor > section:nth-of-type(1)  { order: 8; }  /* Header */
+  .console-editor > section:nth-of-type(6)  { order: 9; }  /* Plan */
+  .console-editor > section:nth-of-type(10) { order: 10; } /* Next call */
+  .console-editor > section:nth-of-type(11) { order: 11; } /* Who can do what */
+  .console-editor > section:nth-of-type(12) { order: 12; } /* Danger zone */
 
-  /* The top-left panel is the client-facing weekly update. Phase metadata
-     remains available below in the plan editor rather than crowding it. */
-  .console-editor > section:nth-of-type(2) > .console-section-body > :nth-child(-n + 2) {
-    display: none;
+  /* Full-width rows: everything except the six two-column panes. */
+  .console-editor
+    > section:not(:nth-of-type(2)):not(:nth-of-type(3)):not(:nth-of-type(4)):not(:nth-of-type(5)):not(:nth-of-type(7)):not(:nth-of-type(8)):not(:nth-of-type(9)) {
+    grid-column: 1 / -1;
   }
 }

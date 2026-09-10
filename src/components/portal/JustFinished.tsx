@@ -1,6 +1,6 @@
 import { PmAnnotation } from "./PmAnnotation";
 import { SectionTitle } from "./ui";
-import { formatDate } from "@/lib/portal/format";
+import { ScreenCarousel } from "./ScreenCarousel";
 import type { FinishedScreen, PortalRole } from "@/lib/portal/types";
 
 export function JustFinished({
@@ -20,28 +20,7 @@ export function JustFinished({
           No finished screens yet.
         </div>
       ) : (
-        <div className="flex gap-3 overflow-x-auto pb-2">
-          {screens.map((s) => (
-            <div key={s.id} className="w-36 shrink-0">
-              <div className="flex h-[280px] items-center justify-center rounded-xl border border-[var(--p-border)] bg-[var(--p-surface-2)] text-[12px] text-[var(--p-text-dim)]">
-                {s.imageUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={s.imageUrl}
-                    alt={s.name}
-                    className="h-full w-full rounded-xl object-cover"
-                  />
-                ) : (
-                  <span className="text-2xl">🖼️</span>
-                )}
-              </div>
-              <p className="mt-2 text-[13px] font-medium">{s.name}</p>
-              <p className="text-[12px] text-[var(--p-text-dim)]">
-                {formatDate(s.date)}
-              </p>
-            </div>
-          ))}
-        </div>
+        <ScreenCarousel screens={screens} />
       )}
       {role === "pm" ? (
         <PmAnnotation linkLabel="+ Add screen" href={`/console?p=${slug}`}>

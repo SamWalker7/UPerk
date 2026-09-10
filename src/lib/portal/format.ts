@@ -31,6 +31,23 @@ export function formatDateTime(value: string | null | undefined): string {
   return `${date}, ${time}`;
 }
 
+/** Time only — "4:30pm". Empty string if the value has no time component. */
+export function formatTime(value: string | null | undefined): string {
+  if (!value) return "";
+  const v = value.trim();
+  if (!ISO_DATETIME.test(v)) return "";
+  const d = new Date(v);
+  if (Number.isNaN(d.getTime())) return "";
+  return d
+    .toLocaleTimeString("en-US", {
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    })
+    .replace(/\s/g, "")
+    .toLowerCase();
+}
+
 /** Date only, never a time — "5 Sept 2026". */
 export function formatDate(value: string | null | undefined): string {
   if (!value) return "";

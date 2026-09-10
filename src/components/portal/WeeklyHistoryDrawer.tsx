@@ -1,26 +1,50 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import type { WeeklyUpdate } from "@/lib/portal/types";
 
 const EMPTY_UPDATES: WeeklyUpdate[] = [];
 
+const DAY_FMT = new Intl.DateTimeFormat("en", {
+  day: "numeric",
+  month: "long",
+  year: "numeric",
+});
+const TIME_FMT = new Intl.DateTimeFormat("en", {
+  hour: "numeric",
+  minute: "2-digit",
+});
+
 function dateLabel(value: string) {
-  const date = new Date(value);
-  return Number.isNaN(date.getTime())
-    ? "Earlier updates"
-    : new Intl.DateTimeFormat("en", { day: "numeric", month: "long", year: "numeric" }).format(date);
+  const d = new Date(value);
+  return Number.isNaN(d.getTime()) ? "Earlier updates" : DAY_FMT.format(d);
 }
-
 function timeLabel(value: string) {
-  const date = new Date(value);
-  return Number.isNaN(date.getTime())
-    ? ""
-    : new Intl.DateTimeFormat("en", { hour: "numeric", minute: "2-digit" }).format(date);
+  const d = new Date(value);
+  return Number.isNaN(d.getTime()) ? "" : TIME_FMT.format(d);
 }
 
-export function WeeklyHistoryDrawer({ updates, className }: { updates?: WeeklyUpdate[]; className?: string }) {
+export function WeeklyHistoryDrawer({
+  updates,
+  className,
+}: {
+  updates?: WeeklyUpdate[];
+  className?: string;
+}) {
   const [open, setOpen] = useState(false);
+  // Drives the CSS enter transition: mount off-screen, then flip on next frame.
+  const [shown, setShown] = useState(false);
+  // Portal target: the .portal-scope root, so the sheet keeps the portal's
+  // design tokens but escapes the hero <section>'s local variable overrides
+  // (which repaint --p-accent / --p-text-dim for the dark hero).
+  const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
+  useEffect(() => {
+    setPortalTarget(
+      document.querySelector<HTMLElement>(".portal-scope") ?? document.body,
+    );
+  }, []);
+
   const entries = updates || EMPTY_UPDATES;
   const grouped = useMemo(() => {
     const groups = new Map<string, WeeklyUpdate[]>();
@@ -33,11 +57,19 @@ export function WeeklyHistoryDrawer({ updates, className }: { updates?: WeeklyUp
 
   useEffect(() => {
     if (!open) return;
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setOpen(false);
+    const raf = requestAnimationFrame(() => setShown(true));
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
     };
     document.addEventListener("keydown", onKeyDown);
-    return () => document.removeEventListener("keydown", onKeyDown);
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      cancelAnimationFrame(raf);
+      document.removeEventListener("keydown", onKeyDown);
+      document.body.style.overflow = prevOverflow;
+      setShown(false);
+    };
   }, [open]);
 
   return (
@@ -45,55 +77,174 @@ export function WeeklyHistoryDrawer({ updates, className }: { updates?: WeeklyUp
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className={className || "text-[13px] font-semibold underline underline-offset-4"}
+        className={
+          className || "text-[13px] font-semibold underline underline-offset-4"
+        }
         aria-haspopup="dialog"
       >
         History{entries.length ? ` (${entries.length})` : ""}
       </button>
 
-      {open ? (
-        <div className="fixed inset-0 z-50" role="dialog" aria-modal="true" aria-label="Weekly update history">
-          <button className="absolute inset-0 bg-[#061827]/55" aria-label="Close history" onClick={() => setOpen(false)} />
-          <aside className="absolute inset-y-0 right-0 flex w-full max-w-[440px] flex-col bg-[var(--p-surface)] shadow-[-16px_0_42px_rgba(6,24,39,.24)]">
-            <header className="flex items-start justify-between border-b border-[var(--p-border)] px-5 py-5 sm:px-6">
-              <div>
-                <p className="text-[11px] font-bold uppercase tracking-[.12em] text-[var(--p-accent)]">Project updates</p>
-                <h2 className="mt-1 text-xl font-bold tracking-tight">Weekly history</h2>
-                <p className="mt-1 text-[13px] text-[var(--p-text-dim)]">Previous updates, kept in date order.</p>
+      {open && portalTarget
+        ? createPortal(
+        <div
+          className="fixed inset-0 z-50 text-[var(--p-text)]"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Project update history"
+        >
+          <button
+            type="button"
+            aria-label="Close history"
+            onClick={() => setOpen(false)}
+            className={`sheet-backdrop absolute inset-0 bg-[#061827]/50 ${
+              shown ? "is-open" : ""
+            }`}
+          />
+
+          <aside
+            className={`sheet-panel absolute inset-y-0 right-0 flex w-full max-w-[420px] flex-col border-l border-[var(--p-border)] bg-[var(--p-surface)] shadow-[-24px_0_60px_rgba(6,24,39,.28)] ${
+              shown ? "is-open" : ""
+            }`}
+          >
+            <header className="flex items-center gap-3 border-b border-[var(--p-border)] px-5 py-4">
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[var(--p-accent-weak)] text-[var(--p-accent)]">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  className="h-4 w-4"
+                  aria-hidden
+                >
+                  <path
+                    d="M12 8v4l2.5 2.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                    stroke="currentColor"
+                    strokeWidth="1.7"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </span>
+              <div className="min-w-0 flex-1">
+                <h2 className="text-[15px] font-bold tracking-[-0.01em]">
+                  Project updates
+                </h2>
+                <p className="text-[12px] text-[var(--p-text-dim)]">
+                  {entries.length
+                    ? `${entries.length} past update${entries.length === 1 ? "" : "s"}, newest first`
+                    : "Past weekly summaries"}
+                </p>
               </div>
-              <button type="button" onClick={() => setOpen(false)} className="rounded-lg p-2 text-xl leading-none text-[var(--p-text-dim)] hover:bg-[var(--p-surface-2)] hover:text-[var(--p-text)]" aria-label="Close history">×</button>
+              <button
+                type="button"
+                onClick={() => setOpen(false)}
+                aria-label="Close"
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-[var(--p-text-dim)] hover:bg-[var(--p-surface-2)] hover:text-[var(--p-text)]"
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  className="h-4 w-4"
+                  aria-hidden
+                >
+                  <path
+                    d="M6 6l12 12M18 6L6 18"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                  />
+                </svg>
+              </button>
             </header>
-            <div className="flex-1 overflow-y-auto px-5 py-6 sm:px-6">
-              {grouped.length ? grouped.map(([day, dayUpdates]) => (
-                <section key={day} className="relative border-l border-[var(--p-border)] pb-7 pl-5 last:pb-0">
-                  <span className="absolute -left-[5px] top-1 h-2.5 w-2.5 rounded-full bg-[var(--p-accent)] ring-4 ring-[var(--p-surface)]" />
-                  <h3 className="text-[13px] font-bold text-[var(--p-text)]">{day}</h3>
-                  <div className="mt-3 space-y-3">
-                    {dayUpdates.map((update) => (
-                      <article key={update.id} className="rounded-xl border border-[var(--p-border)] bg-[var(--p-surface-2)] p-4">
-                        <p className="text-[11px] font-medium text-[var(--p-text-dim)]">{timeLabel(update.recordedAt)}{update.recordedBy ? ` · ${update.recordedBy}` : ""}</p>
-                        <HistoryDetail label="Shipped" value={update.thisWeek} />
-                        <HistoryDetail label="Up next" value={update.upNext} />
-                        <HistoryDetail label="Needed from you" value={update.neededFromYou} tone="warn" />
-                      </article>
-                    ))}
-                  </div>
-                </section>
-              )) : (
-                <div className="rounded-xl border border-dashed border-[var(--p-border)] bg-[var(--p-surface-2)] p-5 text-center">
-                  <p className="text-[14px] font-semibold">No previous updates yet</p>
-                  <p className="mt-1 text-[13px] leading-relaxed text-[var(--p-text-dim)]">When the PM updates this week’s summary, the prior update will appear here.</p>
+
+            <div className="flex-1 overflow-y-auto px-5 py-5">
+              {grouped.length ? (
+                <ol className="space-y-6">
+                  {grouped.map(([day, dayUpdates]) => (
+                    <li key={day} className="relative pl-5">
+                      <span
+                        className="absolute left-0 top-[6px] h-2 w-2 rounded-full bg-[var(--p-accent)]"
+                        aria-hidden
+                      />
+                      <span
+                        className="absolute left-[3px] top-[16px] bottom-0 w-px bg-[var(--p-border)]"
+                        aria-hidden
+                      />
+                      <h3 className="text-[12px] font-semibold uppercase tracking-[0.06em] text-[var(--p-text-dim)]">
+                        {day}
+                      </h3>
+                      <div className="mt-2.5 space-y-2.5">
+                        {dayUpdates.map((update) => (
+                          <article
+                            key={update.id}
+                            className="rounded-xl border border-[var(--p-border)] bg-[var(--p-surface-2)] p-3.5"
+                          >
+                            <p className="text-[11px] font-medium text-[var(--p-text-dim)]">
+                              {timeLabel(update.recordedAt)}
+                              {update.recordedBy ? ` · ${update.recordedBy}` : ""}
+                            </p>
+                            <HistoryDetail
+                              label="Shipped"
+                              value={update.thisWeek}
+                            />
+                            <HistoryDetail
+                              label="Up next"
+                              value={update.upNext}
+                            />
+                            <HistoryDetail
+                              label="Needed from you"
+                              value={update.neededFromYou}
+                              tone="warn"
+                            />
+                          </article>
+                        ))}
+                      </div>
+                    </li>
+                  ))}
+                </ol>
+              ) : (
+                <div className="mt-6 rounded-xl border border-dashed border-[var(--p-border)] bg-[var(--p-surface-2)] p-6 text-center">
+                  <p className="text-[13px] font-semibold">
+                    No previous updates yet
+                  </p>
+                  <p className="mt-1 text-[12px] leading-relaxed text-[var(--p-text-dim)]">
+                    When the PM posts a new weekly summary, the one it replaces
+                    lands here.
+                  </p>
                 </div>
               )}
             </div>
           </aside>
-        </div>
-      ) : null}
+        </div>,
+            portalTarget,
+          )
+        : null}
     </>
   );
 }
 
-function HistoryDetail({ label, value, tone }: { label: string; value: string; tone?: "warn" }) {
+function HistoryDetail({
+  label,
+  value,
+  tone,
+}: {
+  label: string;
+  value: string;
+  tone?: "warn";
+}) {
   if (!value) return null;
-  return <div className="mt-3"><p className={"text-[11px] font-bold uppercase tracking-wide " + (tone ? "text-[var(--p-warn)]" : "text-[var(--p-text-dim)]")}>{label}</p><p className="mt-1 text-[13px] leading-relaxed text-[var(--p-text)]">{value}</p></div>;
+  return (
+    <div className="mt-2.5 first:mt-3">
+      <p
+        className={
+          "text-[10px] font-bold uppercase tracking-[0.06em] " +
+          (tone ? "text-[var(--p-warn)]" : "text-[var(--p-text-dim)]")
+        }
+      >
+        {label}
+      </p>
+      <p className="mt-0.5 text-[13px] leading-relaxed text-[var(--p-text)]">
+        {value}
+      </p>
+    </div>
+  );
 }

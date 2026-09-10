@@ -46,7 +46,7 @@ export function ThePlan({
     <div>
       <SectionTitle title="The plan" aside={plan.rangeLabel} />
       <Card>
-        <div className="overflow-x-auto overflow-y-hidden pt-4">
+        <div className="overflow-x-auto overflow-y-hidden px-2 pt-4">
           <div className="min-w-[640px]">
             {/* Today marker overlays the bar track, offset past the label column */}
             <div className="relative">
@@ -82,7 +82,7 @@ export function ThePlan({
                             done
                               ? "bg-[var(--p-accent)]/60"
                               : now
-                                ? "bg-[var(--p-accent)]"
+                                ? "phase-now-dot bg-[var(--p-accent)]"
                                 : "border border-[var(--p-border)] bg-transparent"
                           }`}
                         />

@@ -50,6 +50,14 @@ export type ClientRequest = {
   response?: { choice: string; respondedAt: string; respondedBy?: string };
   /** text shown inside the dashed PM annotation box */
   pmNote?: string;
+  /** short "who this is for" label shown in the console row, e.g. "Kaya" */
+  attributionShort?: string;
+  /** human due date shown in the console row, e.g. "Thu 3 Sept" */
+  dueLabel?: string;
+  /** count of automated nudges already sent for this request */
+  nudgesSent?: number;
+  /** days-open marks at which to auto-nudge the client, e.g. [3, 7] */
+  nudgeSchedule?: number[];
 };
 
 export type BuildInfo = {

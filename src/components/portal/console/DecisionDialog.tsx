@@ -7,6 +7,8 @@ export type DecisionInput = {
   body: string;
   date: string;
   attribution?: string;
+  where?: "call" | "email" | "portal-reply" | "workshop" | "other";
+  link?: { label: string; url: string };
 };
 
 function today() {

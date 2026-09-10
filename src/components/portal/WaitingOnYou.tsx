@@ -106,26 +106,30 @@ function RequestCard({
 
   return (
     <div
-      className={`rounded-2xl border border-[var(--p-border)] bg-[var(--p-surface)] p-4 sm:p-6 ${
+      className={`rounded-2xl border border-[var(--p-border)] bg-[var(--p-surface)] p-5 sm:p-7 ${
         resolved ? "opacity-60" : ""
       }`}
     >
       <div className="flex items-start justify-between gap-4">
-        <h3 className="flex items-center gap-2 text-[15px] font-bold">
+        <h3 className="flex items-center gap-2.5 text-[16px] font-bold tracking-[-0.01em]">
           <span
-            className={`h-2 w-2 rounded-full ${
+            className={`h-2 w-2 shrink-0 rounded-full ${
               req.blocking ? "bg-[var(--p-accent)]" : "bg-[var(--p-warn)]"
             }`}
           />
           {req.title}
         </h3>
         <div className="shrink-0 text-right">
-          <p className="text-lg font-bold text-[var(--p-accent)]">{req.daysOpen}</p>
-          <p className="text-[11px] text-[var(--p-text-dim)]">days open</p>
+          <p className="text-[24px] font-bold leading-none tracking-[-0.02em] text-[var(--p-accent)]">
+            {req.daysOpen}
+          </p>
+          <p className="mt-1 text-[11px] font-medium uppercase tracking-[0.06em] text-[var(--p-text-dim)]">
+            days open
+          </p>
         </div>
       </div>
 
-      <p className="mt-3 text-[13px] leading-relaxed text-[var(--p-text-dim)]">
+      <p className="mt-3.5 text-[13px] leading-relaxed text-[var(--p-text-dim)]">
         {req.body}
       </p>
 
@@ -204,13 +208,20 @@ export function WaitingOnYou({
   slug: string;
 }) {
   const open = requests.filter((r) => r.status === "open");
+  const blocking = open.filter((r) => r.blocking).length;
+
+  const aside =
+    open.length === 0
+      ? "Nothing open"
+      : blocking === 0
+        ? `${open.length} open — none blocking`
+        : blocking === open.length
+          ? `${open.length} open — all blocking now`
+          : `${open.length} open — ${blocking} blocking now`;
 
   return (
     <div>
-      <SectionTitle
-        title="Waiting on you"
-        aside={open.length === 0 ? "Nothing open" : `${open.length} open`}
-      />
+      <SectionTitle title="Waiting on you" aside={aside} />
       {open.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-[var(--p-border)] p-10 text-center text-[13px] text-[var(--p-text-dim)]">
           You&apos;re all caught up.
