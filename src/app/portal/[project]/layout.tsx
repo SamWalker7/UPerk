@@ -25,7 +25,11 @@ export default async function ProjectLayout({
 
   return (
     <main className="pb-20">
-      <PortalTopBar role={role} crumb={`Client portal — ${data.project.name}`} />
+      <PortalTopBar
+        role={role}
+        backHref="/portal"
+        crumb={data.project.name}
+      />
 
       <div className="mx-auto w-full max-w-[1440px] px-3 sm:px-6">
         <StatusHero data={data} role={role} />

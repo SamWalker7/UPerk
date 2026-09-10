@@ -9,15 +9,38 @@ export function PortalTopBar({
   role,
   crumb,
   showConsoleLink = true,
+  backHref,
 }: {
   role: PortalRole;
   crumb?: ReactNode;
   showConsoleLink?: boolean;
+  /** shows a "← All projects" link before the crumb, e.g. "/portal" */
+  backHref?: string;
 }) {
   return (
     <header className="h-[84px]">
       <div className="mx-auto flex h-full w-full max-w-[1440px] items-center gap-x-2 px-3 sm:gap-x-3 sm:px-6">
         <BrandLogo />
+        {backHref ? (
+          <>
+            <span className="text-[var(--p-border)]">|</span>
+            <Link
+              href={backHref}
+              className="flex shrink-0 items-center gap-1 text-[13px] font-medium text-[var(--p-text-dim)] hover:text-[var(--p-text)] sm:text-[14px]"
+            >
+              <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4" aria-hidden>
+                <path
+                  d="M15 19l-7-7 7-7"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+              <span className="hidden sm:inline">All projects</span>
+            </Link>
+          </>
+        ) : null}
         {crumb ? (
           <>
             <span className="text-[var(--p-border)]">|</span>
