@@ -6,6 +6,7 @@ import CalendlyEmbed from "./CalendlyEmbed";
 import GetAQuote from "../get-a-quote/GetAQuote";
 import Overlay from "../common/Overlay";
 import { trackEvent } from "@/lib/analytics";
+import { clearGetStartedHash, setGetStartedHash } from "@/lib/getStartedTracking";
 
 const Header = () => {
   const [showCalendly, setShowCalendly] = useState(false);
@@ -95,6 +96,7 @@ const Header = () => {
                   category: "lead_generation",
                   source: "home_hero",
                 });
+                setGetStartedHash();
                 setShowForm(true);
               }}
               data-analytics-event="quote_form_open_click"
@@ -193,7 +195,12 @@ const Header = () => {
 
       {showForm && (
         <Overlay>
-          <GetAQuote handleQuoteClose={() => setShowForm(false)} />
+          <GetAQuote
+            handleQuoteClose={() => {
+              clearGetStartedHash();
+              setShowForm(false);
+            }}
+          />
         </Overlay>
       )}
     </>

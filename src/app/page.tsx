@@ -12,6 +12,11 @@ import Overlay from "@/components/common/Overlay";
 import CalendlyEmbed from "@/components/header/CalendlyEmbed";
 import { Subscribe } from "@/components/subscribe/Subscrib";
 import { trackEvent } from "@/lib/analytics";
+import {
+  clearGetStartedHash,
+  hasGetStartedHash,
+  setGetStartedHash,
+} from "@/lib/getStartedTracking";
 
 declare global {
   interface Window {
@@ -710,6 +715,17 @@ export default function Home() {
     }
   }, []);
 
+  useEffect(() => {
+    if (hasGetStartedHash()) {
+      trackEvent("quote_form_open", {
+        category: "lead_generation",
+        source: "getstarted_hash",
+      });
+      setGetStartedHash();
+      setShowForm(true);
+    }
+  }, []);
+
   const openCalendly = () => {
     trackEvent("calendly_open", {
       category: "lead_generation",
@@ -722,6 +738,7 @@ export default function Home() {
       category: "lead_generation",
       source: "home_page",
     });
+    setGetStartedHash();
     setShowForm(true);
   };
 
@@ -762,7 +779,12 @@ export default function Home() {
 
       {showForm && (
         <Overlay>
-          <GetAQuote handleQuoteClose={() => setShowForm(false)} />
+          <GetAQuote
+            handleQuoteClose={() => {
+              clearGetStartedHash();
+              setShowForm(false);
+            }}
+          />
         </Overlay>
       )}
 

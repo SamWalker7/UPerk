@@ -28,7 +28,8 @@ export default function GoogleAnalytics() {
 
   useEffect(() => {
     const query = searchParams.toString();
-    trackPageView(query ? `${pathname}?${query}` : pathname);
+    const pathWithQuery = query ? `${pathname}?${query}` : pathname;
+    trackPageView(`${pathWithQuery}${window.location.hash}`);
   }, [pathname, searchParams]);
 
   useEffect(() => {

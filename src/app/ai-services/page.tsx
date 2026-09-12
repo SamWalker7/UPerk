@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import Navebar from "@/components/header/Navebar";
@@ -10,6 +10,11 @@ import GetAQuote from "@/components/get-a-quote/GetAQuote";
 import Overlay from "@/components/common/Overlay";
 import CalendlyEmbed from "@/components/header/CalendlyEmbed";
 import { trackEvent } from "@/lib/analytics";
+import {
+  clearGetStartedHash,
+  hasGetStartedHash,
+  setGetStartedHash,
+} from "@/lib/getStartedTracking";
 
 // ─── Hero ─────────────────────────────────────────────────────────────────────
 function AIHero({
@@ -713,6 +718,17 @@ export default function AIServicesPage() {
   const [showForm, setShowForm] = useState(false);
   const [showCalendly, setShowCalendly] = useState(false);
 
+  useEffect(() => {
+    if (hasGetStartedHash()) {
+      trackEvent("quote_form_open", {
+        category: "lead_generation",
+        source: "getstarted_hash",
+      });
+      setGetStartedHash();
+      setShowForm(true);
+    }
+  }, []);
+
   return (
     <div className="min-h-screen bg-white dark:bg-[#060a14] text-gray-900 dark:text-white">
       <Navebar />
@@ -722,6 +738,7 @@ export default function AIServicesPage() {
             category: "lead_generation",
             source: "ai_services_hero",
           });
+          setGetStartedHash();
           setShowForm(true);
         }}
         onBookCall={() => {
@@ -738,6 +755,7 @@ export default function AIServicesPage() {
             category: "lead_generation",
             source: "ai_services_card",
           });
+          setGetStartedHash();
           setShowForm(true);
         }}
       />
@@ -750,6 +768,7 @@ export default function AIServicesPage() {
             category: "lead_generation",
             source: "ai_services_cta",
           });
+          setGetStartedHash();
           setShowForm(true);
         }}
         onBookCall={() => {
@@ -765,7 +784,12 @@ export default function AIServicesPage() {
 
       {showForm && (
         <Overlay>
-          <GetAQuote handleQuoteClose={() => setShowForm(false)} />
+          <GetAQuote
+            handleQuoteClose={() => {
+              clearGetStartedHash();
+              setShowForm(false);
+            }}
+          />
         </Overlay>
       )}
 

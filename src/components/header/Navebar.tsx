@@ -8,6 +8,7 @@ import { useTheme } from "@/components/ThemeProvider";
 import GetAQuote from "../get-a-quote/GetAQuote";
 import Overlay from "../common/Overlay";
 import { trackEvent } from "@/lib/analytics";
+import { clearGetStartedHash, setGetStartedHash } from "@/lib/getStartedTracking";
 
 // Accept legacy props optionally so existing pages (Blog, CaseStudies) still compile
 interface NavbarProps {
@@ -163,6 +164,7 @@ const Navebar: React.FC<NavbarProps> = () => {
                     category: "lead_generation",
                     source: "navbar_desktop",
                   });
+                  setGetStartedHash();
                   setShowForm(true);
                 }}
                 data-analytics-event="cta_click"
@@ -243,6 +245,7 @@ const Navebar: React.FC<NavbarProps> = () => {
                     category: "lead_generation",
                     source: "navbar_mobile",
                   });
+                  setGetStartedHash();
                   setShowForm(true);
                   setIsMenuOpen(false);
                 }}
@@ -264,7 +267,12 @@ const Navebar: React.FC<NavbarProps> = () => {
 
       {showForm && (
         <Overlay>
-          <GetAQuote handleQuoteClose={() => setShowForm(false)} />
+          <GetAQuote
+            handleQuoteClose={() => {
+              clearGetStartedHash();
+              setShowForm(false);
+            }}
+          />
         </Overlay>
       )}
     </>
