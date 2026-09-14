@@ -9,6 +9,19 @@ contract-sensitive detail out of it anyway.
 
 ## Unreleased
 
+**"Add request" in the console now saves immediately.** It previously only
+called `onChange()` on local state with a client-generated fake id
+(`uid("req")`) — nothing reached the backend until the PM separately hit
+the section's "Save" button, so a new request was lost if they navigated
+away first. `NewRequestForm`'s submit button used to paper over this by
+calling `save()` (the full-object `PATCH`) right after adding locally.
+`ConsoleEditor` now has an `addRequest()` (parallel to the existing
+`logDecision()`) that `POST`s to `/portal/api/projects/:slug/requests`
+immediately, takes the real server-assigned `id` back, and applies it to
+both `data` and `saved` state so it's marked persisted right away — same
+pattern decisions already used. The redundant `onSave()` call after adding
+is gone.
+
 **Portal data fetching moved from server components to client-side `fetch`.**
 `/portal`, `/portal/[project]`, `/console`, `/admin`, and `/portal/login`
 were React Server Components that called `readProject`/`listProjects`/

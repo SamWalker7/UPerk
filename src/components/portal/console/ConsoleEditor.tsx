@@ -306,6 +306,28 @@ export default function ConsoleEditor({
     } finally { setSaving(false); }
   }
 
+  async function addRequest(input: NewRequestInput) {
+    setSaving(true);
+    setMessage(null);
+    try {
+      const res = await fetch(`/portal/api/projects/${slug}/requests`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(input),
+      });
+      const result = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(result.error || "Could not add request.");
+      const created: ClientRequest = { id: result.id, status: "open", ...input };
+      setData((previous) => ({ ...previous, requests: [...previous.requests, created] }));
+      setSaved((previous) => ({ ...previous, requests: [...previous.requests, created] }));
+      setMessage({ kind: "ok", text: "Request added." });
+    } catch (error) {
+      setMessage({ kind: "err", text: error instanceof Error ? error.message : "Could not add request." });
+    } finally {
+      setSaving(false);
+    }
+  }
+
   async function publish() {
     if (dirty) { setMessage({ kind: "warn", text: "Save or discard your edits before publishing." }); return; }
     setPublishing(true); setMessage(null);
@@ -642,8 +664,8 @@ export default function ConsoleEditor({
               requests={data.requests}
               onChange={(requests) => patch((d) => (d.requests = requests))}
               isPersisted={(id) => savedRequestIds.has(id)}
+              onAdd={addRequest}
               onDelete={deleteRequest}
-              onSave={save}
               saving={saving}
             />
           </Section>
@@ -1215,15 +1237,15 @@ function RequestsEditor({
   requests,
   onChange,
   isPersisted,
+  onAdd,
   onDelete,
-  onSave,
   saving,
 }: {
   requests: ClientRequest[];
   onChange: (r: ClientRequest[]) => void;
   isPersisted: (id: string) => boolean;
+  onAdd: (input: NewRequestInput) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
-  onSave: () => void;
   saving: boolean;
 }) {
   const [pendingDelete, setPendingDelete] = useState<ClientRequest | null>(null);
@@ -1238,12 +1260,6 @@ function RequestsEditor({
         return copy;
       }),
     );
-  }
-
-  function add(input: NewRequestInput) {
-    const created: ClientRequest = { id: uid("req"), status: "open", ...input };
-    onChange([...requests, created]);
-    setEditing(created.id);
   }
 
   return (
@@ -1265,7 +1281,7 @@ function RequestsEditor({
         />
       ))}
 
-      <NewRequestForm onAdd={add} onSave={onSave} saving={saving} />
+      <NewRequestForm onAdd={onAdd} saving={saving} />
 
       <ConfirmDialog
         open={pendingDelete !== null}
@@ -1468,14 +1484,13 @@ const RESPOND_MODES = [
 
 function NewRequestForm({
   onAdd,
-  onSave,
   saving,
 }: {
-  onAdd: (input: NewRequestInput) => void;
-  onSave: () => void;
+  onAdd: (input: NewRequestInput) => Promise<void>;
   saving: boolean;
 }) {
   const [title, setTitle] = useState("");
+  const [body, setBody] = useState("");
   const [assignee, setAssignee] = useState("");
   const [dueBy, setDueBy] = useState("");
   const [holdsUp, setHoldsUp] = useState("");
@@ -1484,18 +1499,23 @@ function NewRequestForm({
   const [btn2, setBtn2] = useState("Choose B");
   const [secondary, setSecondary] = useState("");
   const [nudge, setNudge] = useState(false);
+  const [touched, setTouched] = useState(false);
 
-  function submit() {
-    if (!title.trim()) return;
+  const titleValid = title.trim().length > 0;
+  const bodyValid = body.trim().length > 0;
+
+  async function submit() {
+    setTouched(true);
+    if (!titleValid || !bodyValid) return;
     const labels =
       mode === "ack"
         ? [btn1.trim() || "Got it"]
         : mode === "action"
           ? [btn1.trim() || "Do it", secondary.trim() || "Discuss first"]
           : [btn1.trim(), btn2.trim(), secondary.trim()].filter(Boolean);
-    onAdd({
+    await onAdd({
       title: title.trim(),
-      body: "",
+      body: body.trim(),
       daysOpen: 0,
       blocking: false,
       actions: labels.map((label, idx) => ({
@@ -1507,30 +1527,47 @@ function NewRequestForm({
       ...(holdsUp.trim() ? { subNote: holdsUp.trim() } : {}),
       ...(nudge ? { nudgeSchedule: [3, 7] } : {}),
     });
+    // Cleared unconditionally: addRequest() surfaces failure via the
+    // section's message banner rather than a per-field error, so there's
+    // nothing more specific to key "leave it filled in" off of.
     setTitle("");
+    setBody("");
+    setAssignee("");
+    setDueBy("");
     setHoldsUp("");
     setSecondary("");
+    setTouched(false);
   }
 
   return (
     <div className="rounded-xl border border-[var(--p-border)] bg-[var(--p-surface-2)]/50 p-4">
       <p className="text-[13px] font-bold">New request</p>
       <div className="mt-3 space-y-3">
+        <Field
+          label="What do you need?"
+          value={title}
+          onChange={setTitle}
+          placeholder="Confirm the invite screen wording"
+          invalid={touched && !titleValid}
+          hint={touched && !titleValid ? "Required" : undefined}
+        />
+        <Field
+          label="Description"
+          value={body}
+          onChange={setBody}
+          textarea
+          rows={2}
+          placeholder="Explain the request and why it matters — this is what the client sees."
+          invalid={touched && !bodyValid}
+          hint={touched && !bodyValid ? "Required" : undefined}
+        />
         <Grid>
-          <Field
-            label="What do you need?"
-            value={title}
-            onChange={setTitle}
-            placeholder="Confirm the invite screen wording"
-          />
           <Field
             label="Assigned to"
             value={assignee}
             onChange={setAssignee}
             placeholder="Kaya Alvarez"
           />
-        </Grid>
-        <Grid>
           <label className="block">
             <span className="mb-1 block text-[12px] font-medium text-[var(--p-text-dim)]">
               Needed by
@@ -1542,13 +1579,13 @@ function NewRequestForm({
               className="w-full rounded-lg border border-[var(--p-border)] bg-[var(--p-surface)] px-3 py-2.5 text-[13px] outline-none focus:border-[var(--p-accent)]"
             />
           </label>
-          <Field
-            label="What it holds up"
-            value={holdsUp}
-            onChange={setHoldsUp}
-            placeholder="Invite screen build, 9 Sept"
-          />
         </Grid>
+        <Field
+          label="What it holds up"
+          value={holdsUp}
+          onChange={setHoldsUp}
+          placeholder="Invite screen build, 9 Sept"
+        />
         <SelectField
           label="How should the client respond?"
           value={mode}
@@ -1587,11 +1624,8 @@ function NewRequestForm({
         <div className="flex flex-wrap items-center gap-3 pt-1">
           <button
             type="button"
-            onClick={() => {
-              submit();
-              onSave();
-            }}
-            disabled={saving || !title.trim()}
+            onClick={submit}
+            disabled={saving || (touched && (!titleValid || !bodyValid))}
             className="flex h-9 items-center gap-2 rounded-lg bg-[var(--p-accent)] px-4 text-[13px] font-semibold text-white hover:brightness-95 disabled:opacity-40"
           >
             {saving ? <Spinner className="h-3.5 w-3.5" /> : null}
