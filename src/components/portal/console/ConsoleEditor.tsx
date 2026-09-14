@@ -23,6 +23,7 @@ import {
 import { Section } from "./Section";
 import { Spinner } from "../Spinner";
 import { ConfirmDialog } from "./ConfirmDialog";
+import { AgendaDialog } from "./AgendaDialog";
 import { DecisionDialog, type DecisionInput } from "./DecisionDialog";
 import { type NewRequestInput } from "./RequestDialog";
 import { DecisionHistoryDrawer } from "./DecisionHistoryDrawer";
@@ -326,6 +327,7 @@ export default function ConsoleEditor({
   // ---- Destructive deletes (dedicated PM-only endpoints, modal-confirmed) ----
 
   const [confirmDeleteProject, setConfirmDeleteProject] = useState(false);
+  const [agendaDialogOpen, setAgendaDialogOpen] = useState(false);
 
   async function deleteProject() {
     const res = await fetch(`/portal/api/projects/${slug}`, { method: "DELETE" });
@@ -607,6 +609,7 @@ export default function ConsoleEditor({
             summary="Draft — shows in the client header"
             headerAction={
               <WeeklyHistoryDrawer
+                slug={slug}
                 updates={data.weeklyHistory}
                 className="rounded-lg border border-[var(--p-border)] bg-[var(--p-surface)] px-3 py-1.5 text-[12px] font-semibold text-[var(--p-accent)] shadow-sm hover:bg-[var(--p-accent-weak)]"
               />
@@ -632,6 +635,7 @@ export default function ConsoleEditor({
             onToggle={() => toggle("requests")}
             headerAction={
               <SectionHistoryDrawer
+                slug={slug}
                 history={data.projectHistory}
                 section="requests"
                 className="rounded-lg border border-[var(--p-border)] bg-[var(--p-surface)] px-3 py-1.5 text-[12px] font-semibold text-[var(--p-accent)] shadow-sm hover:bg-[var(--p-accent-weak)]"
@@ -686,6 +690,7 @@ export default function ConsoleEditor({
             summary={`Append-only · ${data.decisions.length} ${data.decisions.length === 1 ? "entry" : "entries"}`}
             headerAction={
               <DecisionHistoryDrawer
+                slug={slug}
                 decisions={data.decisions}
                 className="rounded-lg border border-[var(--p-border)] bg-[var(--p-surface)] px-3 py-1.5 text-[12px] font-semibold text-[var(--p-accent)] shadow-sm hover:bg-[var(--p-accent-weak)]"
               />
@@ -724,6 +729,7 @@ export default function ConsoleEditor({
             summary={'Feeds "See it working"'}
             headerAction={
               <SectionHistoryDrawer
+                slug={slug}
                 history={data.projectHistory}
                 section="links"
                 className="rounded-lg border border-[var(--p-border)] bg-[var(--p-surface)] px-3 py-1.5 text-[12px] font-semibold text-[var(--p-accent)] shadow-sm hover:bg-[var(--p-accent-weak)]"
@@ -748,6 +754,7 @@ export default function ConsoleEditor({
             onToggle={() => toggle("screens")}
             headerAction={
               <SectionHistoryDrawer
+                slug={slug}
                 history={data.projectHistory}
                 section="screens"
                 className="rounded-lg border border-[var(--p-border)] bg-[var(--p-surface)] px-3 py-1.5 text-[12px] font-semibold text-[var(--p-accent)] shadow-sm hover:bg-[var(--p-accent-weak)]"
@@ -777,6 +784,7 @@ export default function ConsoleEditor({
         summary={data.plan.rangeLabel}
         headerAction={
           <SectionHistoryDrawer
+            slug={slug}
             history={data.projectHistory}
             section="plan"
             className="rounded-lg border border-[var(--p-border)] bg-[var(--p-surface)] px-3 py-1.5 text-[12px] font-semibold text-[var(--p-accent)] shadow-sm hover:bg-[var(--p-accent-weak)]"
@@ -795,7 +803,13 @@ export default function ConsoleEditor({
         dirty={dirtyMap.nextCall}
         open={open.nextCall}
         onToggle={() => toggle("nextCall")}
-        summary={data.nextCall?.label || "not set"}
+        summary={
+          data.nextCall?.label
+            ? data.nextCall.date
+              ? `${data.nextCall.label} — ${formatDate(data.nextCall.date)}`
+              : data.nextCall.label
+            : "not set"
+        }
       >
         <Grid>
           <Field
@@ -805,19 +819,61 @@ export default function ConsoleEditor({
               patch((d) => (d.nextCall = { ...(d.nextCall || {}), label: v }))
             }
           />
+          <DateField
+            label="Date"
+            value={data.nextCall?.date || ""}
+            onChange={(v) =>
+              patch(
+                (d) =>
+                  (d.nextCall = { ...(d.nextCall || { label: "" }), date: v }),
+              )
+            }
+          />
+        </Grid>
+
+        <Grid>
           <Field
             label="Agenda URL"
             value={data.nextCall?.agendaUrl || ""}
             onChange={(v) =>
               patch(
                 (d) =>
-                  (d.nextCall = { label: d.nextCall?.label || "", agendaUrl: v }),
+                  (d.nextCall = { ...(d.nextCall || { label: "" }), agendaUrl: v }),
               )
             }
             placeholder="https://…"
           />
+          <div>
+            <span className="mb-1 block text-[12px] font-medium text-[var(--p-text-dim)]">
+              Agenda
+            </span>
+            <button
+              type="button"
+              onClick={() => setAgendaDialogOpen(true)}
+              className="w-full rounded-lg border border-[var(--p-border)] bg-[var(--p-surface)] px-3 py-2.5 text-left text-[13px] hover:bg-[var(--p-accent-weak)]"
+            >
+              {data.nextCall?.agenda ? (
+                <span className="line-clamp-1 whitespace-pre-wrap text-[var(--p-text)]">
+                  {data.nextCall.agenda}
+                </span>
+              ) : (
+                <span className="text-[var(--p-text-dim)]">
+                  Add talking points…
+                </span>
+              )}
+            </button>
+          </div>
         </Grid>
       </Section>
+
+      <AgendaDialog
+        open={agendaDialogOpen}
+        value={data.nextCall?.agenda || ""}
+        onSave={(agenda) =>
+          patch((d) => (d.nextCall = { ...(d.nextCall || { label: "" }), agenda }))
+        }
+        onClose={() => setAgendaDialogOpen(false)}
+      />
 
       {/* ---------- Danger zone ---------- */}
       <section className="console-editor__danger rounded-2xl border border-[var(--p-risk)]/40 bg-[var(--p-risk-bg)]/40 p-4 sm:p-5">

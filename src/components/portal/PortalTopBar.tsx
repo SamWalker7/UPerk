@@ -53,7 +53,7 @@ export function PortalTopBar({
           {role === "pm" && showConsoleLink ? (
             <Link
               href="/console"
-              className="cursor-pointer rounded-lg border border-[#b8c3d0] bg-white px-3 py-1.5 text-[13px] font-semibold shadow-sm hover:bg-[var(--p-surface-2)]"
+              className="cursor-pointer rounded-lg border border-[var(--p-border)] bg-[var(--p-surface)] px-3 py-1.5 text-[13px] font-semibold text-[var(--p-text)] shadow-sm hover:bg-[var(--p-surface-2)]"
             >
               PM console
             </Link>

@@ -192,7 +192,7 @@ export type ProjectData = {
   finishedScreens: FinishedScreen[];
   decisionsIntro?: string;
   decisions: Decision[];
-  nextCall?: { label: string; agendaUrl?: string };
+  nextCall?: { label: string; date?: string; agendaUrl?: string; agenda?: string };
   publication?: { unpublishedChanges: number; lastPublishedAt?: string };
   notes?: Array<{
     id: string;

@@ -26,7 +26,7 @@ export function Decisions({
 }: {
   decisions: Decision[];
   intro?: string;
-  nextCall?: { label: string; agendaUrl?: string };
+  nextCall?: { label: string; date?: string; agendaUrl?: string; agenda?: string };
   role: PortalRole;
   slug: string;
 }) {
@@ -91,19 +91,25 @@ export function Decisions({
       ) : null}
 
       {nextCall ? (
-        <p className="mt-4 text-[13px] text-[var(--p-text-dim)]">
-          {nextCall.label}{" "}
-          {nextCall.agendaUrl ? (
-            <a
-              href={nextCall.agendaUrl}
-              className="underline underline-offset-2"
-              target="_blank"
-              rel="noreferrer"
-            >
-              See the agenda
-            </a>
+        <div className="mt-4 text-[13px] text-[var(--p-text-dim)]">
+          <p>
+            {nextCall.label}
+            {nextCall.date ? ` — ${formatDate(nextCall.date)}` : ""}{" "}
+            {nextCall.agendaUrl ? (
+              <a
+                href={nextCall.agendaUrl}
+                className="underline underline-offset-2"
+                target="_blank"
+                rel="noreferrer"
+              >
+                See the agenda
+              </a>
+            ) : null}
+          </p>
+          {nextCall.agenda ? (
+            <p className="mt-1.5 whitespace-pre-wrap">{nextCall.agenda}</p>
           ) : null}
-        </p>
+        </div>
       ) : null}
     </div>
   );

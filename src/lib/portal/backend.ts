@@ -106,6 +106,49 @@ export const backend = {
       body: changes as Json,
     }),
 
+  // Granular PM routes — narrower alternatives to the full PUT/PATCH above,
+  // matching the dedicated endpoints in the deployed OpenAPI spec.
+  updateStatus: (token: string, slug: string, changes: unknown) =>
+    request<{ ok: true }>(`/api/projects/${encodeURIComponent(slug)}/status`, {
+      method: "PATCH",
+      token,
+      body: changes as Json,
+    }),
+
+  updatePlan: (token: string, slug: string, changes: unknown) =>
+    request<{ ok: true }>(`/api/projects/${encodeURIComponent(slug)}/plan`, {
+      method: "PATCH",
+      token,
+      body: changes as Json,
+    }),
+
+  updatePrototype: (token: string, slug: string, changes: unknown) =>
+    request<{ ok: true }>(`/api/projects/${encodeURIComponent(slug)}/prototype`, {
+      method: "PATCH",
+      token,
+      body: changes as Json,
+    }),
+
+  addRequest: (token: string, slug: string, data: unknown) =>
+    request<{ id: string }>(`/api/projects/${encodeURIComponent(slug)}/requests`, {
+      method: "POST",
+      token,
+      body: data as Json,
+    }),
+
+  addNote: (token: string, slug: string, data: unknown) =>
+    request<{ id: string }>(`/api/projects/${encodeURIComponent(slug)}/notes`, {
+      method: "POST",
+      token,
+      body: data as Json,
+    }),
+
+  getDecisions: (token: string, slug: string) =>
+    request<{ decisions: unknown[]; total?: number; active?: number }>(
+      `/api/projects/${encodeURIComponent(slug)}/decisions`,
+      { token },
+    ),
+
   appendDecision: (token: string, slug: string, data: unknown) =>
     request<{ id: string; decision?: unknown }>(
       `/api/projects/${encodeURIComponent(slug)}/decisions`,

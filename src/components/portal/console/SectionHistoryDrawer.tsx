@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { ProjectHistoryEntry, ProjectHistorySection } from "@/lib/portal/types";
 import { formatDate, formatDateTime } from "@/lib/portal/format";
 
@@ -17,18 +17,45 @@ const list = (value: unknown): unknown[] => Array.isArray(value) ? value : [];
 const text = (value: unknown, fallback = "—") => typeof value === "string" && value.trim() ? value : fallback;
 
 export function SectionHistoryDrawer({
+  slug,
   history,
   section,
   className,
 }: {
+  slug: string;
+  /** Initial/fallback list (e.g. from the page's first load) shown until the
+   *  fresh fetch below resolves. */
   history?: ProjectHistoryEntry[];
   section: ProjectHistorySection;
   className?: string;
 }) {
   const [open, setOpen] = useState(false);
+  const [fetched, setFetched] = useState<ProjectHistoryEntry[] | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (!open) return;
+    let cancelled = false;
+    setLoading(true);
+    setError("");
+    fetch(`/portal/api/projects/${slug}/history?section=${encodeURIComponent(section)}`)
+      .then((res) => res.json())
+      .then((body) => {
+        if (cancelled) return;
+        if (body.error) setError(body.error);
+        else setFetched(body.entries ?? []);
+      })
+      .catch(() => !cancelled && setError("Couldn't load history."))
+      .finally(() => !cancelled && setLoading(false));
+    return () => {
+      cancelled = true;
+    };
+  }, [open, slug, section]);
+
   const entries = useMemo(
-    () => (history || []).filter((entry) => entry.section === section),
-    [history, section],
+    () => (fetched ?? history ?? []).filter((entry) => entry.section === section),
+    [fetched, history, section],
   );
 
 
@@ -52,7 +79,12 @@ export function SectionHistoryDrawer({
             </header>
 
             <div className="flex-1 overflow-y-auto px-5 py-6 sm:px-6">
-              {entries.length ? (
+              {error ? (
+                <p className="mb-4 text-[12px] text-[var(--p-risk)]">{error}</p>
+              ) : null}
+              {loading && !fetched ? (
+                <p className="text-[12px] text-[var(--p-text-dim)]">Loading…</p>
+              ) : entries.length ? (
                 <div className="space-y-5">
                   {entries.map((entry) => (
                     <article key={entry.id} className="relative border-l border-[var(--p-border)] pl-5">

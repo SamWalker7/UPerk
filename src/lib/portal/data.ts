@@ -113,6 +113,103 @@ export async function appendDecision(
   }
 }
 
+export async function getDecisions(
+  token: string,
+  slug: string,
+): Promise<{ ok: true; decisions: unknown[]; total?: number; active?: number } | WriteResult> {
+  try {
+    return { ok: true, ...(await backend.getDecisions(token, slug)) };
+  } catch (err) {
+    return toWriteResult(err);
+  }
+}
+
+export async function updateStatus(
+  token: string,
+  slug: string,
+  changes: Record<string, unknown>,
+): Promise<WriteResult> {
+  try {
+    await backend.updateStatus(token, slug, changes);
+    return { ok: true };
+  } catch (err) {
+    return toWriteResult(err);
+  }
+}
+
+export async function updatePlan(
+  token: string,
+  slug: string,
+  changes: Record<string, unknown>,
+): Promise<WriteResult> {
+  try {
+    await backend.updatePlan(token, slug, changes);
+    return { ok: true };
+  } catch (err) {
+    return toWriteResult(err);
+  }
+}
+
+export async function updatePrototype(
+  token: string,
+  slug: string,
+  changes: Record<string, unknown>,
+): Promise<WriteResult> {
+  try {
+    await backend.updatePrototype(token, slug, changes);
+    return { ok: true };
+  } catch (err) {
+    return toWriteResult(err);
+  }
+}
+
+export async function addRequest(
+  token: string,
+  slug: string,
+  request: Record<string, unknown>,
+): Promise<{ ok: true; id: string } | WriteResult> {
+  try {
+    return { ok: true, ...(await backend.addRequest(token, slug, request)) };
+  } catch (err) {
+    return toWriteResult(err);
+  }
+}
+
+export async function addNote(
+  token: string,
+  slug: string,
+  note: Record<string, unknown>,
+): Promise<{ ok: true; id: string } | WriteResult> {
+  try {
+    return { ok: true, ...(await backend.addNote(token, slug, note)) };
+  } catch (err) {
+    return toWriteResult(err);
+  }
+}
+
+export async function getWeeklyHistory(
+  token: string,
+  slug: string,
+): Promise<{ ok: true; updates: unknown[]; total: number } | WriteResult> {
+  try {
+    return { ok: true, ...(await backend.weeklyHistory(token, slug)) };
+  } catch (err) {
+    return toWriteResult(err);
+  }
+}
+
+export async function getProjectHistory(
+  token: string,
+  slug: string,
+  section?: string,
+): Promise<{ ok: true; entries: unknown[]; total: number } | WriteResult> {
+  try {
+    return { ok: true, ...(await backend.projectHistory(token, slug, section)) };
+  } catch (err) {
+    return toWriteResult(err);
+  }
+}
+
 export async function publishProject(
   token: string,
   slug: string,

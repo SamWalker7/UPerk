@@ -191,7 +191,7 @@ export function StatusHero({ data, role }: { data: ProjectData; role: PortalRole
         <OverviewTab data={data} role={role} embedded />
       </div>
       <div className="border-t border-white/15 px-5 py-3 text-right sm:px-8">
-        <WeeklyHistoryDrawer updates={data.weeklyHistory} className="text-[13px] font-semibold text-[#a9d9fb] underline underline-offset-4 hover:text-white" />
+        <WeeklyHistoryDrawer slug={data.slug} updates={data.weeklyHistory} className="text-[13px] font-semibold text-[#a9d9fb] underline underline-offset-4 hover:text-white" />
       </div>
     </section>
   );

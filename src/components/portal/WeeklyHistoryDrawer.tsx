@@ -26,9 +26,13 @@ function timeLabel(value: string) {
 }
 
 export function WeeklyHistoryDrawer({
+  slug,
   updates,
   className,
 }: {
+  slug: string;
+  /** Initial/fallback list (e.g. from the page's first load) shown until the
+   *  fresh fetch below resolves. */
   updates?: WeeklyUpdate[];
   className?: string;
 }) {
@@ -45,7 +49,30 @@ export function WeeklyHistoryDrawer({
     );
   }, []);
 
-  const entries = updates || EMPTY_UPDATES;
+  const [fetched, setFetched] = useState<WeeklyUpdate[] | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (!open) return;
+    let cancelled = false;
+    setLoading(true);
+    setError("");
+    fetch(`/portal/api/projects/${slug}/weekly-history`)
+      .then((res) => res.json())
+      .then((body) => {
+        if (cancelled) return;
+        if (body.error) setError(body.error);
+        else setFetched(body.updates ?? []);
+      })
+      .catch(() => !cancelled && setError("Couldn't load history."))
+      .finally(() => !cancelled && setLoading(false));
+    return () => {
+      cancelled = true;
+    };
+  }, [open, slug]);
+
+  const entries = fetched ?? updates ?? EMPTY_UPDATES;
   const grouped = useMemo(() => {
     const groups = new Map<string, WeeklyUpdate[]>();
     for (const update of entries) {
@@ -150,7 +177,12 @@ export function WeeklyHistoryDrawer({
             </header>
 
             <div className="flex-1 overflow-y-auto px-5 py-5">
-              {grouped.length ? (
+              {error ? (
+                <p className="mb-4 text-[12px] text-[var(--p-risk)]">{error}</p>
+              ) : null}
+              {loading && !fetched ? (
+                <p className="text-[12px] text-[var(--p-text-dim)]">Loading…</p>
+              ) : grouped.length ? (
                 <ol className="space-y-6">
                   {grouped.map(([day, dayUpdates]) => (
                     <li key={day} className="relative pl-5">

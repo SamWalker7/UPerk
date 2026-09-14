@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { Decision } from "@/lib/portal/types";
 import { formatDate, formatDateTime } from "@/lib/portal/format";
 
@@ -11,15 +11,43 @@ function groupKey(value: string) {
 }
 
 export function DecisionHistoryDrawer({
+  slug,
   decisions,
   className,
 }: {
+  slug: string;
+  /** Initial/fallback list (e.g. from the page's first load) shown until the
+   *  fresh fetch below resolves. */
   decisions: Decision[];
   className?: string;
 }) {
   const [open, setOpen] = useState(false);
+  const [fetched, setFetched] = useState<Decision[] | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (!open) return;
+    let cancelled = false;
+    setLoading(true);
+    setError("");
+    fetch(`/portal/api/projects/${slug}/decisions`)
+      .then((res) => res.json())
+      .then((body) => {
+        if (cancelled) return;
+        if (body.error) setError(body.error);
+        else setFetched((body.decisions ?? []) as Decision[]);
+      })
+      .catch(() => !cancelled && setError("Couldn't load history."))
+      .finally(() => !cancelled && setLoading(false));
+    return () => {
+      cancelled = true;
+    };
+  }, [open, slug]);
+
+  const activeDecisions = fetched ?? decisions;
   const groups = useMemo(() => {
-    const sorted = [...decisions].sort((a, b) => {
+    const sorted = [...activeDecisions].sort((a, b) => {
       const aTime = new Date(a.date).getTime();
       const bTime = new Date(b.date).getTime();
       return (Number.isNaN(bTime) ? 0 : bTime) - (Number.isNaN(aTime) ? 0 : aTime);
@@ -30,7 +58,7 @@ export function DecisionHistoryDrawer({
       result.set(key, [...(result.get(key) || []), decision]);
     }
     return [...result.entries()];
-  }, [decisions]);
+  }, [activeDecisions]);
 
 
   return (
@@ -41,7 +69,7 @@ export function DecisionHistoryDrawer({
         className={className || "text-[13px] font-semibold text-[var(--p-accent)] underline underline-offset-2"}
         aria-haspopup="dialog"
       >
-        History{decisions.length ? ` (${decisions.length})` : ""}
+        History{activeDecisions.length ? ` (${activeDecisions.length})` : ""}
       </button>
 
       {open ? (
@@ -58,7 +86,12 @@ export function DecisionHistoryDrawer({
             </header>
 
             <div className="flex-1 overflow-y-auto px-5 py-6 sm:px-6">
-              {groups.length ? groups.map(([date, entries]) => (
+              {error ? (
+                <p className="mb-4 text-[12px] text-[var(--p-risk)]">{error}</p>
+              ) : null}
+              {loading && !fetched ? (
+                <p className="text-[12px] text-[var(--p-text-dim)]">Loading…</p>
+              ) : groups.length ? groups.map(([date, entries]) => (
                 <section key={date} className="relative border-l border-[var(--p-border)] pb-7 pl-5 last:pb-0">
                   <span className="absolute -left-[5px] top-1 h-2.5 w-2.5 rounded-full bg-[var(--p-accent)] ring-4 ring-[var(--p-surface)]" />
                   <h3 className="text-[13px] font-bold text-[var(--p-text)]">{formatDate(date)}</h3>

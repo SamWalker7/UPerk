@@ -36,12 +36,18 @@ export function Section({
           onClick={onToggle}
           className="flex min-w-0 flex-1 items-center gap-2.5 text-left sm:gap-3"
         >
-          <span
-            className={"hidden shrink-0 text-[var(--p-text-dim)] transition-transform " + (open ? "rotate-90" : "")}
+          <svg
+            className="h-4 w-4 shrink-0 text-[var(--p-text-dim)]"
+            viewBox="0 0 20 20"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
             aria-hidden
           >
-            ▶
-          </span>
+            {open ? <path d="M5 12l5-5 5 5" /> : <path d="M5 8l5 5 5-5" />}
+          </svg>
           <span className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-[18px] font-bold tracking-tight">
             <span className="truncate">{title}</span>
             {typeof badge === "number" ? (

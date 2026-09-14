@@ -119,13 +119,21 @@ Deleting the project removes it and everything in it; the backend keeps its
 summary/list projection in sync. Request and screen deletes are hard deletes
 (decisions are *not* deletable — supersede instead).
 
-### Granular routes (optional, nicer for the console later)
+### Granular routes
+
+Wired in `src/lib/portal/backend.ts` / `data.ts` and proxied at
+`/portal/api/projects/:slug/...`. The console still saves via the full-object
+`PUT`/`PATCH` on `/api/projects/:slug`; these are narrower alternatives for
+callers that don't want to resend the whole `ProjectData`.
 
 ```
-PATCH /api/projects/:slug/status        body: Partial<PortalStatus>
+PATCH /api/projects/:slug/status         body: Partial<PortalStatus>
 PATCH /api/projects/:slug/plan           body: Partial<ProjectData["plan"]>
+PATCH /api/projects/:slug/prototype      body: Partial<PrototypeLinks>
+POST  /api/projects/:slug/notes          body: { body, visibility: "internal"|"client", pinned? } -> { id }
 POST  /api/projects/:slug/requests       body: Omit<ClientRequest,"id">   -> { id }
 PATCH /api/projects/:slug/requests/:id   body: Partial<ClientRequest>
+GET   /api/projects/:slug/decisions      -> { decisions: Decision[], total?, active? }
 POST  /api/projects/:slug/decisions      body: Omit<Decision,"id">        -> { id }
 POST  /api/projects/:slug/screens        body: Omit<FinishedScreen,"id">  -> { id }
 ```
@@ -135,16 +143,40 @@ the replacement).
 
 ---
 
-## Client actions (not built yet)
+## Client actions
 
-Buttons like "Choose A", "Mark as done", "Send the list" are display-only until this
-exists. When wired (callable with the `client` role):
+Buttons like "Choose A", "Mark as done", "Send the list". Wired, callable
+with the `client` role:
 
 ```
 POST /api/projects/:slug/requests/:id/respond   body: { "choice": string }
 POST /api/projects/:slug/requests/:id/resend
 POST /api/projects/:slug/requests/:id/done
 ```
+
+---
+
+## Non-portal routes (admin tools, `/admin`)
+
+The same deployed API also exposes a few routes unrelated to the client
+portal schema above. They're wired at `/admin/api/*` (PM-session-gated, same
+as `/console`) via `src/lib/admin/backend.ts`:
+
+```
+GET  /api/blogs                 -> { posts: BlogPost[] }
+GET  /api/blogs/:id             -> BlogPost
+GET  /api/content                -> generated blog drafts
+POST /api/content   body: { topic: string } -> generated draft
+GET  /api/content/:id           -> one generated draft
+GET  /api/bookings/logs          -> { logs: BookingLog[] }
+```
+
+`POST /api/bookings/webhook` (Calendly webhook receiver) is called by
+Calendly directly, never by this frontend, so there's no client method for
+it. `/api/newsletter`, `/api/form/submit-form`, and `/api/chatbot` are
+called directly from their respective components
+(`Subscrib.tsx`, `forms.ts`, `Chatbot.tsx`) rather than through
+`PORTAL_API_URL` — they don't need a session.
 
 ---
 

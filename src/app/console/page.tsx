@@ -52,7 +52,7 @@ export default async function ConsolePage({
             <div className="-mt-[52px] flex items-center justify-end">
               <Link
                 href={`/portal/${data.slug}`}
-                className="rounded-lg border border-[#b8c3d0] bg-white px-3 py-2 text-[13px] font-semibold text-[var(--p-text)] shadow-sm hover:bg-[var(--p-surface-2)]"
+                className="rounded-lg border border-[var(--p-border)] bg-[var(--p-surface)] px-3 py-2 text-[13px] font-semibold text-[var(--p-text)] shadow-sm hover:bg-[var(--p-surface-2)]"
               >
                 View as client
               </Link>

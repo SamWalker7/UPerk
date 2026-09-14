@@ -7,6 +7,44 @@ contract-sensitive detail out of it anyway.
 
 ---
 
+## Unreleased
+
+Wired the remaining endpoints from the deployed OpenAPI spec
+(`<PORTAL_API_URL>/api-docs/#/`) that had no caller in the codebase yet.
+
+### For engineers
+
+- **Portal granular PM routes.** Added `PATCH /portal/api/projects/:slug/status`,
+  `/plan`, `/prototype`, `POST /notes`, `POST /requests`, and
+  `GET /portal/api/projects/:slug/decisions` — thin proxies through
+  `src/lib/portal/backend.ts` → `src/lib/portal/data.ts`, following the same
+  pattern as the existing routes. The console still saves via the full-object
+  `PUT`/`PATCH` on `/portal/api/projects/:slug`; these are additive, matching
+  endpoints the backend already exposes, for callers that want the narrower
+  routes (or future console work).
+- **History drawers now actually call the API.** `WeeklyHistoryDrawer`,
+  `SectionHistoryDrawer`, and `DecisionHistoryDrawer` previously only
+  rendered whatever `weeklyHistory`/`projectHistory`/`decisions` array
+  happened to be baked into the initial full-project `GET`, and never called
+  the dedicated history endpoints — `backend.weeklyHistory` and
+  `backend.projectHistory` existed in `backend.ts` but had no `data.ts`
+  wrapper, no Next.js route, and no caller. Added
+  `GET /portal/api/projects/:slug/weekly-history` and
+  `GET /portal/api/projects/:slug/history?section=...`, and all three
+  drawers now fetch fresh data when opened (the prop value is kept only as
+  a fallback while the fetch is in flight).
+- **New `/admin` section (PM-only, gated in `middleware.ts` like `/console`).**
+  Wires the previously-uncalled `Blogs`, `Blog Content`, and `Bookings` tags
+  from the spec: `GET /api/blogs`, `GET /api/blogs/:id`, `GET`/`POST
+  /api/content`, `GET /api/content/:id`, `GET /api/bookings/logs`. New client
+  in `src/lib/admin/backend.ts` (same shape as `portal/backend.ts`), proxied
+  through `src/app/admin/api/*`, rendered by
+  `src/components/admin/AdminPanels.tsx`. The Calendly webhook itself
+  (`POST /api/bookings/webhook`) is called by Calendly, not the frontend, so
+  there's no client method for it.
+
+---
+
 ## 0.2.0 — 2026-09-14
 
 Homepage/landing swap, a new Careers application flow, an SEO/AEO pass
