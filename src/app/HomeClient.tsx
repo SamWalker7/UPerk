@@ -391,41 +391,58 @@ const TECH_GROUPS = [
   },
 ];
 
-// TODO(hero typewriter): re-enable once the reveal renders reliably.
-// Shipped and reverted twice on 2026-09-14 — the gradient-clip-per-letter
-// version left "and AI tools" not rendering for some viewers even after
-// switching to a plain solid color for the typed run, so this is parked
-// as static text rather than shipping a flaky hero. Next attempt should
-// probably avoid splitting the phrase into ~28 individually-animated DOM
-// nodes altogether (e.g. a single-element `clip-path`/`width` reveal
-// instead of per-character spans) rather than continuing to patch the
-// per-character approach. See src/app/globals.css for the still-present
-// `.type-char`/`.type-caret` keyframes this would reuse.
-//
-// // Per-character stagger step (ms) for the hero headline's typewriter
-// // reveal — see the `.type-char` comment in globals.css for how this
-// // stays crawler- and screen-reader-safe.
-// const TYPE_STEP_MS = 90;
-//
-// /**
-//  * Splits `text` into individually-staggered `<span>` characters for the
-//  * hero headline's typewriter effect — only "website, app, and AI
-//  * tools." types in; "One team to build your" renders as normal static
-//  * text. Plain inline `<span>`s (not `inline-block`) so word-wrapping at
-//  * narrow viewports still happens only at the real space characters,
-//  * not mid-word.
-//  */
-// function typeChars(text: string, startIndex: number) {
-//   return text.split("").map((char, i) => (
-//     <span
-//       key={startIndex + i}
-//       className="type-char text-blue-600 dark:text-cyan-400"
-//       style={{ animationDelay: `${(startIndex + i) * TYPE_STEP_MS}ms` }}
-//     >
-//       {char}
-//     </span>
-//   ));
-// }
+const HERO_TYPED_TEXT = "website, app, and AI tools.";
+
+function HeroTypewriter() {
+  // Render the complete headline on the server and when JavaScript is disabled.
+  const [length, setLength] = useState(HERO_TYPED_TEXT.length);
+
+  useEffect(() => {
+    const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    let timer: ReturnType<typeof setTimeout> | undefined;
+
+    function startTyping() {
+      clearTimeout(timer);
+      if (motion.matches) {
+        setLength(HERO_TYPED_TEXT.length);
+        return;
+      }
+
+      let nextLength = 0;
+      setLength(0);
+      function typeNext() {
+        nextLength += 1;
+        setLength(nextLength);
+        // Hold the finished phrase for three seconds before typing it again.
+        timer = setTimeout(
+          nextLength === HERO_TYPED_TEXT.length ? startTyping : typeNext,
+          nextLength === HERO_TYPED_TEXT.length ? 3000 : 90,
+        );
+      }
+      timer = setTimeout(typeNext, 90);
+    }
+
+    startTyping();
+    motion.addEventListener("change", startTyping);
+    return () => {
+      clearTimeout(timer);
+      motion.removeEventListener("change", startTyping);
+    };
+  }, []);
+
+  return (
+    <>
+      <span className="sr-only">{HERO_TYPED_TEXT}</span>
+      {/* Inline text wraps with the lead-in; the hidden suffix reserves its space. */}
+      <span aria-hidden="true">
+        <span className="bg-gradient-to-r from-blue-600 via-sky-500 to-cyan-400 bg-clip-text text-transparent">
+          {HERO_TYPED_TEXT.slice(0, length)}
+        </span>
+        <span className="invisible">{HERO_TYPED_TEXT.slice(length)}</span>
+      </span>
+    </>
+  );
+}
 
 // Existing project artwork shows the products behind our web and mobile services.
 function HeroVisual() {
@@ -666,13 +683,8 @@ export default function HomeClient() {
               Web, mobile and AI services, built by one team
             </div>
             <h1 className="text-5xl sm:text-6xl font-semibold tracking-normal leading-[1.08] mb-5">
-              {/* Static for now — see the typeChars TODO above. Back to
-                  the one-piece gradient span (pre-animation), not the
-                  plain solid color the broken attempt fell back to. */}
               One team to build your{" "}
-              <span className="bg-gradient-to-r from-blue-600 via-sky-500 to-cyan-400 bg-clip-text text-transparent">
-                website, app, and AI tools.
-              </span>
+              <HeroTypewriter />
             </h1>
             <p className="text-lg sm:text-xl text-gray-600 dark:text-gray-400 leading-relaxed max-w-2xl mx-auto lg:mx-0 mb-9">
               Universal Perk helps growing businesses build software that
