@@ -26,3 +26,14 @@ These instructions apply to any AI coding assistant working in this repo
   than hand-rolling one from scratch. Only build a component from scratch
   when shadcn has no equivalent.
 - Add comments. They don't have to ask "why".
+
+## Verification
+
+- Run project verification from this repository only.
+- Reuse the existing server at `http://localhost:3000` for browser checks.
+  Do not restart it or start additional preview servers. Stop any extra
+  localhost servers you started when they are no longer needed.
+- Keep verification scripts, screenshots, caches, and temporary artifacts
+  inside this repo (use the gitignored `output/` directory when needed).
+- Do not create verification files in `/private/`, `/tmp/`, or other projects,
+  or use another project's dependencies to run checks.

@@ -43,7 +43,7 @@ const Header = () => {
 
         <div className="max-w-4xl mx-auto px-4 sm:px-6 text-center">
           {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-blue-200 dark:border-blue-800/60 bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 text-[13px] font-medium mb-8 select-none">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-blue-200 dark:border-blue-800/60 bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 text-[14.5px] font-medium mb-8 select-none">
             <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse flex-shrink-0" />
             Legacy Modernization · Product Delivery · AI Systems
           </div>
@@ -82,7 +82,7 @@ const Header = () => {
               data-analytics-event="calendly_open_click"
               data-analytics-category="lead_generation"
               data-analytics-label="Home Hero Discovery Call"
-              className="px-9 py-4 text-white font-semibold rounded-xl cursor-pointer text-[15px] shadow-lg shadow-blue-500/20 hover:shadow-blue-500/30 hover:opacity-95 transition-all"
+              className="px-9 py-4 text-white font-semibold rounded-full cursor-pointer text-[16.5px] shadow-lg shadow-blue-500/20 hover:shadow-blue-500/30 hover:opacity-95 transition-all"
               style={{
                 background:
                   "linear-gradient(to right, #2563EB, #2CA2F4, #34E5FF)",
@@ -102,7 +102,7 @@ const Header = () => {
               data-analytics-event="quote_form_open_click"
               data-analytics-category="lead_generation"
               data-analytics-label="Home Hero Project Estimate"
-              className="px-9 py-4 font-semibold rounded-xl cursor-pointer text-[15px] border border-gray-200 dark:border-gray-700/60 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-white/[0.04] transition-all"
+              className="px-9 py-4 font-semibold rounded-full cursor-pointer text-[16.5px] border border-gray-200 dark:border-gray-700/60 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-white/[0.04] transition-all"
             >
               Get a Project Estimate
             </button>
@@ -110,7 +110,7 @@ const Header = () => {
 
           {/* Trusted by — inline social proof at the moment of decision */}
           <div className="mb-10">
-            <p className="text-[11px] font-semibold uppercase tracking-widest text-gray-400 dark:text-gray-600 mb-5">
+            <p className="text-[12.5px] font-semibold uppercase tracking-widest text-gray-400 dark:text-gray-600 mb-5">
               Trusted by teams at
             </p>
             <div className="flex flex-wrap items-center justify-center gap-8 sm:gap-12">
@@ -154,7 +154,7 @@ const Header = () => {
                 >
                   {stat.value}
                 </div>
-                <div className="text-[12px] text-gray-500 dark:text-gray-400 mt-0.5 font-medium">
+                <div className="text-[13.5px] text-gray-500 dark:text-gray-400 mt-0.5 font-medium">
                   {stat.label}
                 </div>
               </div>

@@ -3,6 +3,9 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 import Loader from "../common/Loader";
+import SocialProfiles from "../common/SocialProfiles";
+import { ArrowLeft, ArrowRight } from "lucide-react";
+import { INTAKE_ENDPOINT, cleanSocialProfiles, isWebUrl, socialProfilesError, type SocialProfile } from "@/lib/forms";
 import { trackEvent } from "@/lib/analytics";
 
 interface FormData {
@@ -10,7 +13,9 @@ interface FormData {
   additionalInfo: string;
   budgetRange: string;
   timeline: string;
-  fullName: string;
+  firstName: string;
+  lastName: string;
+  website: string;
   emailAddress: string;
   phoneNumber: string;
   company: string;
@@ -96,19 +101,23 @@ const GetAQuote = ({ handleQuoteClose }: { handleQuoteClose: () => void }) => {
   const [currentStep, setCurrentStep] = useState(1);
   const [status, setStatus] = useState("");
   const [loading, setLoading] = useState(false);
-  const [errors, setErrors] = useState<Partial<FormData>>({});
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const [formData, setFormData] = useState<FormData>({
     projectType: "",
     additionalInfo: "",
     budgetRange: "",
     timeline: "",
-    fullName: "",
+    firstName: "",
+    lastName: "",
+    website: "",
     emailAddress: "",
     phoneNumber: "",
     company: "",
     address: "",
   });
+
+  const [socialProfiles, setSocialProfiles] = useState<SocialProfile[]>([]);
 
   useEffect(() => {
     trackEvent("quote_form_view", {
@@ -162,17 +171,21 @@ const GetAQuote = ({ handleQuoteClose }: { handleQuoteClose: () => void }) => {
   };
 
   const validateStep = () => {
-    const newErrors: Partial<FormData> = {};
+    const newErrors: Record<string, string> = {};
     if (currentStep === 1) {
       if (!formData.projectType) newErrors.projectType = "Please select a project type";
-      if (!formData.additionalInfo) newErrors.additionalInfo = "Project description is required";
+      if (!formData.additionalInfo.trim()) newErrors.additionalInfo = "Project description is required";
     } else if (currentStep === 2) {
       if (!formData.budgetRange) newErrors.budgetRange = "Please select a budget range";
       if (!formData.timeline) newErrors.timeline = "Please select a timeline";
     } else if (currentStep === 3) {
-      if (!formData.fullName) newErrors.fullName = "Full name is required";
+      if (!formData.firstName.trim()) newErrors.firstName = "First name is required";
+      if (!formData.lastName.trim()) newErrors.lastName = "Last name is required";
+      if (formData.website.trim() && !isWebUrl(formData.website.trim())) newErrors.website = "Enter a full website URL, starting with https://";
+      const socialError = socialProfilesError(socialProfiles);
+      if (socialError) newErrors.socialProfiles = socialError;
       if (!formData.emailAddress) newErrors.emailAddress = "Email is required";
-      else if (!/\S+@\S+\.\S+/.test(formData.emailAddress))
+      else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.emailAddress.trim()))
         newErrors.emailAddress = "Invalid email format";
       if (!formData.phoneNumber) newErrors.phoneNumber = "Phone number is required";
       if (!formData.company) newErrors.company = "Company name is required";
@@ -206,8 +219,7 @@ const GetAQuote = ({ handleQuoteClose }: { handleQuoteClose: () => void }) => {
     }
   };
 
-  const quoteEndpoint =
-    "https://nbttrereyf.execute-api.us-east-1.amazonaws.com/prod/api/form/submit-form";
+
 
   const handleSubmit = async () => {
     if (validateStep()) {
@@ -221,15 +233,20 @@ const GetAQuote = ({ handleQuoteClose }: { handleQuoteClose: () => void }) => {
       const formattedData = {
         projectDetails: {
           projectType: formData.projectType,
-          projectDescription: formData.additionalInfo,
+          // Keep optional profile details in the established text field as well.
+          projectDescription: [
+            formData.additionalInfo.trim(),
+            ...(formData.website.trim() ? [`Website: ${formData.website.trim()}`] : []),
+            ...cleanSocialProfiles(socialProfiles).map(profile => `${profile.platform}: ${profile.handle}`),
+          ].join("\n\n"),
         },
         timelineAndBudget: {
           budgetRange: BUDGET_MAP[formData.budgetRange] || formData.budgetRange,
           timeline: TIMELINE_MAP[formData.timeline] || formData.timeline,
         },
         contactInfo: {
-          fullName: formData.fullName,
-          email: formData.emailAddress,
+          fullName: `${formData.firstName.trim()} ${formData.lastName.trim()}`,
+          email: formData.emailAddress.trim(),
           address: formData.address || "",
           phoneNumber: formData.phoneNumber,
           company: formData.company,
@@ -238,7 +255,8 @@ const GetAQuote = ({ handleQuoteClose }: { handleQuoteClose: () => void }) => {
 
       try {
         setLoading(true);
-        const response = await axios.post(quoteEndpoint, formattedData, {
+        await axios.post(INTAKE_ENDPOINT, formattedData, {
+          timeout: 30000,
           headers: { "Content-Type": "application/json" },
         });
         setStatus("succeeded");
@@ -255,7 +273,6 @@ const GetAQuote = ({ handleQuoteClose }: { handleQuoteClose: () => void }) => {
           budget_range: formData.budgetRange,
           timeline: formData.timeline,
         });
-        console.log("Success:", response.data);
       } catch (error) {
         setStatus("failed");
         trackEvent("quote_form_submit_error", {
@@ -279,23 +296,24 @@ const GetAQuote = ({ handleQuoteClose }: { handleQuoteClose: () => void }) => {
   const step1Valid = !!(formData.projectType && formData.additionalInfo);
   const step2Valid = !!(formData.budgetRange && formData.timeline);
   const step3Valid = !!(
-    formData.fullName &&
+    formData.firstName.trim() &&
+    formData.lastName.trim() &&
     formData.emailAddress &&
     formData.phoneNumber &&
     formData.company
   );
 
   return (
-    <div className="w-full max-w-lg mx-4">
-      <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl overflow-hidden">
+    <div role="dialog" aria-modal="true" aria-labelledby="quote-title" className="marketing-type w-[calc(100vw-2rem)] max-w-xl mx-auto">
+      <div className="max-h-[90dvh] overflow-y-auto bg-white dark:bg-gray-900 rounded-lg shadow-2xl">
         {/* Header */}
         <div className="px-6 pt-6 pb-5 border-b border-gray-100 dark:border-gray-800">
           <div className="flex items-start justify-between mb-6">
             <div>
-              <h2 className="text-lg font-bold text-gray-900 dark:text-white">
-                Get a Free Quote
+              <h2 id="quote-title" className="text-2xl font-bold text-gray-900 dark:text-white">
+                Tell us about your project
               </h2>
-              <p className="text-[13px] text-gray-400 dark:text-gray-500 mt-0.5">
+              <p className="text-sm text-gray-400 dark:text-gray-500 mt-0.5">
                 We&apos;ll respond within 24 hours
               </p>
             </div>
@@ -322,7 +340,7 @@ const GetAQuote = ({ handleQuoteClose }: { handleQuoteClose: () => void }) => {
                 <div key={step} className="flex items-center flex-1 last:flex-none">
                   <div className="flex flex-col items-center gap-1.5">
                     <div
-                      className={`w-8 h-8 rounded-full flex items-center justify-center text-[13px] font-semibold transition-all ${
+                      className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-all ${
                         isCompleted
                           ? "bg-blue-600 text-white"
                           : isActive
@@ -339,7 +357,7 @@ const GetAQuote = ({ handleQuoteClose }: { handleQuoteClose: () => void }) => {
                       )}
                     </div>
                     <span
-                      className={`text-[11px] font-medium whitespace-nowrap ${
+                      className={`text-[12.5px] font-medium whitespace-nowrap ${
                         isActive || isCompleted
                           ? "text-blue-600 dark:text-blue-400"
                           : "text-gray-400 dark:text-gray-500"
@@ -364,13 +382,14 @@ const GetAQuote = ({ handleQuoteClose }: { handleQuoteClose: () => void }) => {
         </div>
 
         {/* Body */}
-        <div className="p-6">
+        <div className="p-5 sm:p-6">
+          <p className="mb-4 text-sm text-gray-500 dark:text-gray-400">* Required fields</p>
           {/* Step 1 — Project Type */}
           {currentStep === 1 && (
             <div className="space-y-5">
               <div>
-                <label className="text-[13px] font-semibold text-gray-700 dark:text-gray-300 block mb-3">
-                  What are you looking to build?
+                <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 block mb-3">
+                  What are you looking to build? *
                 </label>
                 <div className="grid grid-cols-3 gap-2">
                   {PROJECT_TYPES.map((type) => (
@@ -396,30 +415,32 @@ const GetAQuote = ({ handleQuoteClose }: { handleQuoteClose: () => void }) => {
                       >
                         {type.icon}
                       </span>
-                      <span className="text-[11px] font-medium leading-tight">
+                      <span className="text-[12.5px] font-medium leading-tight">
                         {type.label}
                       </span>
                     </button>
                   ))}
                 </div>
                 {errors.projectType && (
-                  <p className="text-red-500 text-[12px] mt-2">{errors.projectType}</p>
+                  <p className="text-red-500 text-[13.5px] mt-2">{errors.projectType}</p>
                 )}
               </div>
 
               <div>
-                <label className="text-[13px] font-semibold text-gray-700 dark:text-gray-300 block mb-2">
-                  Tell us about your project
+                <label htmlFor="quote-description" className="text-base font-semibold text-gray-700 dark:text-gray-300 block mb-2">
+                  Tell us about your project *
                 </label>
                 <textarea
+                  id="quote-description"
+                  required
                   value={formData.additionalInfo}
                   onChange={(e) => handleInputChange("additionalInfo", e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-transparent text-[14px] text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 dark:focus:border-blue-500 resize-none transition-colors"
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-transparent text-base text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 dark:focus:border-blue-500 resize-none transition-colors"
                   placeholder="Describe your current problem, what you're building, or the outcome you're looking for..."
                   rows={4}
                 />
                 {errors.additionalInfo && (
-                  <p className="text-red-500 text-[12px] mt-1">{errors.additionalInfo}</p>
+                  <p className="text-red-500 text-[13.5px] mt-1">{errors.additionalInfo}</p>
                 )}
               </div>
             </div>
@@ -429,8 +450,8 @@ const GetAQuote = ({ handleQuoteClose }: { handleQuoteClose: () => void }) => {
           {currentStep === 2 && (
             <div className="space-y-5">
               <div>
-                <label className="text-[13px] font-semibold text-gray-700 dark:text-gray-300 block mb-3">
-                  What&apos;s your estimated budget?
+                <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 block mb-3">
+                  What&apos;s your estimated budget? *
                 </label>
                 <div className="grid grid-cols-2 gap-2">
                   {BUDGET_RANGES.map((range) => (
@@ -441,7 +462,7 @@ const GetAQuote = ({ handleQuoteClose }: { handleQuoteClose: () => void }) => {
                       data-analytics-event="quote_budget_click"
                       data-analytics-category="lead_generation"
                       data-analytics-label={range}
-                      className={`py-3 px-4 rounded-xl border text-[13px] font-medium transition-all cursor-pointer ${
+                      className={`py-3 px-4 rounded-xl border text-sm font-medium transition-all cursor-pointer ${
                         formData.budgetRange === range
                           ? "border-blue-500 bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400"
                           : "border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:border-gray-300 dark:hover:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800/50"
@@ -452,13 +473,13 @@ const GetAQuote = ({ handleQuoteClose }: { handleQuoteClose: () => void }) => {
                   ))}
                 </div>
                 {errors.budgetRange && (
-                  <p className="text-red-500 text-[12px] mt-2">{errors.budgetRange}</p>
+                  <p className="text-red-500 text-[13.5px] mt-2">{errors.budgetRange}</p>
                 )}
               </div>
 
               <div>
-                <label className="text-[13px] font-semibold text-gray-700 dark:text-gray-300 block mb-3">
-                  What&apos;s your ideal timeline?
+                <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 block mb-3">
+                  What&apos;s your ideal timeline? *
                 </label>
                 <div className="grid grid-cols-2 gap-2">
                   {TIMELINES.map((t) => (
@@ -469,7 +490,7 @@ const GetAQuote = ({ handleQuoteClose }: { handleQuoteClose: () => void }) => {
                       data-analytics-event="quote_timeline_click"
                       data-analytics-category="lead_generation"
                       data-analytics-label={t}
-                      className={`py-3 px-4 rounded-xl border text-[13px] font-medium transition-all cursor-pointer ${
+                      className={`py-3 px-4 rounded-xl border text-sm font-medium transition-all cursor-pointer ${
                         formData.timeline === t
                           ? "border-blue-500 bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400"
                           : "border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:border-gray-300 dark:hover:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800/50"
@@ -480,91 +501,62 @@ const GetAQuote = ({ handleQuoteClose }: { handleQuoteClose: () => void }) => {
                   ))}
                 </div>
                 {errors.timeline && (
-                  <p className="text-red-500 text-[12px] mt-2">{errors.timeline}</p>
+                  <p className="text-red-500 text-[13.5px] mt-2">{errors.timeline}</p>
                 )}
               </div>
             </div>
           )}
 
-          {/* Step 3 — Contact Info */}
+          {/* Contact fields retain the backend's fullName for compatibility. */}
           {currentStep === 3 && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-[13px] font-semibold text-gray-700 dark:text-gray-300 block mb-2">
-                    Full Name
+            <div className="space-y-5">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                {[
+                  { key: "firstName", label: "First name", autoComplete: "given-name" },
+                  { key: "lastName", label: "Last name", autoComplete: "family-name" },
+                ].map(field => (
+                  <div key={field.key}>
+                    <label htmlFor={`quote-${field.key}`} className="mb-2 block text-base font-medium">{field.label} *</label>
+                    <input id={`quote-${field.key}`} required maxLength={100} autoComplete={field.autoComplete} className="marketing-input"
+                      value={formData[field.key as "firstName" | "lastName"]}
+                      onChange={event => handleInputChange(field.key as "firstName" | "lastName", event.target.value)}
+                      aria-invalid={Boolean(errors[field.key])} aria-describedby={errors[field.key] ? `quote-${field.key}-error` : undefined} />
+                    {errors[field.key] && <p id={`quote-${field.key}-error`} className="mt-1 text-sm text-red-600 dark:text-red-400">{errors[field.key]}</p>}
+                  </div>
+                ))}
+              </div>
+              {[
+                { key: "emailAddress", label: "Work email", type: "email", autoComplete: "email", required: true },
+                { key: "phoneNumber", label: "Phone number", type: "tel", autoComplete: "tel", required: true },
+                { key: "company", label: "Company", type: "text", autoComplete: "organization", required: true },
+                { key: "website", label: "Website", type: "url", autoComplete: "url", required: false },
+              ].map(field => (
+                <div key={field.key}>
+                  <label htmlFor={`quote-${field.key}`} className="mb-2 block text-base font-medium">
+                    {field.label} {field.required ? "*" : <span className="font-normal text-gray-500 dark:text-gray-400">(optional)</span>}
                   </label>
-                  <input
-                    value={formData.fullName}
-                    onChange={(e) => handleInputChange("fullName", e.target.value)}
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-transparent text-[14px] text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 dark:focus:border-blue-500 transition-colors"
-                    placeholder="Jane Smith"
-                  />
-                  {errors.fullName && (
-                    <p className="text-red-500 text-[12px] mt-1">{errors.fullName}</p>
-                  )}
+                  <input id={`quote-${field.key}`} type={field.type} required={field.required} autoComplete={field.autoComplete} maxLength={500} className="marketing-input"
+                    placeholder={field.key === "website" ? "https://example.com" : undefined}
+                    value={formData[field.key as keyof FormData]} onChange={event => handleInputChange(field.key as keyof FormData, event.target.value)}
+                    aria-invalid={Boolean(errors[field.key])} aria-describedby={errors[field.key] ? `quote-${field.key}-error` : undefined} />
+                  {errors[field.key] && <p id={`quote-${field.key}-error`} className="mt-1 text-sm text-red-600 dark:text-red-400">{errors[field.key]}</p>}
                 </div>
-                <div>
-                  <label className="text-[13px] font-semibold text-gray-700 dark:text-gray-300 block mb-2">
-                    Company
-                  </label>
-                  <input
-                    value={formData.company}
-                    onChange={(e) => handleInputChange("company", e.target.value)}
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-transparent text-[14px] text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 dark:focus:border-blue-500 transition-colors"
-                    placeholder="Acme Inc."
-                  />
-                  {errors.company && (
-                    <p className="text-red-500 text-[12px] mt-1">{errors.company}</p>
-                  )}
-                </div>
-              </div>
-
-              <div>
-                <label className="text-[13px] font-semibold text-gray-700 dark:text-gray-300 block mb-2">
-                  Work Email
-                </label>
-                <input
-                  type="email"
-                  value={formData.emailAddress}
-                  onChange={(e) => handleInputChange("emailAddress", e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-transparent text-[14px] text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 dark:focus:border-blue-500 transition-colors"
-                  placeholder="jane@company.com"
-                />
-                {errors.emailAddress && (
-                  <p className="text-red-500 text-[12px] mt-1">{errors.emailAddress}</p>
-                )}
-              </div>
-
-              <div>
-                <label className="text-[13px] font-semibold text-gray-700 dark:text-gray-300 block mb-2">
-                  Phone Number
-                </label>
-                <input
-                  type="tel"
-                  value={formData.phoneNumber}
-                  onChange={(e) => handleInputChange("phoneNumber", e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-transparent text-[14px] text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 dark:focus:border-blue-500 transition-colors"
-                  placeholder="+1 (555) 000-0000"
-                />
-                {errors.phoneNumber && (
-                  <p className="text-red-500 text-[12px] mt-1">{errors.phoneNumber}</p>
-                )}
-              </div>
+              ))}
+              <SocialProfiles value={socialProfiles} error={errors.socialProfiles} onChange={profiles => { setSocialProfiles(profiles); setErrors(previous => ({ ...previous, socialProfiles: "" })); }} />
             </div>
           )}
         </div>
 
         {/* Footer */}
-        <div className="px-6 pb-6 flex items-center justify-between gap-3">
+        <div className="sticky bottom-0 border-t border-gray-100 bg-white px-5 py-4 dark:border-gray-800 dark:bg-gray-900 sm:px-6 flex items-center justify-between gap-3">
           {currentStep > 1 ? (
             <button
               onClick={handleBack}
               data-analytics-event="quote_form_back_click"
               data-analytics-category="lead_generation"
-              className="px-5 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 text-[14px] font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-all cursor-pointer"
+              className="marketing-cta marketing-cta-secondary"
             >
-              ← Back
+              <ArrowLeft aria-hidden className="h-4 w-4" /> Back
             </button>
           ) : (
             <div />
@@ -577,16 +569,9 @@ const GetAQuote = ({ handleQuoteClose }: { handleQuoteClose: () => void }) => {
               data-analytics-event="quote_form_continue_click"
               data-analytics-category="lead_generation"
               data-analytics-label={`Step ${currentStep}`}
-              className={`px-6 py-2.5 rounded-xl text-[14px] font-semibold text-white transition-all cursor-pointer ${
-                (currentStep === 1 ? !step1Valid : !step2Valid)
-                  ? "opacity-40 cursor-not-allowed"
-                  : "hover:opacity-90"
-              }`}
-              style={{
-                background: "linear-gradient(to right, #2563EB, #2CA2F4, #34E5FF)",
-              }}
+              className="marketing-cta disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Continue →
+              Continue <ArrowRight aria-hidden className="h-4 w-4" />
             </button>
           ) : (
             <button
@@ -594,12 +579,7 @@ const GetAQuote = ({ handleQuoteClose }: { handleQuoteClose: () => void }) => {
               disabled={!step3Valid || loading}
               data-analytics-event="quote_form_submit_click"
               data-analytics-category="lead_generation"
-              className={`px-6 py-2.5 rounded-xl text-[14px] font-semibold text-white transition-all cursor-pointer ${
-                !step3Valid || loading ? "opacity-40 cursor-not-allowed" : "hover:opacity-90"
-              }`}
-              style={{
-                background: "linear-gradient(to right, #2563EB, #2CA2F4, #34E5FF)",
-              }}
+              className="marketing-cta disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? <Loader /> : "Send Request"}
             </button>

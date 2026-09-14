@@ -49,12 +49,12 @@ const Card = ({
           >
             {title}
           </Heading>
-          <Paragraph className="text-[#272A2D] dark:text-[#A5A5A5] text-[14px]">
+          <Paragraph className="text-[#272A2D] dark:text-[#A5A5A5] text-[15.5px]">
             {subtitle}
           </Paragraph>
         </div>
       </div>
-      <Paragraph className="text-[#272A2D] dark:text-[#A5A5A5] text-[16px] mb-4">
+      <Paragraph className="text-[#272A2D] dark:text-[#A5A5A5] text-[18px] mb-4">
         {description}
       </Paragraph>
       <a

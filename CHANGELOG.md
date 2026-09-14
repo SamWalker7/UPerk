@@ -1,0 +1,135 @@
+# Changelog
+
+**Internal document — for the Universal Perk dev/design/PM team only.**
+Nothing in this file is served to site visitors or clients (it's a
+repo-root markdown file, not a route), but keep client-identifying or
+contract-sensitive detail out of it anyway.
+
+---
+
+## 0.2.0 — 2026-09-14
+
+Homepage/landing swap, a new Careers application flow, an SEO/AEO pass
+across every marketing page, and a client-portal design refresh.
+
+### For engineers
+
+- **`/` and `/landing` swapped.** The redesigned marketing page (services,
+  case studies, FAQ, etc.) now lives at `/`; the previous homepage moved to
+  `/landing`. If you have local bookmarks, branches, or docs pointing at
+  either route by content rather than path, re-check them.
+- **Client/server split on every marketing page.** `page.tsx` for `/`,
+  `/landing`, `/ai-services`, `/wmtfa`, `/creva`, `/voice-ai` is now a thin
+  Server Component that only exports `metadata` and renders a sibling
+  `*Client.tsx` file (`HomeClient.tsx`, `LandingClient.tsx`, etc.), which
+  holds the actual `"use client"` page content unchanged. This was
+  required — Next won't let a `"use client"` file export `metadata` — so
+  if you're editing one of these pages, the interactive content is now in
+  the `*Client.tsx` sibling, not in `page.tsx` itself.
+- **New SEO/AEO infrastructure:** `src/app/robots.ts`, `src/app/sitemap.ts`
+  (Next's `MetadataRoute` generators, output at `/robots.txt` and
+  `/sitemap.xml`), `public/llms.txt`, and Organization/WebSite/FAQPage
+  JSON-LD (Organization + WebSite in the root `layout.tsx`, FAQPage built
+  from the homepage's existing `FAQS` array in `HomeClient.tsx`). The
+  canonical domain is a `SITE_URL` constant (`layout.tsx`/`robots.ts`) that
+  falls back to `https://www.universalperk.com` if `NEXT_PUBLIC_SITE_URL`
+  isn't set — **confirm that's actually the production domain**, or set
+  the env var.
+- **Root layout now sets a title template** (`%s | Universal Perk`). Any
+  new page's `metadata.title` should be just the page-specific part (e.g.
+  `"Careers"`), not the full string with the site name appended, or it'll
+  double up. Exception: `src/app/page.tsx` (the `/` route) — Next doesn't
+  apply an ancestor's title template to a `page.tsx` in the *same* route
+  segment as the layout that defines it, so that one file's title is
+  written out in full; see the comment there.
+- **New Careers feature:** `src/app/careers/`, `src/components/careers/`,
+  `src/lib/jobs.ts` (job listings data), `src/lib/careers.ts` (application
+  validation), `src/lib/forms.ts`, `src/app/api/careers/route.ts`
+  (submission endpoint), `tests/careers.test.cjs`. Not yet linked from nav
+  — reachable only at `/careers` directly — see PM notes below.
+- **`GridBackdrop` extracted** to `src/components/common/GridBackdrop.tsx`
+  (was a local function duplicated per-page); several pages now import it
+  instead of redefining it.
+- **Global type scale changed** in `globals.css`: the whole Tailwind
+  `--text-*` scale shifted up roughly one step, and `--text-base`
+  specifically now equals `--text-lg` (19px) as an explicit site-wide
+  floor for body copy. If you're hand-picking a `text-[Npx]` arbitrary
+  size anywhere, check it against this scale first — there's a real chance
+  the named class now covers it.
+- **Portal (`/portal/login`) gained real dark-mode support** —
+  `src/app/portal/portal.css` now has a `.dark .portal-scope` token block
+  that didn't exist before (the file's own comment implied it should, but
+  it was never filled in). `--p-accent` also changed from `#087fd4` to the
+  marketing site's actual brand blue (`#2563eb`) — if you're relying on
+  the old hex anywhere by literal value instead of `var(--p-accent)`,
+  update it.
+- **Hero typing animation is disabled, not deleted.** `HomeClient.tsx`'s
+  `typeChars`/`TYPE_STEP_MS` are commented out with a `TODO` explaining
+  why (a `background-clip: text` gradient split across ~28 individually
+  `opacity`-animated character spans rendered unreliably — part of the
+  phrase silently failed to paint, twice, even after switching to a plain
+  solid color). The hero currently renders the headline as static text.
+  The `.type-char`/`.type-caret` keyframes are still in `globals.css` for
+  whoever picks this back up — see the TODO for a steer toward a
+  single-element `clip-path` reveal instead of per-character spans.
+- Misc bug fixes bundled into this same pass: a stray-space CSS bug in
+  `LoginForm.tsx`/`portal/login/page.tsx` (`--p-text-dim )`) that silently
+  dropped a text color, a hardcoded hover/shadow color in `LoginForm.tsx`
+  left over from the old portal accent, and 7 pre-existing
+  `react/no-unescaped-entities` lint errors in `voice-ai` that were already
+  failing `npm run build` before this branch touched that file.
+
+### For designers
+
+- **Brand palette is blue → cyan only**, site-wide, now including the
+  client portal (previously a slightly different, unrelated blue). Any new
+  accent color should come from that family unless it's a genuine
+  semantic state (success/warning/error) or the case-study cards' existing
+  per-client color coding.
+- **Type scale raised.** Body copy is now 19px minimum (was 17px);
+  headings shifted up roughly one step to keep pace. If a design comp
+  predates this change, sizes in it will read smaller than what's live.
+- **Decorative background textures are chosen per page/section**, not one
+  motif everywhere: the animated blueprint grid (squares + circuit traces)
+  now reads as "engineering credibility" — homepage's "Who we build for"
+  and "Security" sections — while the careers page uses the calmer dot
+  grid + glow motif from the homepage hero instead. Squares specifically
+  did **not** work on the careers page ("doesn't look professional") — if
+  proposing a background for a new page, default to the dot-grid/glow
+  treatment unless the page is making a technical-credibility argument.
+- CTAs are pill-shaped (`rounded-full`) everywhere now, not `rounded-lg`/
+  `rounded-xl`.
+- Case-study cards, the "Ways to work with us" cards, and the "Why teams
+  choose us" icon tiles all got a resting-state pass (visible border/
+  shadow before hover, not only on hover) — worth checking any new card
+  component against that same "readable at rest" bar.
+
+### For PMs
+
+- **The public homepage changed** (now at `/`) — the AI-only "Custom AI
+  company" framing is gone; it's full-stack services (web, mobile, cloud,
+  AI) with problem-led messaging, per the April 2026 repositioning. The
+  previous AI-services-led homepage is still live at `/landing` but no
+  longer linked from anywhere.
+- **Careers isn't in the site nav yet.** The application flow works end
+  to end (job listing → apply → submit), but it's only reachable if
+  someone has the direct `/careers` link. Decide when it's ready to link
+  from the main nav/footer.
+- **Blog is deliberately hidden** from nav and footer (was explicitly
+  requested — "hide it until it's well developed"). The `/blog` route
+  still works if linked directly; it just isn't discoverable from the
+  site.
+- **New SEO/AI-discoverability groundwork is live**: `robots.txt`,
+  `sitemap.xml`, and `llms.txt` (a plain-text summary aimed at AI tools
+  like ChatGPT/Claude that fetch it directly), plus structured data so
+  search/AI answer engines can quote FAQ content and identify the company
+  correctly. This is a foundation, not a guarantee of ranking or
+  citations — see the AEO strategy notes shared separately for what
+  actually moves the needle from here (external citations, case-study
+  specificity, a directory listing like the Anthropic Partner Network).
+  **Action needed:** confirm `https://www.universalperk.com` is the
+  correct production domain, or provide the right one.
+- **The hero's "typing" text animation was tried and pulled back out**
+  after it rendered unreliably for some visitors — the headline reads as
+  plain (non-animated) text for now. No visitor-facing regression, just a
+  planned enhancement that didn't ship this round.

@@ -30,10 +30,10 @@ const requirements = [
 export default function RequirementForSuccess() {
   return (
     <div className="max-w-7xl sm:px-10 px-4 mx-auto py-12">
-      <h2 className="text-3xl dark:text-[#E8E9EA] font-semibold mb-4">
+      <h2 className="text-3xl text-[#272A2D] dark:text-[#E8E9EA] font-semibold mb-4">
         Requirements For Success
       </h2>
-      <p className="dark:text-[#DBDDDE] mb-12 ">
+      <p className="text-[#272A2D] dark:text-[#DBDDDE] mb-12">
         To meet DASGUZO’s vision, several key requirements had to be addressed:
       </p>
 
@@ -41,7 +41,7 @@ export default function RequirementForSuccess() {
         {requirements.map((item, index) => (
           <div
             key={index}
-            className=" bg-[#F8F8F8] dark:bg-gradient-to-r from-[#232323] to-[#292929] p-6 rounded-lg flex gap-4 items-start"
+            className="bg-[#F8F8F8] border border-gray-200 dark:border-transparent dark:bg-gradient-to-r dark:from-[#232323] dark:to-[#292929] p-6 rounded-lg flex gap-4 items-start"
           >
             <div className="flex-shrink-0">
               <Image src={item.icon} alt={item.title} width={40} height={40} />
