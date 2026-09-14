@@ -55,3 +55,8 @@ export function trackEvent(eventName: string, params: AnalyticsParams = {}) {
 
   gtag("event", eventName, cleanParams);
 }
+
+// Career events identify the opening without sending applicant details to GA.
+export function trackJobEvent(eventName: string, job: { id: string; title: string; team: string }, params: AnalyticsParams = {}) {
+  trackEvent(eventName, { category: "careers", job_id: job.id, job_title: job.title, job_team: job.team, ...params });
+}

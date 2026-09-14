@@ -9,8 +9,11 @@
   --p-border: #d8e1ec;
   --p-text: #10233a;
   --p-text-dim: #62758b;
-  --p-accent: #087fd4;
-  --p-accent-weak: #edf7ff;
+  /* Same brand blue as the marketing site's `.marketing-cta` /
+     `text-blue-600` (was #087fd4, a nearby-but-different blue that didn't
+     actually match). */
+  --p-accent: #2563eb;
+  --p-accent-weak: #eff6ff;
 
   --p-hero: #10395a;
   --p-hero-text: #ffffff;
@@ -29,6 +32,36 @@
   background: var(--p-bg);
   color: var(--p-text);
   font-family: var(--p-font);
+}
+
+/* Dark values, under the site's global `.dark` class on <html> — the same
+   theme state the marketing navbar's toggle and `ThemeProvider` already
+   manage. This was scaffolded (see the file comment above, and the unused
+   `ThemeToggle` component) but never actually filled in, so the portal has
+   been light-only regardless of site theme until now. Values mirror the
+   marketing site's own dark palette (`--background`/`--foreground` in
+   globals.css, and the `dark:bg-[#0d1220]` surface used on marketing
+   inputs) rather than inventing a separate portal-dark palette. */
+.dark .portal-scope {
+  --p-bg: #060a14;
+  --p-surface: #0d1220;
+  --p-surface-2: #111827;
+  --p-border: #1f2937;
+  --p-text: #f1f5f9;
+  --p-text-dim: #94a3b8;
+  --p-accent: #2ca2f4;
+  --p-accent-weak: rgba(44, 162, 244, 0.14);
+
+  --p-hero: #060a14;
+  --p-hero-text: #f1f5f9;
+  --p-hero-dim: #94a3b8;
+
+  --p-ok: #34d399;
+  --p-ok-bg: rgba(52, 211, 153, 0.12);
+  --p-warn: #fbbf24;
+  --p-warn-bg: rgba(251, 191, 36, 0.12);
+  --p-risk: #f87171;
+  --p-risk-bg: rgba(248, 113, 113, 0.12);
 }
 
 .portal-scope :where(button, input, select, textarea) {

@@ -48,14 +48,14 @@ const CaseStudies = () => {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
               href="/#contact"
-              className="px-8 py-4 text-white font-semibold rounded-xl text-[15px] hover:opacity-95 transition-all inline-block"
+              className="px-8 py-4 text-white font-semibold rounded-full text-[16.5px] hover:opacity-95 transition-all inline-block"
               style={{ background: "linear-gradient(to right, #2563EB, #2CA2F4, #34E5FF)" }}
             >
               → Book a Discovery Call
             </Link>
             <Link
               href="/#case-studies"
-              className="px-8 py-4 font-semibold rounded-xl text-[15px] border border-gray-200 dark:border-gray-700/60 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/[0.04] transition-all inline-block"
+              className="px-8 py-4 font-semibold rounded-full text-[16.5px] border border-gray-200 dark:border-gray-700/60 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/[0.04] transition-all inline-block"
             >
               View all case studies
             </Link>

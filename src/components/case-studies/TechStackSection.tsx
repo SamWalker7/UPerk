@@ -24,7 +24,7 @@ const TechStackSection = () => {
           {techLogos.map((tech, index) => (
             <div
               key={index}
-              className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center shadow-lg"
+              className="w-16 h-16 bg-gray-100 dark:bg-white/10 border border-gray-200 dark:border-white/15 rounded-full flex items-center justify-center shadow-sm dark:shadow-none"
             >
               <Image
                 src={tech.path}

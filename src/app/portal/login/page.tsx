@@ -5,27 +5,32 @@ import Link from "next/link";
 import { getPortalRole } from "@/lib/portal/session";
 import LoginForm from "@/components/portal/LoginForm";
 import { BrandLogo } from "@/components/portal/BrandLogo";
+import { ThemeToggle } from "@/components/portal/ThemeToggle";
 
 export const metadata: Metadata = {
   title: "Sign in | Client portal",
   robots: { index: false, follow: false },
 };
 
+// Kept to claims the site can actually back elsewhere (no invented
+// percentages — see the homepage's own STATS array and its comment on the
+// same rule) — this page had a "300% performance improvement" figure with
+// no case study behind it anywhere on the site.
 const PILLARS = [
   {
     verb: "Modernize",
     tag: "Web · Mobile · Software Engineering",
-    proof: "Up to 300% performance improvement post-migration.",
+    proof: "Senior engineers on your project, start to finish.",
   },
   {
     verb: "Automate",
     tag: "AI Agents · Workflows · Integrations",
-    proof: "80%+ query automation within the first month.",
+    proof: "80%+ of routine queries handled automatically.",
   },
   {
     verb: "Scale",
     tag: "Cloud · DevOps · Infrastructure",
-    proof: "AWS, GCP, Azure, Kubernetes, Docker - full stack.",
+    proof: "AWS, GCP, Azure, Kubernetes, Docker — full stack.",
   },
 ];
 
@@ -44,11 +49,22 @@ export default async function PortalLoginPage({
 
   return (
     <div className="portal-scope min-h-screen lg:grid lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)]">
-      {/* Credibility panel — desktop only */}
-      <div className="relative hidden overflow-hidden bg-[var(--p-hero)] px-12 py-14 text-[var(--p-hero-text)] lg:flex lg:flex-col lg:justify-between xl:px-16">
+      {/* Credibility panel — desktop only. Deliberately stays on the dark
+          gradient regardless of the site's light/dark toggle (the same
+          "fixed-dark brand rail" pattern the panel already used, just
+          recolored) — the toggle instead visibly changes the sign-in panel
+          next to it, which is where it actually affects reading the form.
+          Gradient and glow now match the marketing site's dark hero
+          sections (wmtfa/creva/voice-ai) exactly, rather than the portal's
+          own slightly-different navy. */}
+      <div
+        className="relative hidden overflow-hidden px-12 py-14 text-white lg:flex lg:flex-col lg:justify-between xl:px-16"
+        style={{ background: "linear-gradient(135deg, #060a14 0%, #0c1a3a 50%, #060a14 100%)" }}
+      >
         <div
           aria-hidden
-          className="pointer-events-none absolute -left-24 -top-24 h-72 w-72 rounded-full bg-[var(--p-accent)]/25 blur-3xl"
+          className="pointer-events-none absolute -left-24 -top-24 h-72 w-72 rounded-full opacity-30 blur-3xl"
+          style={{ background: "radial-gradient(circle, #2563EB 0%, #34E5FF 60%, transparent 100%)" }}
         />
         <div
           aria-hidden
@@ -60,7 +76,7 @@ export default async function PortalLoginPage({
 
           <div className="mt-20 max-w-md">
             <h1 className="text-[34px] font-bold leading-[1.15] tracking-tight">
-              One team. Every layer.
+              One partner. Everything you need.
             </h1>
             <p className="mt-4 text-[15px] leading-relaxed text-[var(--p-hero-dim)]">
               One trusted partner for web, mobile, cloud, DevOps, and AI.
@@ -96,18 +112,23 @@ export default async function PortalLoginPage({
         </p>
       </div>
 
-      {/* Sign-in panel */}
-      <div className="flex min-h-screen flex-col bg-[radial-gradient(circle_at_top,_#ffffff_0,_#f1f6fc_48%,_#eaf1f8_100%)] px-4 py-8 sm:py-12 lg:bg-none lg:bg-white">
+      {/* Sign-in panel. `dark:` variants added throughout this panel are
+          new — it had no dark-mode styling at all before, so the toggle
+          (added just below) had nothing to actually change here. */}
+      <div className="flex min-h-screen flex-col bg-[radial-gradient(circle_at_top,_#ffffff_0,_#f1f6fc_48%,_#eaf1f8_100%)] px-4 py-8 dark:bg-[#060a14] dark:bg-none sm:py-12 lg:bg-none lg:bg-white lg:dark:bg-[#060a14]">
         <div className="mx-auto flex w-full max-w-[1440px] items-center justify-between lg:hidden">
           <BrandLogo href="/portal" />
-          <span className="hidden text-[13px] text-[var(--p-text-dim)] sm:inline">
-            Client portal
-          </span>
+          <div className="flex items-center gap-1">
+            <span className="hidden text-[13px] text-[var(--p-text-dim)] sm:inline">
+              Client portal
+            </span>
+            <ThemeToggle />
+          </div>
         </div>
 
         <div className="mx-auto mt-6 w-full max-w-[440px] rounded-2xl bg-[var(--p-hero)] px-5 py-5 text-[var(--p-hero-text)] lg:hidden">
           <h1 className="text-[19px] font-bold leading-snug tracking-tight">
-            One team. Every layer.
+            One partner. Everything you need.
           </h1>
           <p className="mt-1.5 text-[13px] leading-relaxed text-[var(--p-hero-dim)]">
             Web, mobile, cloud, DevOps, and AI — one trusted partner.
@@ -125,6 +146,11 @@ export default async function PortalLoginPage({
         </div>
 
         <div className="mx-auto flex w-full max-w-[440px] flex-1 flex-col items-stretch justify-center lg:max-w-[400px]">
+          {/* Desktop-only toggle — the mobile top bar above already has
+              one, but that row is hidden at `lg`. */}
+          <div className="mb-3 hidden justify-end lg:flex">
+            <ThemeToggle />
+          </div>
           <div className="rounded-2xl border border-[var(--p-border)] bg-[var(--p-surface)] p-7 shadow-[0_18px_45px_rgba(31,62,91,.12)] sm:p-9 lg:border-none lg:shadow-none">
             <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--p-accent-weak)] text-xl text-[var(--p-accent)]">
               ↗
@@ -137,7 +163,10 @@ export default async function PortalLoginPage({
               and next steps.
             </p>
             <LoginForm next={next} />
-            <p className="mt-6 border-t border-[var(--p-border)] pt-5 text-center text-[12px] leading-relaxed text-[var(--p-text-dim )]">
+            {/* Fixed a stray space inside this arbitrary value
+                (`--p-text-dim )`) that broke the CSS var reference — this
+                line was rendering with no color applied at all. */}
+            <p className="mt-6 border-t border-[var(--p-border)] pt-5 text-center text-[12px] leading-relaxed text-[var(--p-text-dim)]">
               Use the shared portal account from your Universal Perk project
               team.
             </p>

@@ -1,6 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Keep dev-server resolution inside this repository, even with parent lockfiles.
+  turbopack: { root: process.cwd() },
   /* config options here */
   images: {
     remotePatterns: [

@@ -152,7 +152,7 @@ const line = (
 
                           {step.title}
                         </Heading>
-                        <p className="text-[16px] leading-relaxed text-zinc-400">
+                        <p className="text-[18px] leading-relaxed text-zinc-400">
                           {step.description}
                         </p>
                       </div>
@@ -199,7 +199,7 @@ const line = (
 
                           {step.title}
                         </Heading>
-                        <p className="text-[16px] leading-relaxed text-zinc-400">
+                        <p className="text-[18px] leading-relaxed text-zinc-400">
                           {step.description}
                         </p>
                       </div>

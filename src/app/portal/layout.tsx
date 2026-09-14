@@ -3,7 +3,10 @@ import type { ReactNode } from "react";
 import "./portal.css";
 
 export const metadata: Metadata = {
-  title: "Client portal | Universal Perk",
+  // Plain "Client portal" — the root layout's title template now appends
+  // "| Universal Perk" automatically (added for the marketing pages' SEO
+  // pass); keeping the old full string here would double it.
+  title: "Client portal",
   robots: { index: false, follow: false },
 };
 

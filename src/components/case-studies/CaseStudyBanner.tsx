@@ -3,7 +3,7 @@ import Image from "next/image";
 export default function CaseStudyBanner() {
   return (
     <div className="flex flex-col">
-      <div className="flex flex-col lg:flex-row items-center justify-between">
+      <div className="relative isolate flex flex-col lg:flex-row items-center justify-between">
         {/* Text Content */}
         <div className="max-w-2xl">
           <h2 className="text-4xl sm:text-5xl font-bold mb-6 leading-tight dark:text-[#E8E9EA] text-[#272A2D]">
@@ -21,9 +21,15 @@ export default function CaseStudyBanner() {
           </p>
         </div>
 
-        {/* Single Phone Image */}
+        {/* Decorative glow behind the phone. `isolate` on the row above is
+            what scopes the negative z-index to this banner — `relative`
+            alone doesn't create a stacking context, so the layer used to
+            escape and paint against the page instead. Light mode gets a
+            much lower opacity: the same 50% that reads as a glow on a dark
+            page reads as a blue smear on a white one. */}
         <div
-          className="absolute top-[200px] left-1/2 -translate-x-1/2 w-[600px] h-[300px] rounded-full opacity-50 blur-[85px] z-[-1]"
+          aria-hidden
+          className="absolute top-[200px] left-1/2 -translate-x-1/2 w-[600px] h-[300px] rounded-full opacity-20 dark:opacity-50 blur-[85px] z-[-1]"
           style={{
             background: "linear-gradient(to left, #2563EB, #2CA2F4, #34E5FF)",
           }}

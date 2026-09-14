@@ -99,7 +99,11 @@ export default function LoginForm({ next }: { next?: string }) {
       <button
         type="submit"
         disabled={loading || !username || !password}
-        className="flex w-full items-center justify-center gap-2 rounded-lg bg-[var(--p-accent)] px-4 py-3 text-[14px] font-semibold text-white shadow-[0_6px_14px_rgba(8,127,212,.22)] transition hover:bg-[#0876c2] disabled:opacity-40"
+        // Hover/shadow colors were hardcoded to the portal's old accent
+        // (#087fd4); now that --p-accent matches the marketing brand blue
+        // (#2563eb), these match it too — same hover shade as
+        // `.marketing-cta:hover` on the main site.
+        className="flex w-full items-center justify-center gap-2 rounded-lg bg-[var(--p-accent)] px-4 py-3 text-[14px] font-semibold text-white shadow-[0_6px_14px_rgba(37,99,235,.25)] transition hover:bg-[#1d4ed8] disabled:opacity-40"
       >
         {loading ? (
           <>

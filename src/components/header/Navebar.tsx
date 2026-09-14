@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { ArrowRight } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useTheme } from "@/components/ThemeProvider";
 import GetAQuote from "../get-a-quote/GetAQuote";
@@ -36,7 +37,10 @@ const Navebar: React.FC<NavbarProps> = () => {
     { href: "/#services", label: "Services" },
     { href: "/ai-services", label: "AI Services" },
     { href: "/#case-studies", label: "Case Studies" },
-    { href: "/blog", label: "Blog" },
+    // Blog is intentionally not linked from nav yet — the section exists
+    // but isn't developed enough to send visitors to. Route stays live at
+    // /blog; re-add the link here once there's real content on it.
+    { href: "/careers", label: "Careers" },
     { href: "/#contact", label: "Contact" },
   ];
 
@@ -71,7 +75,7 @@ const Navebar: React.FC<NavbarProps> = () => {
                 height={34}
                 alt="Universal Perk"
               />
-              <span className="font-extrabold text-[11px] leading-tight tracking-widest dark:text-white text-gray-900 uppercase">
+              <span className="font-extrabold text-[13.5px] leading-tight tracking-widest dark:text-white text-gray-900 uppercase">
                 Universal
                 <br />
                 Perk
@@ -79,7 +83,7 @@ const Navebar: React.FC<NavbarProps> = () => {
             </Link>
 
             {/* Desktop Nav Links */}
-            <div className="hidden lg:flex items-center gap-7">
+            <div className="hidden lg:flex items-center gap-5 xl:gap-7">
               {links.map((link) => (
                 <Link
                   key={link.href}
@@ -87,7 +91,7 @@ const Navebar: React.FC<NavbarProps> = () => {
                   data-analytics-event="nav_link_click"
                   data-analytics-category="navigation"
                   data-analytics-label={link.label}
-                  className={`text-[13.5px] font-medium transition-colors duration-200 ${
+                  className={`text-[16.5px] font-medium transition-colors duration-200 ${
                     isActive(link.href)
                       ? "text-blue-600 dark:text-blue-400"
                       : "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
@@ -152,12 +156,12 @@ const Navebar: React.FC<NavbarProps> = () => {
                 data-analytics-event="nav_link_click"
                 data-analytics-category="navigation"
                 data-analytics-label="Client Login"
-                className="hidden sm:inline-flex items-center rounded-lg border border-gray-300/80 px-3.5 py-2 text-[13px] font-semibold text-gray-700 transition-colors hover:border-blue-400 hover:text-blue-600 dark:border-gray-700 dark:text-gray-200 dark:hover:border-blue-500 dark:hover:text-blue-400"
+                className="marketing-cta marketing-cta-secondary hidden sm:inline-flex px-4 text-[15.5px]"
               >
                 Client Login
               </Link>
 
-              {/* Get Started CTA */}
+              {/* Project inquiry CTA */}
               <button
                 onClick={() => {
                   trackEvent("quote_form_open", {
@@ -170,13 +174,10 @@ const Navebar: React.FC<NavbarProps> = () => {
                 data-analytics-event="cta_click"
                 data-analytics-category="lead_generation"
                 data-analytics-label="Navbar Get Started"
-                className="hidden sm:inline-flex items-center gap-1.5 px-4 py-2 text-[13px] font-semibold text-white rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
-                style={{
-                  background:
-                    "linear-gradient(to right, #2563EB, #2CA2F4, #34E5FF)",
-                }}
+                className="marketing-cta hidden sm:inline-flex px-5 text-[15.5px]"
               >
-                Get Started
+                Let&rsquo;s talk
+                <ArrowRight aria-hidden className="h-4 w-4 shrink-0" />
               </button>
 
               {/* Mobile Hamburger */}
@@ -226,7 +227,7 @@ const Navebar: React.FC<NavbarProps> = () => {
                 data-analytics-event="mobile_nav_link_click"
                 data-analytics-category="navigation"
                 data-analytics-label={link.label}
-                className="block text-[14px] font-medium py-2.5 px-3 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
+                className="block text-[19px] font-medium py-3 px-3 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
               >
                 {link.label}
               </Link>
@@ -235,7 +236,7 @@ const Navebar: React.FC<NavbarProps> = () => {
               <Link
                 href="/portal/login"
                 onClick={() => setIsMenuOpen(false)}
-                className="mb-2 flex w-full items-center justify-center rounded-xl border border-gray-300 py-3 text-[14px] font-semibold text-gray-700 transition-colors hover:border-blue-400 hover:text-blue-600 dark:border-gray-700 dark:text-gray-200"
+                className="marketing-cta marketing-cta-secondary mb-2 w-full"
               >
                 Client Login
               </Link>
@@ -252,13 +253,10 @@ const Navebar: React.FC<NavbarProps> = () => {
                 data-analytics-event="cta_click"
                 data-analytics-category="lead_generation"
                 data-analytics-label="Mobile Navbar Get Started"
-                className="w-full py-3 text-[14px] font-semibold text-white rounded-xl cursor-pointer hover:opacity-90 transition-opacity"
-                style={{
-                  background:
-                    "linear-gradient(to right, #2563EB, #2CA2F4, #34E5FF)",
-                }}
+                className="marketing-cta w-full"
               >
-                Get Started
+                Let&rsquo;s talk
+                <ArrowRight aria-hidden className="h-4 w-4 shrink-0" />
               </button>
             </div>
           </div>

@@ -1,0 +1,52 @@
+# Universal Perk
+
+> Universal Perk is a US-based software development company. One team
+> builds web apps, mobile apps, cloud infrastructure, and AI systems for
+> growing businesses, so clients aren't assembling several vendors to get
+> one product built.
+
+We work with businesses that have a real, specific problem to solve —
+not just "we want AI" or "we want a website" in the abstract. Typical
+starting points: calls going unanswered after hours, manual document
+processing eating staff time, a legacy system that's become too fragile
+to change safely, or a founder who needs a working product in front of
+customers fast. The service list below is broad on purpose; what's narrow
+is the problem each client brings us.
+
+We handle sensitive data. We build to HIPAA requirements and will sign a
+Business Associate Agreement before any work touches patient data. We are
+not SOC 2 certified, and we do not claim "HIPAA certified" — no such
+vendor certification exists.
+
+## Services
+
+- Web & software development
+- Mobile app development (iOS and Android)
+- Cloud migration & infrastructure
+- AI solutions & embedded engineers, including voice AI and document
+  processing/parsing
+- Data science & machine learning
+- Technical consulting and roadmap planning
+
+## Proof of work
+
+- [DASGUZO](/dasguzo) — a peer-to-peer car rental platform taken from
+  concept to a live web + mobile product in 90 days.
+- [WMTFA](/wmtfa) — a custom CRM that unified 7 systems for a
+  multinational nonprofit and added AI-driven reporting.
+- [Creva.ai](/creva) — an AI recruiting platform: resume screening, AI
+  voice interviews, and candidate scoring, built and shipped end to end.
+
+## Key pages
+
+- [/](/) — services overview, who we build for, and how engagements work
+- [/ai-services](/ai-services) — AI automation, voice agents, and
+  intelligent workflows in more depth
+- [/voice-ai](/voice-ai) — managed AI voice infrastructure for regulated
+  businesses (HIPAA-compliant delivery)
+- [/careers](/careers) — open roles (Tysons, VA or remote)
+
+## Contact
+
+- Email: contact@universalperk.com
+- Get a quote: use the "Let's talk" form linked from every page

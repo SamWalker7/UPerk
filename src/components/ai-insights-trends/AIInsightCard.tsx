@@ -34,7 +34,7 @@ const AIInsightCard: React.FC<CardProps> = ({
           >
             {title}
           </Heading>
-          <Paragraph className="text-left text-[12px] text-[#2A2A33] dark:text-[#A5A5A5] mb-4">
+          <Paragraph className="text-left text-[13.5px] text-[#2A2A33] dark:text-[#A5A5A5] mb-4">
             {description}
           </Paragraph>
         </div>
