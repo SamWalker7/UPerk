@@ -1,18 +1,50 @@
-import { redirect } from "next/navigation";
-import { getPortalSession } from "@/lib/portal/session";
-import { listProjects } from "@/lib/portal/data";
+"use client";
+
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import type { PortalRole, ProjectSummary } from "@/lib/portal/types";
 import { PortalTopBar } from "@/components/portal/PortalTopBar";
+import { PageLoader } from "@/components/portal/Spinner";
 import { ProjectCard } from "@/components/portal/ProjectCard";
 import { NewProjectDialog } from "@/components/portal/NewProjectDialog";
 
-export const dynamic = "force-dynamic";
+// Client-side data boundary: fetches the caller's role and project list from
+// this app's own /portal/api/* routes (visible in the browser's Network
+// tab) instead of the old server-component getPortalSession()/
+// listProjects() calls. middleware.ts still redirects unauthenticated
+// visitors to /portal/login server-side.
+export default function ProjectsPage() {
+  const router = useRouter();
+  const [role, setRole] = useState<PortalRole | null>(null);
+  const [projects, setProjects] = useState<ProjectSummary[] | null>(null);
+  const [error, setError] = useState("");
 
-export default async function ProjectsPage() {
-  const session = await getPortalSession();
-  if (!session) redirect("/portal/login");
-  const role = session.role;
+  useEffect(() => {
+    let cancelled = false;
+    Promise.all([
+      fetch("/portal/api/session").then((res) => (res.ok ? res.json() : null)),
+      fetch("/portal/api/projects").then((res) => (res.ok ? res.json() : null)),
+    ])
+      .then(([sessionBody, projectsBody]) => {
+        if (cancelled) return;
+        if (!sessionBody || !projectsBody) {
+          router.replace("/portal/login");
+          return;
+        }
+        setRole(sessionBody.role);
+        setProjects(projectsBody.projects ?? []);
+      })
+      .catch(() => !cancelled && setError("Couldn't load projects."));
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  const projects = await listProjects(session.apiToken);
+  if (error) {
+    return <p className="mx-auto max-w-[640px] px-6 py-24 text-center text-[13px] text-[var(--p-risk)]">{error}</p>;
+  }
+  if (!role || !projects) return <PageLoader label="Loading projects…" />;
 
   return (
     <main>

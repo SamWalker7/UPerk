@@ -1,34 +1,15 @@
-import type { ReactNode } from "react";
-import { notFound, redirect } from "next/navigation";
-import { getPortalSession } from "@/lib/portal/session";
-import { readProject } from "@/lib/portal/data";
+"use client";
+
+import { use, type ReactNode } from "react";
 import { PortalTopBar } from "@/components/portal/PortalTopBar";
 import { StatusHero } from "@/components/portal/StatusHero";
+import { ProjectDataProvider, useProjectData } from "@/components/portal/ProjectDataProvider";
 
-export const dynamic = "force-dynamic";
-
-export default async function ProjectLayout({
-  children,
-  params,
-}: {
-  children: ReactNode;
-  params: Promise<{ project: string }>;
-}) {
-  const session = await getPortalSession();
-  if (!session) redirect("/portal/login");
-  const role = session.role;
-
-  const { project } = await params;
-  const data = await readProject(session.apiToken, project);
-  if (!data) notFound();
-
+function ProjectShell({ children }: { children: ReactNode }) {
+  const { data, role } = useProjectData();
   return (
     <main className="pb-20">
-      <PortalTopBar
-        role={role}
-        backHref="/portal"
-        crumb={data.project.name}
-      />
+      <PortalTopBar role={role} backHref="/portal" crumb={data.project.name} />
 
       <div className="mx-auto w-full max-w-[1440px] px-3 sm:px-6">
         <StatusHero data={data} role={role} />
@@ -38,5 +19,20 @@ export default async function ProjectLayout({
         {children}
       </div>
     </main>
+  );
+}
+
+export default function ProjectLayout({
+  children,
+  params,
+}: {
+  children: ReactNode;
+  params: Promise<{ project: string }>;
+}) {
+  const { project } = use(params);
+  return (
+    <ProjectDataProvider slug={project}>
+      <ProjectShell>{children}</ProjectShell>
+    </ProjectDataProvider>
   );
 }

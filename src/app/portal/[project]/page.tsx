@@ -1,6 +1,6 @@
-import { notFound } from "next/navigation";
-import { getPortalSession } from "@/lib/portal/session";
-import { readProject } from "@/lib/portal/data";
+"use client";
+
+import { useProjectData } from "@/components/portal/ProjectDataProvider";
 import { WaitingOnYou } from "@/components/portal/WaitingOnYou";
 import { SeeItWorking } from "@/components/portal/SeeItWorking";
 import { ThePlan } from "@/components/portal/ThePlan";
@@ -9,16 +9,8 @@ import { Decisions } from "@/components/portal/Decisions";
 
 // One scrolling page. TabNav (in the layout) is a scroll-spy over these
 // section ids — it never navigates, it just scrolls to and highlights them.
-export default async function ProjectPage({
-  params,
-}: {
-  params: Promise<{ project: string }>;
-}) {
-  const { project } = await params;
-  const session = await getPortalSession();
-  const role = session?.role ?? "client";
-  const data = session ? await readProject(session.apiToken, project) : null;
-  if (!data) notFound();
+export default function ProjectPage() {
+  const { data, role } = useProjectData();
 
   return (
     <div className="space-y-16">

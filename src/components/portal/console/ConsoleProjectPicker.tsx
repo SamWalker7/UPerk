@@ -23,7 +23,6 @@ export function ConsoleProjectPicker({
           const p = e.target.value;
           startTransition(() => {
             router.push(`/console?p=${p}`);
-            router.refresh();
           });
         }}
         className="max-w-[9rem] truncate rounded-md border border-[var(--p-border)] bg-[var(--p-surface)] px-2 py-1 text-[13px] font-medium text-[var(--p-text)] disabled:opacity-50 sm:max-w-[12rem]"

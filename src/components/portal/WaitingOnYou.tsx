@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { PmAnnotation } from "./PmAnnotation";
 import { Spinner } from "./Spinner";
 import { SectionTitle } from "./ui";
+import { useProjectData } from "./ProjectDataProvider";
 import type { ClientRequest, PortalRole } from "@/lib/portal/types";
 
 function actionEndpoint(label: string): "done" | "resend" | "respond" {
@@ -40,7 +40,7 @@ function ActionButton({
   disabled: boolean;
   onDone: () => void;
 }) {
-  const router = useRouter();
+  const { refresh } = useProjectData();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
@@ -62,7 +62,7 @@ function ActionButton({
         return;
       }
       onDone();
-      router.refresh();
+      await refresh();
     } catch {
       setError("Network error.");
       setBusy(false);

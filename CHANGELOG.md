@@ -9,6 +9,39 @@ contract-sensitive detail out of it anyway.
 
 ## Unreleased
 
+**Portal data fetching moved from server components to client-side `fetch`.**
+`/portal`, `/portal/[project]`, `/console`, `/admin`, and `/portal/login`
+were React Server Components that called `readProject`/`listProjects`/
+`getPortalSession` directly, entirely inside the Next.js server process —
+correct, but invisible in the browser's Network tab, which read as "no API
+call is happening." They're now client components (`"use client"`) that
+fetch from this app's own `/portal/api/*` / `/admin/api/*` routes on mount,
+so every read is a visible browser request.
+
+- New `GET /portal/api/session` → `{ role }`, since the session cookie is
+  httpOnly and a client component can't read it directly.
+- New `ProjectDataProvider` (`src/components/portal/ProjectDataProvider.tsx`)
+  is the client-side data boundary for `/portal/[project]/**` — fetches once
+  in the layout, exposes `{ data, role, refresh }` via a `useProjectData()`
+  hook to the page and its children (`WaitingOnYou`'s respond/resend/done
+  actions now call `refresh()` instead of the old, now-inert,
+  `router.refresh()`).
+- `/console` and `/portal` fetch their own project list + selected project
+  client-side; `ConsoleProjectPicker`'s project switch no longer calls
+  `router.refresh()` (there's no server data left to refresh).
+- `/portal/login` split into a thin server `page.tsx` (keeps the
+  `metadata` export, which can't live in a `"use client"` file) and a new
+  `PortalLoginClient.tsx` that does the "already signed in" check against
+  `/portal/api/session` instead of a server-side `getPortalRole()` call.
+- `middleware.ts` is unchanged and still does the real access control
+  (redirects unauthenticated visitors, blocks non-PMs from `/console` and
+  `/admin`) — these pages assume a valid session by the time they mount and
+  handle a 401 from their own fetches as a fallback (expired mid-visit).
+- `data.ts`/`backend.ts` and every `/portal/api/*` and `/admin/api/*` route
+  handler are unchanged — they still run server-side, by necessity: they're
+  the only code holding the backend bearer token (unwrapped from the
+  httpOnly session cookie) and it must never reach the browser.
+
 Wired the remaining endpoints from the deployed OpenAPI spec
 (`<PORTAL_API_URL>/api-docs/#/`) that had no caller in the codebase yet.
 

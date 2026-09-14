@@ -30,7 +30,6 @@ export function NewProjectDialog() {
       }
       // keep the spinner up through the navigation
       router.push(`/console?p=${body.slug}`);
-      router.refresh();
     } catch {
       setError("Network error.");
       setBusy(false);

@@ -27,11 +27,21 @@ function toWriteResult(err: unknown): WriteResult {
 
 /* ---------- read ---------- */
 
+/** Logs backend read failures so a 401/403/5xx/network error is visible in
+ *  server logs and distinguishable from a genuine 404 — callers still just
+ *  see `[]`/`null`, since the UI treats every failure as "nothing to show". */
+function logReadFailure(what: string, err: unknown): void {
+  if (err instanceof BackendError && err.status === 404) return; // expected, not worth logging
+  const detail = err instanceof BackendError ? `${err.status} ${err.message}` : err;
+  console.error(`[portal] ${what} failed:`, detail);
+}
+
 export async function listProjects(token: string): Promise<ProjectSummary[]> {
   try {
     const { projects } = await backend.listProjects(token);
     return (projects ?? []) as ProjectSummary[];
-  } catch {
+  } catch (err) {
+    logReadFailure("listProjects", err);
     return [];
   }
 }
@@ -41,7 +51,8 @@ export const readProject = cache(
   async (token: string, slug: string): Promise<ProjectData | null> => {
     try {
       return (await backend.readProject(token, slug)) as ProjectData;
-    } catch {
+    } catch (err) {
+      logReadFailure(`readProject(${slug})`, err);
       return null;
     }
   },

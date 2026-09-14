@@ -1,17 +1,15 @@
-import { redirect } from "next/navigation";
-import { getPortalSession } from "@/lib/portal/session";
+"use client";
+
 import { PortalTopBar } from "@/components/portal/PortalTopBar";
 import { AdminPanels } from "@/components/admin/AdminPanels";
 
-export const dynamic = "force-dynamic";
-
-export default async function AdminPage() {
-  const session = await getPortalSession();
-  if (session?.role !== "pm") redirect("/portal");
-
+// middleware.ts already gates /admin/** to PM sessions server-side, so this
+// page (and AdminPanels, which fetches its own data client-side against
+// /admin/api/*) can render straight away.
+export default function AdminPage() {
   return (
     <main>
-      <PortalTopBar role={session.role} showConsoleLink backHref="/portal" crumb="Admin" />
+      <PortalTopBar role="pm" showConsoleLink backHref="/portal" crumb="Admin" />
       <div className="mx-auto w-full max-w-[1440px] px-3 pb-24 pt-6 sm:px-6">
         <AdminPanels />
       </div>

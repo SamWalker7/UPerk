@@ -253,7 +253,6 @@ export default function ConsoleEditor({
         setData(persisted);
         setSaved(persisted);
         setMessage({ kind: "ok", text: "Saved as a draft. Publish when ready for the client." });
-        router.refresh();
       } else if (res.ok) {
         setMessage({ kind: "err", text: "Save could not be verified. Please try again." });
       } else if (res.status === 503) {
@@ -301,7 +300,6 @@ export default function ConsoleEditor({
       setData((previous) => { const next = structuredClone(previous) as ProjectData; apply(next); return next; });
       setSaved((previous) => { const next = structuredClone(previous) as ProjectData; apply(next); return next; });
       setMessage({ kind: "ok", text: supersedes ? "Replacement decision logged." : "Decision logged." });
-      router.refresh();
     } catch (error) {
       setMessage({ kind: "err", text: error instanceof Error ? error.message : "Could not log decision." });
       throw error;
@@ -318,7 +316,6 @@ export default function ConsoleEditor({
       setData((previous) => ({ ...previous, publication: result.publication }));
       setSaved((previous) => ({ ...previous, publication: result.publication }));
       setMessage({ kind: "ok", text: "Published to the client portal." });
-      router.refresh();
     } catch (error) {
       setMessage({ kind: "err", text: error instanceof Error ? error.message : "Could not publish changes." });
     } finally { setPublishing(false); }
@@ -337,7 +334,6 @@ export default function ConsoleEditor({
     }
     // Leave the console for the projects list — this project is gone.
     router.push("/console");
-    router.refresh();
   }
 
   /** DELETE a persisted list item, then drop it from both draft and saved state. */
@@ -362,7 +358,6 @@ export default function ConsoleEditor({
       return next;
     });
     setMessage({ kind: "ok", text: `${label} deleted.` });
-    router.refresh();
   }
 
   const deleteRequest = (id: string) =>
