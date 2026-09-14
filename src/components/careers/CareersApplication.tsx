@@ -117,7 +117,7 @@ export default function CareersApplication() {
       <Navebar />
       <main className="mx-auto max-w-6xl px-4 pb-16 pt-28 sm:px-6 sm:pt-32">
         <header className="mb-10 border-b border-gray-200 pb-9 dark:border-white/15">
-          <p className="mb-4 flex items-center gap-2 text-base font-medium text-[#2563eb] dark:text-[#2ca2f4]"><MapPin aria-hidden className="h-5 w-5" />Tysons, VA or remote</p>
+          {/* <p className="mb-4 flex items-center gap-2 text-base font-medium text-[#2563eb] dark:text-[#2ca2f4]"><MapPin aria-hidden className="h-5 w-5" />Tysons, VA or remote</p> */}
           <h1 className="max-w-3xl text-4xl font-semibold leading-tight sm:text-5xl">Careers at Universal Perk</h1>
           <p className="mt-5 max-w-2xl text-lg leading-relaxed text-gray-600 dark:text-gray-400">Bring your craft to projects people depend on. Find the role where you can do your best work.</p>
         </header>
