@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import AIServicesClient from "./AIServicesClient";
 
 export const metadata: Metadata = {
-  title: "AI Automation, Voice Agents & Intelligent Workflows",
+  title: "AI Engineering, Evals, Fine-Tuning & Forward-Deployed Engineers",
   description:
-    "Cut support costs, stop losing after-hours leads, and screen candidates faster with custom AI chatbots, voice assistants, and automation — built and deployed by Universal Perk in weeks.",
+    "Universal Perk gets AI out of the pilot and into production: opportunity audits, evaluation and benchmarking, fine-tuning and RFT, voice and document AI, agent engineering, and forward-deployed engineers — built in your cloud, HIPAA-compliant delivery with a BAA available.",
   alternates: { canonical: "/ai-services" },
 };
 
