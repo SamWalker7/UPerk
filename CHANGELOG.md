@@ -90,6 +90,22 @@ Wired the remaining endpoints from the deployed OpenAPI spec
   there's no client method for it.
 
 ---
+## 1.3.0 — 2026-09-15
+
+AI Services page repositioning and new tech-stack icons.
+
+### For engineers
+
+- **`/ai-services` repositioned.** Copy shifted from a chatbots/voice-agent/
+  automation pitch to AI engineering, evals, fine-tuning/RFT, and
+  forward-deployed engineers, with HIPAA/BAA delivery messaging. Most of
+  `AIServicesClient.tsx` was rewritten to match.
+- **New `Reveal` component** at `src/components/common/Reveal.tsx` — a
+  shared scroll-reveal wrapper, now used on the AI Services page.
+- **New tech-stack icons** added under `public/icons/tech/` (Claude,
+  CrewAI, FastAPI, Gemini, Grafana, Hugging Face, LiveKit, Meta, Mistral,
+  Redis, Supabase, Terraform, Vonage, WebRTC, Weights & Biases, Zapier),
+  with `CREDITS.md` updated accordingly.
 
 ## 0.2.0 — 2026-09-14
 
