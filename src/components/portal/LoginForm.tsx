@@ -47,7 +47,7 @@ export default function LoginForm({ next }: { next?: string }) {
           onChange={(e) => setUsername(e.target.value)}
           autoComplete="username"
           placeholder="you@company.com"
-          className="w-full rounded-lg border border-[var(--p-border)] bg-white px-3.5 py-3 text-[14px] text-[var(--p-text)] outline-none transition focus:border-[var(--p-accent)] focus:ring-4 focus:ring-[var(--p-accent)]/10"
+          className="w-full rounded-lg border border-[var(--p-border)] bg-[var(--p-surface)] px-3.5 py-3 text-[14px] text-[var(--p-text)] outline-none transition placeholder:text-[var(--p-text-dim)] focus:border-[var(--p-accent)] focus:ring-4 focus:ring-[var(--p-accent)]/10"
         />
       </div>
       <div>
@@ -61,7 +61,7 @@ export default function LoginForm({ next }: { next?: string }) {
             onChange={(e) => setPassword(e.target.value)}
             autoComplete="current-password"
             placeholder="Enter your password"
-            className="w-full rounded-lg border border-[var(--p-border)] bg-white px-3.5 py-3 pr-11 text-[14px] text-[var(--p-text)] outline-none transition focus:border-[var(--p-accent)] focus:ring-4 focus:ring-[var(--p-accent)]/10"
+            className="w-full rounded-lg border border-[var(--p-border)] bg-[var(--p-surface)] px-3.5 py-3 pr-11 text-[14px] text-[var(--p-text)] outline-none transition placeholder:text-[var(--p-text-dim)] focus:border-[var(--p-accent)] focus:ring-4 focus:ring-[var(--p-accent)]/10"
           />
           <button
             type="button"
