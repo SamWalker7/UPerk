@@ -312,7 +312,7 @@ export function SmartDateField({
 
 /* ---------- image (URL or uploaded file → base64 data URI) ---------- */
 
-const MAX_SOURCE_IMAGE_BYTES = 1 * 1024 * 1024; // Accept uploads up to 1 MB.
+export const MAX_SOURCE_IMAGE_BYTES = 1 * 1024 * 1024; // Accept uploads up to 1 MB.
 const TARGET_IMAGE_BYTES = 200 * 1024; // Allows base64 storage within DynamoDB's item limit.
 const MAX_IMAGE_DIMENSION = 1600;
 

@@ -8,7 +8,7 @@ import { backend, BackendError } from "./backend";
 
 export type WriteResult =
   | { ok: true }
-  | { ok: false; reason: "read-only" | "error" | "forbidden"; message: string };
+  | { ok: false; reason: "read-only" | "error" | "forbidden"; message: string; status: number };
 
 function toWriteResult(err: unknown): WriteResult {
   if (err instanceof BackendError) {
@@ -16,12 +16,14 @@ function toWriteResult(err: unknown): WriteResult {
       ok: false,
       reason: err.status === 403 ? "forbidden" : "error",
       message: err.message,
+      status: err.status,
     };
   }
   return {
     ok: false,
     reason: "error",
     message: err instanceof Error ? err.message : "Request failed",
+    status: 502,
   };
 }
 

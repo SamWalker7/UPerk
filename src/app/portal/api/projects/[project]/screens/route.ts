@@ -10,6 +10,6 @@ export async function POST(req: Request, { params }: { params: Promise<{ project
   try { screen = await req.json(); } catch { return NextResponse.json({ error: "Invalid JSON" }, { status: 400 }); }
   const { project } = await params;
   const result = await addScreen(session.apiToken, project, screen);
-  if (!result.ok) return NextResponse.json({ error: result.message }, { status: result.message.includes("(413)") ? 413 : result.reason === "forbidden" ? 403 : 500 });
+  if (!result.ok) return NextResponse.json({ error: result.message }, { status: result.status });
   return NextResponse.json(result, { status: 201 });
 }

@@ -8,6 +8,6 @@ export async function POST(_req: Request, { params }: { params: Promise<{ projec
   if (session.role !== "pm") return NextResponse.json({ error: "PM access required" }, { status: 403 });
   const { project } = await params;
   const result = await publishProject(session.apiToken, project);
-  if (!result.ok) return NextResponse.json({ error: result.message }, { status: result.reason === "forbidden" ? 403 : 500 });
+  if (!result.ok) return NextResponse.json({ error: result.message }, { status: result.reason === "read-only" ? 503 : result.status });
   return NextResponse.json(result);
 }

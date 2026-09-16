@@ -10,6 +10,6 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ projec
   try { changes = await req.json(); } catch { return NextResponse.json({ error: "Invalid JSON" }, { status: 400 }); }
   const { project } = await params;
   const result = await updateStatus(session.apiToken, project, changes);
-  if (!result.ok) return NextResponse.json({ error: result.message }, { status: result.reason === "forbidden" ? 403 : 500 });
+  if (!result.ok) return NextResponse.json({ error: result.message }, { status: result.reason === "read-only" ? 503 : result.status });
   return NextResponse.json({ ok: true });
 }

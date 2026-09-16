@@ -7,7 +7,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ project
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const { project } = await params;
   const result = await getDecisions(session.apiToken, project);
-  if (!result.ok) return NextResponse.json({ error: result.message }, { status: result.reason === "forbidden" ? 403 : 500 });
+  if (!result.ok) return NextResponse.json({ error: result.message }, { status: result.reason === "read-only" ? 503 : result.status });
   return NextResponse.json(result);
 }
 
@@ -19,6 +19,6 @@ export async function POST(req: Request, { params }: { params: Promise<{ project
   try { decision = await req.json(); } catch { return NextResponse.json({ error: "Invalid JSON" }, { status: 400 }); }
   const { project } = await params;
   const result = await appendDecision(session.apiToken, project, decision);
-  if (!result.ok) return NextResponse.json({ error: result.message }, { status: result.reason === "forbidden" ? 403 : 500 });
+  if (!result.ok) return NextResponse.json({ error: result.message }, { status: result.reason === "read-only" ? 503 : result.status });
   return NextResponse.json(result, { status: 201 });
 }

@@ -13,6 +13,6 @@ export async function POST(req: Request, { params }: { params: Promise<{ project
   }
   const { project } = await params;
   const result = await addNote(session.apiToken, project, note);
-  if (!result.ok) return NextResponse.json({ error: result.message }, { status: result.reason === "forbidden" ? 403 : 500 });
+  if (!result.ok) return NextResponse.json({ error: result.message }, { status: result.reason === "read-only" ? 503 : result.status });
   return NextResponse.json(result, { status: 201 });
 }

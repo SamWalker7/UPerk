@@ -9,6 +9,6 @@ export async function GET(req: Request, { params }: { params: Promise<{ project:
   const { project } = await params;
   const section = new URL(req.url).searchParams.get("section") ?? undefined;
   const result = await getProjectHistory(session.apiToken, project, section ?? undefined);
-  if (!result.ok) return NextResponse.json({ error: result.message }, { status: result.reason === "forbidden" ? 403 : 500 });
+  if (!result.ok) return NextResponse.json({ error: result.message }, { status: result.reason === "read-only" ? 503 : result.status });
   return NextResponse.json(result);
 }

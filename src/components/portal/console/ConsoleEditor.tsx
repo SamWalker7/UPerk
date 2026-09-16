@@ -17,6 +17,7 @@ import {
   Grid,
   ItemCard,
   imageFileToPortalDataUrl,
+  MAX_SOURCE_IMAGE_BYTES,
   NumberField,
   ReadOnlyStat,
   SelectField,
@@ -2225,6 +2226,7 @@ function ScreensEditor({
   const [date, setDate] = useState("");
   const [image, setImage] = useState("");
   const [reordering, setReordering] = useState(false);
+  const [uploadError, setUploadError] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
 
   function update(id: string, fn: (s: FinishedScreen) => void) {
@@ -2247,16 +2249,30 @@ function ScreensEditor({
 
   async function pickFiles(files: FileList | null) {
     if (!files?.length) return;
+    setUploadError("");
     const added: FinishedScreen[] = [];
+    const rejected: string[] = [];
     for (const file of Array.from(files)) {
       if (!file.type.startsWith("image/")) continue;
+      // Blocked up front rather than left to the backend: a >1 MB source
+      // image can't be compressed down to fit a DynamoDB item, and the
+      // resulting "project is too large to save" error only surfaces after
+      // a round trip. imageFileToPortalDataUrl enforces the same 1 MB cap
+      // internally, but checking file.size here skips the wasted work of
+      // reading/compressing a file we already know will be rejected.
+      if (file.size > MAX_SOURCE_IMAGE_BYTES) {
+        rejected.push(`"${file.name}" is ${(file.size / 1024 / 1024).toFixed(1)} MB — over the 1 MB upload limit.`);
+        continue;
+      }
       let dataUrl: string;
       try {
         // The dropzone used to bypass ImageField's compressor, sending the
         // original base64 file and making the DynamoDB project item too large.
+        // imageFileToPortalDataUrl resizes and re-encodes it down to roughly
+        // 200 KB so the compressed result fits safely in the database.
         dataUrl = await imageFileToPortalDataUrl(file);
       } catch (cause) {
-        window.alert(cause instanceof Error ? cause.message : "Could not prepare this image.");
+        rejected.push(`"${file.name}": ${cause instanceof Error ? cause.message : "could not be prepared."}`);
         continue;
       }
       added.push({
@@ -2266,6 +2282,7 @@ function ScreensEditor({
         imageUrl: dataUrl,
       });
     }
+    if (rejected.length) setUploadError(rejected.join(" "));
     if (added.length) await onUpload(added);
   }
 
@@ -2308,7 +2325,8 @@ function ScreensEditor({
             <span className="font-semibold text-[var(--p-accent)] underline underline-offset-2">
               choose files
             </span>
-            . Phone screenshots are cropped to the frame automatically.
+            . Phone screenshots are cropped to the frame automatically. Max 1 MB
+            per image.
           </span>
         )}
         <input
@@ -2324,6 +2342,12 @@ function ScreensEditor({
           }}
         />
       </label>
+
+      {uploadError ? (
+        <p className="rounded-lg bg-[var(--p-risk-bg)] px-3 py-2.5 text-[13px] text-[var(--p-risk)]">
+          {uploadError}
+        </p>
+      ) : null}
 
       <Grid>
         <Field
