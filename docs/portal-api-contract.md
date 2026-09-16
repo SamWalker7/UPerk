@@ -64,6 +64,10 @@ empty project (4 standard phases, empty requests/decisions/screens).
 ### Read one
 
 ```
+GET /api/projects/:slug
+  200: ProjectData
+  404: { "error": "Not found" }
+```
 
 ### Weekly update history
 
@@ -77,20 +81,16 @@ update. When a PM changes any of them, the backend automatically appends the
 previous set to `weeklyHistory` (newest first). History is read-only to callers,
 so prior client updates cannot be edited or removed accidentally.
 
-The PM console also keeps section snapshots for requests, links/build details,
-the plan, and finished screens:
+The PM console also keeps section snapshots for requests, phase, status,
+notes, links/build details, the plan, and finished screens:
 
 ```
-GET /api/projects/:slug/history?section=requests|links|plan|screens
+GET /api/projects/:slug/history?section=requests|phase|status|notes|links|plan|screens
   200: { "entries": ProjectHistoryEntry[], "total": number }
 ```
 
 These snapshots are append-only and PM-only. The backend creates them before a
 section changes; uploaded image data is intentionally excluded from snapshots.
-GET /api/projects/:slug
-  200: ProjectData
-  404: { "error": "Not found" }
-```
 
 ### Replace (PM only) — what the console uses
 
@@ -136,7 +136,12 @@ PATCH /api/projects/:slug/requests/:id   body: Partial<ClientRequest>
 GET   /api/projects/:slug/decisions      -> { decisions: Decision[], total?, active? }
 POST  /api/projects/:slug/decisions      body: Omit<Decision,"id">        -> { id }
 POST  /api/projects/:slug/screens        body: Omit<FinishedScreen,"id">  -> { id }
+PATCH /api/projects/:slug/screens/:id    body: { name, date, imageUrl? }
+POST  /api/projects/:slug/publish        -> { ok: true, publication: unknown }
 ```
+
+`publish` ships the project's accumulated draft changes (PM only) — wired at
+`/portal/api/projects/:slug/publish` via `src/lib/portal/backend.ts`.
 
 Decisions are append-or-supersede only — never hard-delete (`supersededBy` points at
 the replacement).

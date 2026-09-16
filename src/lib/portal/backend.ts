@@ -136,6 +136,12 @@ export const backend = {
       body: data as Json,
     }),
 
+  updateRequest: (token: string, slug: string, id: string, changes: unknown) =>
+    request<{ ok: true }>(
+      `/api/projects/${encodeURIComponent(slug)}/requests/${encodeURIComponent(id)}`,
+      { method: "PATCH", token, body: changes as Json },
+    ),
+
   addNote: (token: string, slug: string, data: unknown) =>
     request<{ id: string }>(`/api/projects/${encodeURIComponent(slug)}/notes`, {
       method: "POST",

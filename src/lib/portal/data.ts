@@ -186,6 +186,20 @@ export async function addRequest(
   }
 }
 
+export async function updateRequest(
+  token: string,
+  slug: string,
+  id: string,
+  changes: Record<string, unknown>,
+): Promise<WriteResult> {
+  try {
+    await backend.updateRequest(token, slug, id, changes);
+    return { ok: true };
+  } catch (err) {
+    return toWriteResult(err);
+  }
+}
+
 export async function addNote(
   token: string,
   slug: string,

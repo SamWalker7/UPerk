@@ -7,6 +7,7 @@ import { PortalTopBar } from "@/components/portal/PortalTopBar";
 import { PageLoader } from "@/components/portal/Spinner";
 import { ProjectCard } from "@/components/portal/ProjectCard";
 import { NewProjectDialog } from "@/components/portal/NewProjectDialog";
+import { PortalFooter } from "@/components/portal/PortalFooter";
 
 // Client-side data boundary: fetches the caller's role and project list from
 // this app's own /portal/api/* routes (visible in the browser's Network
@@ -80,6 +81,8 @@ export default function ProjectsPage() {
           </div>
         )}
       </div>
+
+      <PortalFooter />
     </main>
   );
 }

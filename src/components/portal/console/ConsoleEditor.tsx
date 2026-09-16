@@ -224,23 +224,45 @@ export default function ConsoleEditor({
     try {
       // Screens are saved one at a time so projects with many images never
       // combine them into one request that exceeds the 1 MB gateway limit.
+      // Every screen is attempted even if an earlier one fails, so one
+      // oversized image doesn't block the rest of the batch from saving.
       const oldScreens = new Map(saved.finishedScreens.map((screen) => [screen.id, screen]));
+      const screenErrors: string[] = [];
       for (const screen of payload.finishedScreens) {
         const old = oldScreens.get(screen.id);
         const endpoint = old
           ? `/portal/api/projects/${slug}/screens/${screen.id}`
           : `/portal/api/projects/${slug}/screens`;
         if (!old || !same(screen, old)) {
-          const screenRes = await fetch(endpoint, {
-            method: old ? "PATCH" : "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(screen),
-          });
-          if (!screenRes.ok) {
-            const screenBody = await screenRes.json().catch(() => ({}));
-            throw new Error(screenRes.status === 413 ? "This screen image is too large. Choose a smaller image or use an image URL." : screenBody.error || "Could not save screen.");
+          try {
+            const screenRes = await fetch(endpoint, {
+              method: old ? "PATCH" : "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(screen),
+            });
+            if (!screenRes.ok) {
+              const screenBody = await screenRes.json().catch(() => ({}));
+              screenErrors.push(
+                `"${screen.name}": ${screenRes.status === 413 ? "image is too large. Choose a smaller image or use an image URL." : screenBody.error || "could not be saved."}`,
+              );
+            } else {
+              // Mark this screen persisted immediately so a later failure in
+              // the same batch doesn't cause it to be re-POSTed as new.
+              setSaved((previous) => ({
+                ...previous,
+                finishedScreens: old
+                  ? previous.finishedScreens.map((sc) => (sc.id === screen.id ? screen : sc))
+                  : [screen, ...previous.finishedScreens],
+              }));
+            }
+          } catch {
+            screenErrors.push(`"${screen.name}": network error.`);
           }
         }
+      }
+      if (screenErrors.length) {
+        setMessage({ kind: "err", text: `Some screens failed to save: ${screenErrors.join("; ")}` });
+        return;
       }
       const res = await fetch(`/portal/api/projects/${slug}`, {
         method: "PATCH",
@@ -326,6 +348,47 @@ export default function ConsoleEditor({
     } finally {
       setSaving(false);
     }
+  }
+
+  const [uploadingScreens, setUploadingScreens] = useState(false);
+
+  /** Uploaded screenshots persist immediately (one POST per image, so one
+   *  oversized image never blocks the rest) instead of waiting for the PM to
+   *  click "Save draft" — matches addRequest()'s persist-then-merge pattern
+   *  rather than routing through save(), whose closure over `data` would
+   *  otherwise miss screens added in the same tick. */
+  async function addScreens(newScreens: FinishedScreen[]) {
+    setUploadingScreens(true);
+    setMessage(null);
+    const failures: string[] = [];
+    const created: FinishedScreen[] = [];
+    for (const screen of newScreens) {
+      try {
+        const res = await fetch(`/portal/api/projects/${slug}/screens`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(screen),
+        });
+        const result = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          failures.push(`"${screen.name}": ${res.status === 413 ? "image is too large." : result.error || "could not be saved."}`);
+          continue;
+        }
+        created.push({ ...screen, id: result.id });
+      } catch {
+        failures.push(`"${screen.name}": network error.`);
+      }
+    }
+    if (created.length) {
+      setData((previous) => ({ ...previous, finishedScreens: [...created, ...previous.finishedScreens] }));
+      setSaved((previous) => ({ ...previous, finishedScreens: [...created, ...previous.finishedScreens] }));
+    }
+    if (failures.length) {
+      setMessage({ kind: "err", text: `Some screenshots failed to upload: ${failures.join("; ")}` });
+    } else {
+      setMessage({ kind: "ok", text: created.length > 1 ? `${created.length} screenshots uploaded.` : "Screenshot uploaded." });
+    }
+    setUploadingScreens(false);
   }
 
   async function publish() {
@@ -784,7 +847,9 @@ export default function ConsoleEditor({
               isPersisted={(id) => savedScreenIds.has(id)}
               onDelete={deleteScreen}
               onSave={save}
+              onUpload={addScreens}
               saving={saving}
+              uploading={uploadingScreens}
               dirty={dirtyMap.screens}
             />
           </Section>
@@ -1250,6 +1315,7 @@ function RequestsEditor({
 }) {
   const [pendingDelete, setPendingDelete] = useState<ClientRequest | null>(null);
   const [editing, setEditing] = useState<string | null>(null);
+  const [addOpen, setAddOpen] = useState(false);
 
   function update(id: string, fn: (r: ClientRequest) => void) {
     onChange(
@@ -1281,7 +1347,14 @@ function RequestsEditor({
         />
       ))}
 
-      <NewRequestForm onAdd={onAdd} saving={saving} />
+      <AddButton label="+ Add request" onClick={() => setAddOpen(true)} />
+
+      <NewRequestDialog
+        open={addOpen}
+        onAdd={onAdd}
+        onClose={() => setAddOpen(false)}
+        saving={saving}
+      />
 
       <ConfirmDialog
         open={pendingDelete !== null}
@@ -1482,11 +1555,15 @@ const RESPOND_MODES = [
   { value: "action", label: "An action + fallback" },
 ] as const;
 
-function NewRequestForm({
+function NewRequestDialog({
+  open,
   onAdd,
+  onClose,
   saving,
 }: {
+  open: boolean;
   onAdd: (input: NewRequestInput) => Promise<void>;
+  onClose: () => void;
   saving: boolean;
 }) {
   const [title, setTitle] = useState("");
@@ -1500,11 +1577,31 @@ function NewRequestForm({
   const [secondary, setSecondary] = useState("");
   const [nudge, setNudge] = useState(false);
   const [touched, setTouched] = useState(false);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (!open) return;
+    setTitle("");
+    setBody("");
+    setAssignee("");
+    setDueBy("");
+    setHoldsUp("");
+    setMode("two");
+    setBtn1("Choose A");
+    setBtn2("Choose B");
+    setSecondary("");
+    setNudge(false);
+    setTouched(false);
+    setError("");
+  }, [open]);
+
+  if (!open) return null;
 
   const titleValid = title.trim().length > 0;
   const bodyValid = body.trim().length > 0;
 
-  async function submit() {
+  async function submit(event: React.FormEvent) {
+    event.preventDefault();
     setTouched(true);
     if (!titleValid || !bodyValid) return;
     const labels =
@@ -1513,36 +1610,56 @@ function NewRequestForm({
         : mode === "action"
           ? [btn1.trim() || "Do it", secondary.trim() || "Discuss first"]
           : [btn1.trim(), btn2.trim(), secondary.trim()].filter(Boolean);
-    await onAdd({
-      title: title.trim(),
-      body: body.trim(),
-      daysOpen: 0,
-      blocking: false,
-      actions: labels.map((label, idx) => ({
-        label,
-        kind: idx < 2 ? "primary" : "secondary",
-        intent: intentFor(label),
-      })),
-      ...(assignee.trim() ? { attributionShort: assignee.trim() } : {}),
-      ...(holdsUp.trim() ? { subNote: holdsUp.trim() } : {}),
-      ...(nudge ? { nudgeSchedule: [3, 7] } : {}),
-    });
-    // Cleared unconditionally: addRequest() surfaces failure via the
-    // section's message banner rather than a per-field error, so there's
-    // nothing more specific to key "leave it filled in" off of.
-    setTitle("");
-    setBody("");
-    setAssignee("");
-    setDueBy("");
-    setHoldsUp("");
-    setSecondary("");
-    setTouched(false);
+    setError("");
+    try {
+      await onAdd({
+        title: title.trim(),
+        body: body.trim(),
+        daysOpen: 0,
+        blocking: false,
+        actions: labels.map((label, idx) => ({
+          label,
+          kind: idx < 2 ? "primary" : "secondary",
+          intent: intentFor(label),
+        })),
+        ...(assignee.trim() ? { attributionShort: assignee.trim() } : {}),
+        ...(holdsUp.trim() ? { subNote: holdsUp.trim() } : {}),
+        ...(nudge ? { nudgeSchedule: [3, 7] } : {}),
+      });
+      onClose();
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Could not add the request.");
+    }
   }
 
   return (
-    <div className="rounded-xl border border-[var(--p-border)] bg-[var(--p-surface-2)]/50 p-4">
-      <p className="text-[13px] font-bold">New request</p>
-      <div className="mt-3 space-y-3">
+    <div
+      className="fixed inset-0 z-[70] flex items-center justify-center bg-[#061827]/55 p-4 backdrop-blur-[2px]"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="new-request-dialog-title"
+    >
+      <form
+        onSubmit={submit}
+        className="flex max-h-[calc(100vh-2rem)] w-full max-w-lg flex-col overflow-hidden rounded-2xl border border-[var(--p-border)] bg-[var(--p-surface)] shadow-[0_24px_70px_rgba(6,24,39,.3)]"
+      >
+        <header className="flex items-start justify-between gap-4 border-b border-[var(--p-border)] px-5 py-4 sm:px-6 sm:py-5">
+          <div>
+            <p className="text-[11px] font-bold uppercase tracking-[.12em] text-[var(--p-accent)]">Client request</p>
+            <h2 id="new-request-dialog-title" className="mt-1 text-xl font-bold tracking-tight">New request</h2>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={saving}
+            className="rounded-lg p-2 text-xl leading-none text-[var(--p-text-dim)] hover:bg-[var(--p-surface-2)] disabled:opacity-40"
+            aria-label="Close"
+          >
+            ×
+          </button>
+        </header>
+
+      <div className="flex-1 space-y-3 overflow-y-auto px-5 py-5 sm:px-6">
         <Field
           label="What do you need?"
           value={title}
@@ -1621,23 +1738,32 @@ function NewRequestForm({
           you&apos;d say it on a call, not as a status (&ldquo;Choose A&rdquo;,
           not &ldquo;Option 1 selected&rdquo;).
         </p>
-        <div className="flex flex-wrap items-center gap-3 pt-1">
-          <button
-            type="button"
-            onClick={submit}
-            disabled={saving || (touched && (!titleValid || !bodyValid))}
-            className="flex h-9 items-center gap-2 rounded-lg bg-[var(--p-accent)] px-4 text-[13px] font-semibold text-white hover:brightness-95 disabled:opacity-40"
-          >
-            {saving ? <Spinner className="h-3.5 w-3.5" /> : null}
-            Add request
-          </button>
-          <CheckField
-            label="Nudge at 3 and 7 days"
-            checked={nudge}
-            onChange={setNudge}
-          />
-        </div>
+        <CheckField
+          label="Nudge at 3 and 7 days"
+          checked={nudge}
+          onChange={setNudge}
+        />
+        {error ? <p className="rounded-lg bg-[var(--p-risk-bg)] px-3 py-2 text-[13px] text-[var(--p-risk)]">{error}</p> : null}
       </div>
+
+      <footer className="flex justify-end gap-2 border-t border-[var(--p-border)] bg-[var(--p-surface-2)] px-5 py-4 sm:px-6">
+        <button
+          type="button"
+          onClick={onClose}
+          disabled={saving}
+          className="rounded-lg border border-[var(--p-border)] bg-[var(--p-surface)] px-4 py-2.5 text-[13px] font-semibold hover:bg-[var(--p-bg)] disabled:opacity-40"
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          disabled={saving || (touched && (!titleValid || !bodyValid))}
+          className="flex min-w-[126px] items-center justify-center gap-2 rounded-lg bg-[var(--p-accent)] px-4 py-2.5 text-[13px] font-semibold text-white hover:brightness-95 disabled:opacity-40"
+        >
+          {saving ? <><Spinner className="h-3.5 w-3.5" />Saving…</> : "Add request"}
+        </button>
+      </footer>
+      </form>
     </div>
   );
 }
@@ -2079,14 +2205,18 @@ function ScreensEditor({
   isPersisted,
   onDelete,
   onSave,
+  onUpload,
   saving,
+  uploading,
 }: {
   screens: FinishedScreen[];
   onChange: (s: FinishedScreen[]) => void;
   isPersisted: (id: string) => boolean;
   onDelete: (id: string) => Promise<void>;
   onSave: () => void;
+  onUpload: (screens: FinishedScreen[]) => Promise<void>;
   saving: boolean;
+  uploading: boolean;
   dirty: boolean;
 }) {
   const [pendingDelete, setPendingDelete] = useState<FinishedScreen | null>(null);
@@ -2132,7 +2262,7 @@ function ScreensEditor({
         imageUrl: dataUrl,
       });
     }
-    if (added.length) onChange([...added, ...screens]);
+    if (added.length) await onUpload(added);
   }
 
   function addManual() {
@@ -2156,27 +2286,38 @@ function ScreensEditor({
     <div className="space-y-4">
       {/* Dropzone */}
       <label
-        onDragOver={(e) => e.preventDefault()}
+        onDragOver={(e) => !uploading && e.preventDefault()}
         onDrop={(e) => {
           e.preventDefault();
-          pickFiles(e.dataTransfer.files);
+          if (!uploading) pickFiles(e.dataTransfer.files);
         }}
-        className="flex cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-[var(--p-accent)]/50 bg-[var(--p-accent-weak)]/50 px-6 py-8 text-center text-[13px] leading-relaxed text-[var(--p-text-dim)] hover:bg-[var(--p-accent-weak)]"
+        className={`flex flex-col items-center justify-center rounded-xl border border-dashed border-[var(--p-accent)]/50 bg-[var(--p-accent-weak)]/50 px-6 py-8 text-center text-[13px] leading-relaxed text-[var(--p-text-dim)] ${uploading ? "cursor-wait opacity-70" : "cursor-pointer hover:bg-[var(--p-accent-weak)]"}`}
       >
-        <span>
-          Drop screenshots here, or{" "}
-          <span className="font-semibold text-[var(--p-accent)] underline underline-offset-2">
-            choose files
+        {uploading ? (
+          <span className="flex items-center gap-2 font-medium text-[var(--p-accent)]">
+            <Spinner className="h-3.5 w-3.5" />
+            Uploading screenshots…
           </span>
-          . Phone screenshots are cropped to the frame automatically.
-        </span>
+        ) : (
+          <span>
+            Drop screenshots here, or{" "}
+            <span className="font-semibold text-[var(--p-accent)] underline underline-offset-2">
+              choose files
+            </span>
+            . Phone screenshots are cropped to the frame automatically.
+          </span>
+        )}
         <input
           ref={fileRef}
           type="file"
           accept="image/*"
           multiple
+          disabled={uploading}
           className="hidden"
-          onChange={(e) => pickFiles(e.target.files)}
+          onChange={(e) => {
+            pickFiles(e.target.files);
+            e.target.value = "";
+          }}
         />
       </label>
 
