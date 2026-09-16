@@ -352,6 +352,34 @@ export default function ConsoleEditor({
     }
   }
 
+  async function addNote(input: { body: string; visibility: NoteItem["visibility"] }) {
+    setSaving(true);
+    setMessage(null);
+    try {
+      const res = await fetch(`/portal/api/projects/${slug}/notes`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(input),
+      });
+      const result = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(result.error || "Could not add note.");
+      const created: NoteItem = {
+        id: result.id,
+        body: input.body,
+        visibility: input.visibility,
+        date: nowStamp(),
+        attribution: "PM",
+      };
+      setData((previous) => ({ ...previous, notes: [created, ...(previous.notes || [])] }));
+      setSaved((previous) => ({ ...previous, notes: [created, ...(previous.notes || [])] }));
+      setMessage({ kind: "ok", text: "Note added." });
+    } catch (error) {
+      setMessage({ kind: "err", text: error instanceof Error ? error.message : "Could not add note." });
+    } finally {
+      setSaving(false);
+    }
+  }
+
   const [uploadingScreens, setUploadingScreens] = useState(false);
 
   /** Uploaded screenshots persist immediately (one POST per image, so one
@@ -797,6 +825,7 @@ export default function ConsoleEditor({
             <NotesEditor
               notes={data.notes || []}
               onChange={(notes) => patch((d) => (d.notes = notes))}
+              onAdd={addNote}
               onSave={save}
               saving={saving}
             />
@@ -1943,11 +1972,15 @@ type NoteItem = NonNullable<ProjectData["notes"]>[number];
 function NotesEditor({
   notes,
   onChange,
+  onAdd,
   onSave,
   saving,
 }: {
   notes: NoteItem[];
   onChange: (n: NoteItem[]) => void;
+  onAdd: (input: { body: string; visibility: NoteItem["visibility"] }) => Promise<void>;
+  /** Remove / visibility-toggle have no dedicated backend endpoint (only
+   *  POST /notes exists) — those two still go out via the full-project save. */
   onSave: () => void;
   saving: boolean;
 }) {
@@ -1965,20 +1998,10 @@ function NotesEditor({
     );
   }
 
-  function add() {
+  async function add() {
     if (!draft.trim()) return;
-    onChange([
-      {
-        id: uid("note"),
-        body: draft.trim(),
-        visibility,
-        date: nowStamp(),
-        attribution: "PM",
-      },
-      ...notes,
-    ]);
+    await onAdd({ body: draft.trim(), visibility });
     setDraft("");
-    onSave();
   }
 
   return (

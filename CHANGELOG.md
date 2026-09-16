@@ -9,6 +9,25 @@ contract-sensitive detail out of it anyway.
 
 ## Unreleased
 
+**"Add note" in the console now saves immediately** — same bug and same
+fix as "Add request" below: `NotesEditor.add()` only called `onChange()`
+with a client-generated fake id (`uid("note")`), then fired `onSave()` (the
+full-object `PATCH`) to paper over it, so a note added and not explicitly
+saved (or saved by a PATCH that failed) never reached the backend and was
+gone on next load — the exact "why doesn't this send/why don't I see notes
+I added before" symptom. `ConsoleEditor` now has an `addNote()`, matching
+`addRequest()`/`logDecision()`: `POST`s to
+`/portal/api/projects/:slug/notes` immediately, takes the real
+server-assigned `id` back, and applies it to both `data` and `saved` state.
+Removing a note or toggling its visibility still goes through the
+full-object save — the backend only exposes `POST /notes` (no per-note
+`PATCH`/`DELETE`), so there's nothing dedicated to call for those. Also
+confirmed there is no notes-history/read endpoint on the backend at all
+(`GET /history?section=` only covers `requests|links|plan|screens`) —
+existing notes are visible only via the `notes` array embedded in the
+regular `GET /api/projects/:slug` response, which `NotesEditor` already
+rendered correctly.
+
 **"Add request" in the console now saves immediately.** It previously only
 called `onChange()` on local state with a client-generated fake id
 (`uid("req")`) — nothing reached the backend until the PM separately hit
