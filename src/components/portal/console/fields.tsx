@@ -362,6 +362,17 @@ async function compressImage(file: File): Promise<File> {
   }
 }
 
+/** Prepare a locally selected image for storage in a portal project record.
+ * Embedded images are deliberately kept small because project records are
+ * stored as a single DynamoDB item. */
+export async function imageFileToPortalDataUrl(file: File): Promise<string> {
+  if (!file.type.startsWith("image/")) throw new Error("That file isn’t an image.");
+  if (file.size > MAX_SOURCE_IMAGE_BYTES) {
+    throw new Error("This image is over 1 MB. Please choose a smaller image or paste an image URL.");
+  }
+  return readFileAsDataUrl(await compressImage(file));
+}
+
 /**
  * An image slot: paste a URL or upload a file (stored as a base64 data URI in
  * the same string field). Always shows a preview of whatever is set — including

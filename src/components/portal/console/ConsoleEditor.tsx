@@ -16,6 +16,7 @@ import {
   Field,
   Grid,
   ItemCard,
+  imageFileToPortalDataUrl,
   NumberField,
   ReadOnlyStat,
   SelectField,
@@ -2249,12 +2250,15 @@ function ScreensEditor({
     const added: FinishedScreen[] = [];
     for (const file of Array.from(files)) {
       if (!file.type.startsWith("image/")) continue;
-      const dataUrl: string = await new Promise((res, rej) => {
-        const r = new FileReader();
-        r.onload = () => res(String(r.result));
-        r.onerror = () => rej(r.error);
-        r.readAsDataURL(file);
-      });
+      let dataUrl: string;
+      try {
+        // The dropzone used to bypass ImageField's compressor, sending the
+        // original base64 file and making the DynamoDB project item too large.
+        dataUrl = await imageFileToPortalDataUrl(file);
+      } catch (cause) {
+        window.alert(cause instanceof Error ? cause.message : "Could not prepare this image.");
+        continue;
+      }
       added.push({
         id: uid("scr"),
         name: file.name.replace(/\.[^.]+$/, ""),
