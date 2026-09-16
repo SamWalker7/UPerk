@@ -45,11 +45,6 @@ export function OverviewTab({
 }) {
   const s = data.status;
   const open = data.requests.filter((r) => r.status === "open").length;
-  // The API strips internal notes for client sessions. Keep this filter as a
-  // defense in depth should a future data source bypass that API boundary.
-  const clientNotes = role === "client"
-    ? (data.notes || []).filter((note) => note.visibility === "client")
-    : [];
 
   return (
     <div className={embedded ? "contents" : "space-y-4"}>
@@ -67,20 +62,6 @@ export function OverviewTab({
           ) : null}
         </Panel>
       </div>
-
-      {!embedded && clientNotes.length ? (
-        <div className="rounded-2xl border border-[var(--p-border)] bg-[var(--p-surface)] p-5">
-          <p className="text-[13px] font-semibold">Project notes</p>
-          <ul className="mt-3 space-y-3">
-            {clientNotes.map((note) => (
-              <li key={note.id} className="text-[13px] leading-relaxed text-[var(--p-text-dim)]">
-                {note.body}
-                <span className="ml-2 text-[12px]">— {note.attribution}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      ) : null}
 
       {role === "pm" && !embedded ? (
         <PmAnnotation

@@ -21,12 +21,21 @@ I added before" symptom. `ConsoleEditor` now has an `addNote()`, matching
 server-assigned `id` back, and applies it to both `data` and `saved` state.
 Removing a note or toggling its visibility still goes through the
 full-object save — the backend only exposes `POST /notes` (no per-note
-`PATCH`/`DELETE`), so there's nothing dedicated to call for those. Also
-confirmed there is no notes-history/read endpoint on the backend at all
-(`GET /history?section=` only covers `requests|links|plan|screens`) —
-existing notes are visible only via the `notes` array embedded in the
-regular `GET /api/projects/:slug` response, which `NotesEditor` already
-rendered correctly.
+`PATCH`/`DELETE`), so there's nothing dedicated to call for those.
+
+**Notes history, and a "Project notes" section on the client portal page.**
+The backend's `GET /history?section=` enum grew `notes` (also `phase` and
+`status`) since we last checked it — previously only
+`requests|links|plan|screens`. `ProjectHistorySection` now includes all
+three, `SectionHistoryDrawer` has a `notes` snapshot renderer (plus a
+generic key/value fallback for `phase`/`status`, which nothing surfaces yet),
+and the console's "Notes" section header now has the same "History" button
+every other section has. Separately: `OverviewTab` had a "Project notes"
+block for client-visible notes, but it only ever rendered when
+`embedded={false}` — its one call site (`StatusHero`) always passes
+`embedded`, so that block was dead code and client-visible notes had never
+actually appeared anywhere on `/portal/[project]`. Moved it out to a new
+`ProjectNotes` component, mounted as its own section on the project page.
 
 **"Add request" in the console now saves immediately.** It previously only
 called `onChange()` on local state with a client-generated fake id

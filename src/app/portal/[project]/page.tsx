@@ -6,6 +6,7 @@ import { SeeItWorking } from "@/components/portal/SeeItWorking";
 import { ThePlan } from "@/components/portal/ThePlan";
 import { JustFinished } from "@/components/portal/JustFinished";
 import { Decisions } from "@/components/portal/Decisions";
+import { ProjectNotes } from "@/components/portal/ProjectNotes";
 
 // One scrolling page. TabNav (in the layout) is a scroll-spy over these
 // section ids — it never navigates, it just scrolls to and highlights them.
@@ -29,6 +30,10 @@ export default function ProjectPage() {
 
       <section id="timeline" className="scroll-mt-6">
         <ThePlan plan={data.plan} role={role} slug={data.slug} />
+      </section>
+
+      <section className="scroll-mt-6">
+        <ProjectNotes notes={data.notes} role={role} />
       </section>
 
       <div className="grid items-start gap-10 lg:grid-cols-2 lg:gap-8">

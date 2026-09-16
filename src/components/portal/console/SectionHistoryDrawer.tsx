@@ -9,6 +9,9 @@ const TITLES: Record<ProjectHistorySection, string> = {
   links: "Links & build history",
   plan: "Plan history",
   screens: "Finished screens history",
+  notes: "Notes history",
+  phase: "Phase history",
+  status: "Status history",
 };
 
 const object = (value: unknown): Record<string, unknown> =>
@@ -147,9 +150,36 @@ function Snapshot({ section, data }: { section: ProjectHistorySection; data: unk
     return <div><Row label="Plan range" value={text(plan.rangeLabel)} /><p className="mt-3 text-[11px] font-bold uppercase tracking-wide text-[var(--p-text-dim)]">Phases</p><div className="mt-2 space-y-2">{phases.map((item, index) => { const phase = object(item); return <div key={text(phase.id, String(index))} className="flex items-center justify-between gap-3 rounded-lg bg-[var(--p-surface)] px-3 py-2"><span className="text-[12px] font-semibold">{text(phase.name)}</span><span className="text-[11px] text-[var(--p-text-dim)]">{text(phase.start)} — {text(phase.end)}</span></div>; })}</div>{milestones.length ? <><p className="mt-3 text-[11px] font-bold uppercase tracking-wide text-[var(--p-text-dim)]">Milestones</p><div className="mt-2 space-y-2">{milestones.map((item, index) => { const milestone = object(item); return <div key={`${text(milestone.title, "milestone")}-${index}`}><p className="text-[12px] font-semibold">{text(milestone.title)}</p><p className="text-[11px] text-[var(--p-text-dim)]">{text(milestone.body)}</p></div>; })}</div></> : null}</div>;
   }
 
-  const screens = list(data);
-  if (!screens.length) return <Empty label="No finished screens at this point." />;
-  return <div className="space-y-2">{screens.map((item, index) => { const screen = object(item); return <div key={text(screen.id, String(index))} className="flex items-center justify-between gap-3 rounded-lg bg-[var(--p-surface)] px-3 py-2"><span className="text-[12px] font-semibold">{text(screen.name)}</span><span className="text-[11px] text-[var(--p-text-dim)]">{formatDate(text(screen.date, ""))}</span></div>; })}</div>;
+  if (section === "notes") {
+    const notes = list(data);
+    if (!notes.length) return <Empty label="No notes at this point." />;
+    return <div className="space-y-3">{notes.map((item, index) => {
+      const note = object(item);
+      const client = note.visibility === "client";
+      return <div key={text(note.id, String(index))} className="border-b border-[var(--p-border)] pb-3 last:border-0 last:pb-0">
+        <div className="flex items-center justify-between gap-2">
+          <span className={"rounded-full px-2 py-0.5 text-[10px] font-semibold " + (client ? "bg-[var(--p-accent-weak)] text-[var(--p-accent)]" : "bg-[var(--p-surface)] text-[var(--p-text-dim)]")}>
+            {client ? "Client-visible" : "Internal"}
+          </span>
+          <span className="text-[11px] text-[var(--p-text-dim)]">{formatDate(text(note.date, ""))}</span>
+        </div>
+        <p className="mt-2 text-[13px] leading-relaxed text-[var(--p-text)]">{text(note.body)}</p>
+      </div>;
+    })}</div>;
+  }
+
+  if (section === "screens") {
+    const screens = list(data);
+    if (!screens.length) return <Empty label="No finished screens at this point." />;
+    return <div className="space-y-2">{screens.map((item, index) => { const screen = object(item); return <div key={text(screen.id, String(index))} className="flex items-center justify-between gap-3 rounded-lg bg-[var(--p-surface)] px-3 py-2"><span className="text-[12px] font-semibold">{text(screen.name)}</span><span className="text-[11px] text-[var(--p-text-dim)]">{formatDate(text(screen.date, ""))}</span></div>; })}</div>;
+  }
+
+  // "phase" / "status" snapshots: no dedicated drawer uses these yet, so
+  // just print the raw fields rather than guessing a layout.
+  const snapshot = object(data);
+  const keys = Object.keys(snapshot);
+  if (!keys.length) return <Empty label="No data at this point." />;
+  return <div className="space-y-2">{keys.map((key) => <Row key={key} label={key} value={text(String(snapshot[key]))} />)}</div>;
 }
 
 function Row({ label, value }: { label: string; value: string }) {

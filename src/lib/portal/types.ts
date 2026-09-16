@@ -150,7 +150,14 @@ export type WeeklyUpdate = {
   neededFromYou: string;
 };
 
-export type ProjectHistorySection = "requests" | "links" | "plan" | "screens";
+export type ProjectHistorySection =
+  | "requests"
+  | "links"
+  | "plan"
+  | "screens"
+  | "notes"
+  | "phase"
+  | "status";
 
 /** PM-facing snapshot retained before one of the main console sections changes. */
 export type ProjectHistoryEntry = {

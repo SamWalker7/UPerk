@@ -821,6 +821,14 @@ export default function ConsoleEditor({
             open={open.notes}
             onToggle={() => toggle("notes")}
             summary="Choose who sees each note"
+            headerAction={
+              <SectionHistoryDrawer
+                slug={slug}
+                history={data.projectHistory}
+                section="notes"
+                className="rounded-lg border border-[var(--p-border)] bg-[var(--p-surface)] px-3 py-1.5 text-[12px] font-semibold text-[var(--p-accent)] shadow-sm hover:bg-[var(--p-accent-weak)]"
+              />
+            }
           >
             <NotesEditor
               notes={data.notes || []}
