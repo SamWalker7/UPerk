@@ -30,7 +30,14 @@ export function ProjectNotes({
             key={note.id}
             className="rounded-2xl border border-[var(--p-border)] bg-[var(--p-surface)] p-5"
           >
-            <p className="text-[13px] leading-relaxed text-[var(--p-text)]">{note.body}</p>
+            <div className="flex items-start justify-between gap-3">
+              <p className="text-[13px] leading-relaxed text-[var(--p-text)]">{note.body}</p>
+              {role === "pm" ? (
+                <span className="shrink-0 rounded-full bg-[var(--p-accent-weak)] px-2 py-0.5 text-[12px] font-semibold text-[var(--p-accent)]">
+                  Client visible
+                </span>
+              ) : null}
+            </div>
             <p className="mt-2 text-[12px] text-[var(--p-text-dim)]">
               {note.attribution} · {formatDate(note.date)}
             </p>

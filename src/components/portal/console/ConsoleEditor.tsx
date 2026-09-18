@@ -37,6 +37,15 @@ function uid(prefix: string) {
   return `${prefix}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
+/** Plain-text preview of the agenda's rich-text HTML for the collapsed
+ *  button in the Next call section — the button only ever shows one
+ *  clamped line, so markup there would just render as literal tags. */
+function stripHtml(html: string): string {
+  if (typeof window === "undefined") return html;
+  const doc = new DOMParser().parseFromString(html, "text/html");
+  return doc.body.textContent || "";
+}
+
 /** ISO timestamp; the portal formats it for display via formatDateTime(). */
 function nowStamp() {
   return new Date().toISOString();
@@ -974,8 +983,8 @@ export default function ConsoleEditor({
               className="w-full rounded-lg border border-[var(--p-border)] bg-[var(--p-surface)] px-3 py-2.5 text-left text-[13px] hover:bg-[var(--p-accent-weak)]"
             >
               {data.nextCall?.agenda ? (
-                <span className="line-clamp-1 whitespace-pre-wrap text-[var(--p-text)]">
-                  {data.nextCall.agenda}
+                <span className="line-clamp-1 text-[var(--p-text)]">
+                  {stripHtml(data.nextCall.agenda)}
                 </span>
               ) : (
                 <span className="text-[var(--p-text-dim)]">

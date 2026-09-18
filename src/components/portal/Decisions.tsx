@@ -1,6 +1,7 @@
 import { PmAnnotation } from "./PmAnnotation";
 import { Card, SectionTitle } from "./ui";
 import { formatDate, formatTime } from "@/lib/portal/format";
+import { sanitizeAgendaHtml } from "@/lib/portal/sanitizeHtml";
 import type { Decision, PortalRole } from "@/lib/portal/types";
 
 /**
@@ -107,7 +108,10 @@ export function Decisions({
             ) : null}
           </p>
           {nextCall.agenda ? (
-            <p className="mt-1.5 whitespace-pre-wrap">{nextCall.agenda}</p>
+            <div
+              className="agenda-content mt-1.5 [&_a]:underline [&_a]:underline-offset-2 [&_li]:ml-5 [&_ol]:list-decimal [&_ul]:list-disc"
+              dangerouslySetInnerHTML={{ __html: sanitizeAgendaHtml(nextCall.agenda) }}
+            />
           ) : null}
         </div>
       ) : null}

@@ -68,6 +68,32 @@
   font-family: inherit;
 }
 
+/* Type-size floor: the portal's components mostly set copy in fixed
+   arbitrary sizes (text-[10px]..text-[18px], plus text-xs/text-sm), all
+   below the marketing home page's 19px body-copy floor (see the
+   --text-base override in globals.css, which doesn't reach here because
+   these are arbitrary-value utilities, not the rem-based --text-* scale).
+   Rather than hand-edit every one of those call sites, override the
+   generated utility classes directly so any of them renders at the
+   19px floor instead of its literal value — mirrors the home page's own
+   "raise the floor" approach. `:where()` keeps this at zero specificity
+   so a more specific component rule can still opt out deliberately. */
+.portal-scope :where(
+  .text-xs,
+  .text-sm,
+  .text-\[10px\],
+  .text-\[11px\],
+  .text-\[12px\],
+  .text-\[13px\],
+  .text-\[14px\],
+  .text-\[15px\],
+  .text-\[16px\],
+  .text-\[17px\],
+  .text-\[18px\]
+) {
+  font-size: 19px;
+}
+
 /* Right-hand side sheet: backdrop fade + panel slide. Add .is-open to play the
    in-transition; without it the sheet sits off-screen. */
 .portal-scope .sheet-backdrop {
@@ -136,6 +162,15 @@
 .portal-scope button[disabled],
 .portal-scope [aria-disabled="true"] {
   cursor: not-allowed;
+}
+
+/* Placeholder text for the agenda rich-text editor's contentEditable div
+   — that attribute doesn't exist on contentEditable, so fake it with a
+   ::before shown only while the div is actually empty. */
+.portal-scope .agenda-editor:empty::before {
+  content: attr(data-placeholder);
+  color: var(--p-text-dim);
+  white-space: pre-wrap;
 }
 
 /* PM console layout.
