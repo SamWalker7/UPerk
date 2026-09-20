@@ -21,7 +21,7 @@ export default function ProjectPage() {
 
       <section id="prototype" className="scroll-mt-[7.5rem]">
         <SeeItWorking
-          prototype={data.prototype}
+          links={data.links || []}
           build={data.build}
           role={role}
           slug={data.slug}

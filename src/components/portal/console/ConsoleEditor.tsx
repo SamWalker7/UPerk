@@ -7,6 +7,7 @@ import type {
   Decision,
   FinishedScreen,
   ProjectData,
+  ProjectLink,
   RequestAction,
 } from "@/lib/portal/types";
 import {
@@ -31,6 +32,7 @@ import { type NewRequestInput } from "./RequestDialog";
 import { DecisionHistoryDrawer } from "./DecisionHistoryDrawer";
 import { SectionHistoryDrawer } from "./SectionHistoryDrawer";
 import { formatDate, formatDateTime } from "@/lib/portal/format";
+import { toFigmaEmbedUrl } from "@/lib/portal/figma";
 import { WeeklyHistoryDrawer } from "../WeeklyHistoryDrawer";
 
 function uid(prefix: string) {
@@ -161,8 +163,9 @@ export default function ConsoleEditor({
       status: !eq(data.status, saved.status),
       statusMeta: !eq(data.status, saved.status),
       requests: !eq(data.requests, saved.requests),
-      links:
-        !eq(data.prototype, saved.prototype) || !eq(data.build, saved.build),
+      // Links persist immediately via their own POST/PATCH/DELETE endpoints
+      // (see addLink/updateLink/deleteLink) — only build info goes out here.
+      links: !eq(data.build, saved.build),
       plan: !eq(data.plan, saved.plan),
       screens: !eq(data.finishedScreens, saved.finishedScreens),
       // Decisions are committed immediately through the audit-log endpoint.
@@ -225,7 +228,7 @@ export default function ConsoleEditor({
     const changes: Record<string, unknown> = {};
     const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
     const sections: Array<keyof ProjectData> = [
-      "project", "status", "steps", "requests", "build", "prototype",
+      "project", "status", "steps", "requests", "build",
       "plan", "decisionsIntro", "nextCall", "notes",
     ];
     for (const section of sections) {
@@ -389,6 +392,54 @@ export default function ConsoleEditor({
     }
   }
 
+  async function addLink(input: Omit<ProjectLink, "id">) {
+    setSaving(true);
+    setMessage(null);
+    try {
+      const res = await fetch(`/portal/api/projects/${slug}/links`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(input),
+      });
+      const result = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(result.error || "Could not add link.");
+      const created: ProjectLink = { id: result.id, ...input };
+      setData((previous) => ({ ...previous, links: [...(previous.links || []), created] }));
+      setSaved((previous) => ({ ...previous, links: [...(previous.links || []), created] }));
+      setMessage({ kind: "ok", text: "Link added." });
+    } catch (error) {
+      setMessage({ kind: "err", text: error instanceof Error ? error.message : "Could not add link." });
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function updateLink(id: string, changes: Partial<Omit<ProjectLink, "id">>) {
+    setSaving(true);
+    setMessage(null);
+    try {
+      const res = await fetch(`/portal/api/projects/${slug}/links/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(changes),
+      });
+      const result = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(result.error || "Could not update link.");
+      const apply = (project: ProjectData) => {
+        project.links = (project.links || []).map((l) =>
+          l.id === id ? { ...l, ...changes } : l,
+        );
+      };
+      setData((previous) => { const next = structuredClone(previous) as ProjectData; apply(next); return next; });
+      setSaved((previous) => { const next = structuredClone(previous) as ProjectData; apply(next); return next; });
+      setMessage({ kind: "ok", text: "Link updated." });
+    } catch (error) {
+      setMessage({ kind: "err", text: error instanceof Error ? error.message : "Could not update link." });
+    } finally {
+      setSaving(false);
+    }
+  }
+
   const [uploadingScreens, setUploadingScreens] = useState(false);
 
   /** Uploaded screenshots persist immediately (one POST per image, so one
@@ -497,6 +548,20 @@ export default function ConsoleEditor({
       (d) =>
         (d.finishedScreens = d.finishedScreens.filter((sc) => sc.id !== id)),
       "Screen",
+    );
+
+  const deleteLink = (id: string) =>
+    deleteItem(
+      `/portal/api/projects/${slug}/links/${id}`,
+      (d) => (d.links = (d.links || []).filter((l) => l.id !== id)),
+      "Link",
+    );
+
+  const deleteNote = (id: string) =>
+    deleteItem(
+      `/portal/api/projects/${slug}/notes/${id}`,
+      (d) => (d.notes = (d.notes || []).filter((n) => n.id !== id)),
+      "Note",
     );
 
   // An id that exists in the last-saved data is persisted on the backend and
@@ -843,7 +908,7 @@ export default function ConsoleEditor({
               notes={data.notes || []}
               onChange={(notes) => patch((d) => (d.notes = notes))}
               onAdd={addNote}
-              onSave={save}
+              onDelete={deleteNote}
               saving={saving}
             />
           </Section>
@@ -865,9 +930,12 @@ export default function ConsoleEditor({
             }
           >
             <LinksEditor
-              prototype={data.prototype}
+              links={data.links || []}
               build={data.build}
-              onChange={(fn) => patch((d) => fn(d.prototype, d.build))}
+              onChangeBuild={(fn) => patch((d) => fn(d.build))}
+              onAdd={addLink}
+              onUpdate={updateLink}
+              onDelete={deleteLink}
               onSave={save}
               saving={saving}
               dirty={dirtyMap.links}
@@ -1557,24 +1625,9 @@ function RequestRow({
             checked={r.blocking}
             onChange={(v) => onChange((x) => (x.blocking = v))}
           />
-          <Field
-            label="Client button labels"
-            hint="comma-separated — the client's exact words"
-            value={r.actions.map((a) => a.label).join(", ")}
-            onChange={(v) =>
-              onChange((x) => {
-                x.actions = v
-                  .split(",")
-                  .map((l) => l.trim())
-                  .filter(Boolean)
-                  .map((label, idx) => ({
-                    label,
-                    kind: idx < 2 ? "primary" : "secondary",
-                    intent: intentFor(label),
-                  }));
-              })
-            }
-            placeholder="Choose A, Choose B, Discuss Friday"
+          <ActionsEditor
+            actions={r.actions}
+            onChange={(actions) => onChange((x) => (x.actions = actions))}
           />
           <button
             type="button"
@@ -1595,6 +1648,74 @@ function intentFor(label: string): RequestAction["intent"] {
   if (l.includes("decline") || l.includes("reject")) return "decline";
   if (l.includes("discuss")) return "discuss";
   return "choice";
+}
+
+/** Edits an unbounded list of client-facing action buttons. Labels are typed
+ *  comma-separated (any number, not just two); each button's kind — which
+ *  controls whether it renders as the filled "primary" style or the outlined
+ *  "secondary" style on the client portal — is then set per-button, instead
+ *  of defaulting from its position in the list. */
+function ActionsEditor({
+  actions,
+  onChange,
+}: {
+  actions: RequestAction[];
+  onChange: (actions: RequestAction[]) => void;
+}) {
+  return (
+    <div>
+      <Field
+        label="Client button labels"
+        hint="comma-separated — the client's exact words"
+        value={actions.map((a) => a.label).join(", ")}
+        onChange={(v) => {
+          const labels = v.split(",").map((l) => l.trim()).filter(Boolean);
+          const byLabel = new Map(actions.map((a) => [a.label, a]));
+          onChange(
+            labels.map((label, idx) => {
+              const existing = byLabel.get(label);
+              return (
+                existing || {
+                  label,
+                  kind: idx < 2 ? "primary" : "secondary",
+                  intent: intentFor(label),
+                }
+              );
+            }),
+          );
+        }}
+        placeholder="Choose A, Choose B, Discuss Friday"
+      />
+      {actions.length > 0 ? (
+        <div className="mt-2 flex flex-wrap items-center gap-2">
+          <span className="text-[11px] text-[var(--p-text-dim)]">Style:</span>
+          {actions.map((a, idx) => (
+            <button
+              key={a.label}
+              type="button"
+              onClick={() =>
+                onChange(
+                  actions.map((x, i) =>
+                    i === idx
+                      ? { ...x, kind: x.kind === "primary" ? "secondary" : "primary" }
+                      : x,
+                  ),
+                )
+              }
+              className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${
+                a.kind === "primary"
+                  ? "bg-[var(--p-accent)] text-white"
+                  : "border border-[var(--p-border)] text-[var(--p-text-dim)]"
+              }`}
+              title={`${a.label} — click to make ${a.kind === "primary" ? "secondary" : "primary"}`}
+            >
+              {a.label} · {a.kind}
+            </button>
+          ))}
+        </div>
+      ) : null}
+    </div>
+  );
 }
 
 const RESPOND_MODES = [
@@ -1818,73 +1939,67 @@ function NewRequestDialog({
 
 /* ---------- Preview & build links ---------- */
 
-const OPEN_ON_SCREENS = [
-  "Summary",
-  "Home",
-  "Log",
-  "Recipes",
-  "Settings",
+const LINK_TYPES = [
+  { value: "figma", label: "Figma" },
+  { value: "playstore", label: "Play Store" },
+  { value: "testflight", label: "TestFlight" },
+  { value: "other", label: "Other" },
 ] as const;
 
 function LinksEditor({
-  prototype,
+  links,
   build,
-  onChange,
+  onChangeBuild,
+  onAdd,
+  onUpdate,
+  onDelete,
   onSave,
   saving,
   dirty,
 }: {
-  prototype: ProjectData["prototype"];
+  links: ProjectLink[];
   build: ProjectData["build"];
-  onChange: (
-    fn: (p: ProjectData["prototype"], b: ProjectData["build"]) => void,
-  ) => void;
+  onChangeBuild: (fn: (b: ProjectData["build"]) => void) => void;
+  onAdd: (input: Omit<ProjectLink, "id">) => Promise<void>;
+  onUpdate: (id: string, changes: Partial<Omit<ProjectLink, "id">>) => Promise<void>;
+  onDelete: (id: string) => Promise<void>;
   onSave: () => void;
   saving: boolean;
   dirty: boolean;
 }) {
-  const [testOpen, setTestOpen] = useState(false);
-  const embedSrc = toEmbeddable(prototype.embedUrl || prototype.figmaUrl);
+  const [testOpen, setTestOpen] = useState<ProjectLink | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<ProjectLink | null>(null);
 
   return (
     <div className="space-y-4">
-      <Field
-        label="Figma prototype URL"
-        value={prototype.figmaUrl || ""}
-        onChange={(v) => onChange((p) => (p.figmaUrl = v))}
-        placeholder="https://figma.com/proto/forkthis/r24"
-      />
-      <Field
-        label="TestFlight / Play link"
-        value={prototype.installUrl || ""}
-        onChange={(v) => onChange((p) => (p.installUrl = v))}
-        placeholder="https://testflight.apple.com/join/…"
-      />
-      <div className="grid gap-3 sm:grid-cols-3">
+      <div className="space-y-3">
+        {links.map((link) => (
+          <LinkRow
+            key={link.id}
+            link={link}
+            onUpdate={(changes) => onUpdate(link.id, changes)}
+            onDelete={() => setPendingDelete(link)}
+            onTest={() => setTestOpen(link)}
+          />
+        ))}
+        <NewLinkForm onAdd={onAdd} saving={saving} />
+      </div>
+
+      <div className="grid gap-3 border-t border-[var(--p-border)] pt-4 sm:grid-cols-3">
         <Field
           label="Build number"
           value={build.version}
-          onChange={(v) => onChange((_p, b) => (b.version = v))}
+          onChange={(v) => onChangeBuild((b) => (b.version = v))}
           placeholder="0.9.4"
         />
         <Field
           label="Known issues"
           value={build.knownIssues}
-          onChange={(v) => onChange((_p, b) => (b.knownIssues = v))}
+          onChange={(v) => onChangeBuild((b) => (b.knownIssues = v))}
           placeholder="3 minor, none blocking"
         />
-        <SelectField
-          label="Open on screen"
-          value={
-            (OPEN_ON_SCREENS.find(
-              (o) => o === (prototype.frameLabel || "Summary"),
-            ) as (typeof OPEN_ON_SCREENS)[number]) || "Summary"
-          }
-          options={OPEN_ON_SCREENS}
-          onChange={(v) => onChange((p) => (p.frameLabel = v))}
-        />
       </div>
-      <div className="flex flex-wrap items-center gap-3 border-t border-[var(--p-border)] pt-4">
+      <div className="flex flex-wrap items-center gap-3">
         <button
           type="button"
           onClick={onSave}
@@ -1892,36 +2007,229 @@ function LinksEditor({
           className="flex h-9 items-center gap-2 rounded-lg bg-[var(--p-accent)] px-4 text-[13px] font-semibold text-white hover:brightness-95 disabled:opacity-40"
         >
           {saving ? <Spinner className="h-3.5 w-3.5" /> : null}
-          Save links
-        </button>
-        <button
-          type="button"
-          onClick={() => setTestOpen(true)}
-          disabled={!embedSrc}
-          className="h-9 rounded-lg border border-[var(--p-border)] bg-[var(--p-surface)] px-3 text-[13px] font-medium hover:bg-[var(--p-surface-2)] disabled:opacity-40"
-        >
-          Test the embed
+          Save build info
         </button>
       </div>
 
-      {testOpen && embedSrc ? (
+      {testOpen ? (
         <EmbedTestModal
-          src={embedSrc}
-          title={prototype.frameLabel || "Prototype embed"}
-          onClose={() => setTestOpen(false)}
+          src={toFigmaEmbedUrl(testOpen.url) || testOpen.url}
+          title={testOpen.title || testOpen.url}
+          onClose={() => setTestOpen(null)}
         />
       ) : null}
+
+      <ConfirmDialog
+        open={pendingDelete !== null}
+        title="Delete this link?"
+        body={
+          <>
+            <span className="font-medium text-[var(--p-text)]">
+              {pendingDelete?.title || pendingDelete?.url}
+            </span>{" "}
+            will be permanently removed from the client&apos;s portal. This
+            cannot be undone.
+          </>
+        }
+        confirmLabel="Delete link"
+        onConfirm={async () => {
+          if (pendingDelete) await onDelete(pendingDelete.id);
+          setPendingDelete(null);
+        }}
+        onClose={() => setPendingDelete(null)}
+      />
     </div>
   );
 }
 
-function toEmbeddable(url: string | undefined): string | null {
-  const u = (url || "").trim();
-  if (!u) return null;
-  if (/figma\.com/.test(u) && !/\/embed/.test(u)) {
-    return `https://www.figma.com/embed?embed_host=share&url=${encodeURIComponent(u)}`;
+function LinkRow({
+  link,
+  onUpdate,
+  onDelete,
+  onTest,
+}: {
+  link: ProjectLink;
+  onUpdate: (changes: Partial<Omit<ProjectLink, "id">>) => Promise<void>;
+  onDelete: () => void;
+  onTest: () => void;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const embeddable = link.type === "figma" && Boolean(toFigmaEmbedUrl(link.url));
+
+  return (
+    <ItemCard
+      title={link.title || link.url}
+      index={0}
+      count={1}
+      onRemove={onDelete}
+    >
+      {!expanded ? (
+        <div className="flex flex-wrap items-center gap-2 text-[12px] text-[var(--p-text-dim)]">
+          <span className="rounded-full bg-[var(--p-surface)] px-2 py-0.5 font-semibold">
+            {LINK_TYPES.find((t) => t.value === link.type)?.label || link.type}
+          </span>
+          {link.buildVersion ? <span>{link.buildVersion}</span> : null}
+          <button
+            type="button"
+            onClick={() => setExpanded(true)}
+            className="ml-auto rounded-md border border-[var(--p-border)] px-2.5 py-1 font-medium text-[var(--p-text)] hover:bg-[var(--p-surface)]"
+          >
+            Edit
+          </button>
+          {embeddable ? (
+            <button
+              type="button"
+              onClick={onTest}
+              className="rounded-md border border-[var(--p-border)] px-2.5 py-1 font-medium text-[var(--p-text)] hover:bg-[var(--p-surface)]"
+            >
+              Test
+            </button>
+          ) : null}
+        </div>
+      ) : (
+        <div className="space-y-3">
+          <Grid>
+            <SelectField
+              label="Type"
+              value={link.type}
+              options={LINK_TYPES}
+              onChange={(v) => onUpdate({ type: v })}
+            />
+            <Field
+              label="Build version"
+              value={link.buildVersion || ""}
+              onChange={(v) => onUpdate({ buildVersion: v || undefined })}
+              placeholder="v1.2.0"
+            />
+          </Grid>
+          <Field
+            label="URL"
+            value={link.url}
+            onChange={(v) => onUpdate({ url: v })}
+            placeholder="https://…"
+          />
+          <Field
+            label="Title"
+            value={link.title || ""}
+            onChange={(v) => onUpdate({ title: v || undefined })}
+            placeholder="Latest prototype"
+          />
+          <Field
+            label="Description"
+            value={link.description || ""}
+            onChange={(v) => onUpdate({ description: v || undefined })}
+            textarea
+            rows={2}
+            placeholder="Updated checkout flow"
+          />
+          <button
+            type="button"
+            onClick={() => setExpanded(false)}
+            className="text-[12px] font-medium text-[var(--p-accent)] underline underline-offset-2"
+          >
+            Done
+          </button>
+        </div>
+      )}
+    </ItemCard>
+  );
+}
+
+function NewLinkForm({
+  onAdd,
+  saving,
+}: {
+  onAdd: (input: Omit<ProjectLink, "id">) => Promise<void>;
+  saving: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  const [type, setType] = useState<ProjectLink["type"]>("figma");
+  const [url, setUrl] = useState("");
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [buildVersion, setBuildVersion] = useState("");
+
+  function reset() {
+    setType("figma");
+    setUrl("");
+    setTitle("");
+    setDescription("");
+    setBuildVersion("");
   }
-  return u;
+
+  async function submit() {
+    if (!url.trim()) return;
+    await onAdd({
+      type,
+      url: url.trim(),
+      ...(title.trim() ? { title: title.trim() } : {}),
+      ...(description.trim() ? { description: description.trim() } : {}),
+      ...(buildVersion.trim() ? { buildVersion: buildVersion.trim() } : {}),
+    });
+    reset();
+    setOpen(false);
+  }
+
+  if (!open) {
+    return <AddButton label="+ Add link" onClick={() => setOpen(true)} />;
+  }
+
+  return (
+    <div className="rounded-xl border border-dashed border-[var(--p-border)] p-3 sm:p-4">
+      <div className="space-y-3">
+        <Grid>
+          <SelectField label="Type" value={type} options={LINK_TYPES} onChange={setType} />
+          <Field
+            label="Build version"
+            value={buildVersion}
+            onChange={setBuildVersion}
+            placeholder="v1.2.0"
+          />
+        </Grid>
+        <Field
+          label="URL"
+          value={url}
+          onChange={setUrl}
+          placeholder="https://figma.com/proto/forkthis/r24"
+        />
+        <Field
+          label="Title"
+          value={title}
+          onChange={setTitle}
+          placeholder="Latest prototype"
+        />
+        <Field
+          label="Description"
+          value={description}
+          onChange={setDescription}
+          textarea
+          rows={2}
+          placeholder="Updated checkout flow"
+        />
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={submit}
+            disabled={saving || !url.trim()}
+            className="flex h-9 items-center gap-2 rounded-lg bg-[var(--p-accent)] px-4 text-[13px] font-semibold text-white hover:brightness-95 disabled:opacity-40"
+          >
+            {saving ? <Spinner className="h-3.5 w-3.5" /> : null}
+            Add link
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              reset();
+              setOpen(false);
+            }}
+            className="text-[12px] font-medium text-[var(--p-text-dim)] underline underline-offset-2"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 /** Full-screen preview of the prototype embed, so the PM can check the link
@@ -1990,15 +2298,15 @@ function NotesEditor({
   notes,
   onChange,
   onAdd,
-  onSave,
+  onDelete,
   saving,
 }: {
   notes: NoteItem[];
   onChange: (n: NoteItem[]) => void;
   onAdd: (input: { body: string; visibility: NoteItem["visibility"] }) => Promise<void>;
-  /** Remove / visibility-toggle have no dedicated backend endpoint (only
-   *  POST /notes exists) — those two still go out via the full-project save. */
-  onSave: () => void;
+  onDelete: (id: string) => Promise<void>;
+  /** Visibility toggle has no dedicated backend endpoint (only POST/DELETE
+   *  /notes exist) — it goes out via the section's normal "Save draft". */
   saving: boolean;
 }) {
   const [draft, setDraft] = useState("");
@@ -2067,10 +2375,7 @@ function NotesEditor({
                 </p>
                 <button
                   type="button"
-                  onClick={() => {
-                    onChange(notes.filter((x) => x.id !== n.id));
-                    onSave();
-                  }}
+                  onClick={() => onDelete(n.id)}
                   className="shrink-0 text-[12px] font-medium text-[var(--p-risk)] underline underline-offset-2"
                 >
                   Remove

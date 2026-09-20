@@ -214,6 +214,32 @@ export async function addNote(
   }
 }
 
+export async function addLink(
+  token: string,
+  slug: string,
+  link: Record<string, unknown>,
+): Promise<{ ok: true; id: string } | WriteResult> {
+  try {
+    return { ok: true, ...(await backend.addLink(token, slug, link)) };
+  } catch (err) {
+    return toWriteResult(err);
+  }
+}
+
+export async function updateLink(
+  token: string,
+  slug: string,
+  id: string,
+  changes: Record<string, unknown>,
+): Promise<WriteResult> {
+  try {
+    await backend.updateLink(token, slug, id, changes);
+    return { ok: true };
+  } catch (err) {
+    return toWriteResult(err);
+  }
+}
+
 export async function getWeeklyHistory(
   token: string,
   slug: string,
@@ -290,6 +316,14 @@ export async function deleteScreen(
 
 export async function updateScreen(token: string, slug: string, id: string, screen: Record<string, unknown>): Promise<WriteResult> {
   try { await backend.updateScreen(token, slug, id, screen); return { ok: true }; } catch (err) { return toWriteResult(err); }
+}
+
+export async function deleteLink(token: string, slug: string, id: string): Promise<WriteResult> {
+  try { await backend.deleteLink(token, slug, id); return { ok: true }; } catch (err) { return toWriteResult(err); }
+}
+
+export async function deleteNote(token: string, slug: string, id: string): Promise<WriteResult> {
+  try { await backend.deleteNote(token, slug, id); return { ok: true }; } catch (err) { return toWriteResult(err); }
 }
 
 export async function addScreen(token: string, slug: string, screen: Record<string, unknown>): Promise<{ ok: true; id: string } | WriteResult> {

@@ -26,7 +26,7 @@
   --p-risk: #dc2626;
   --p-risk-bg: #fef2f2;
 
-  --p-font: var(--font-figtree), ui-sans-serif, system-ui, -apple-system,
+  --p-font: var(--font-inter), ui-sans-serif, system-ui, -apple-system,
     "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 
   background: var(--p-bg);

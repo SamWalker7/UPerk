@@ -3,7 +3,14 @@ import { PrototypeEmbed } from "./PrototypeEmbed";
 import { Card, SectionTitle } from "./ui";
 import { formatDate } from "@/lib/portal/format";
 import { toFigmaEmbedUrl } from "@/lib/portal/figma";
-import type { BuildInfo, PortalRole, PrototypeLinks } from "@/lib/portal/types";
+import type { BuildInfo, PortalRole, ProjectLink } from "@/lib/portal/types";
+
+const LINK_TYPE_LABEL: Record<ProjectLink["type"], string> = {
+  figma: "Figma file",
+  playstore: "Play Store build",
+  testflight: "TestFlight build",
+  other: "Link",
+};
 
 function LinkButton({
   href,
@@ -77,34 +84,33 @@ function Fact({
 }
 
 export function SeeItWorking({
-  prototype,
+  links,
   build,
   role,
   slug,
 }: {
-  prototype: PrototypeLinks;
+  links: ProjectLink[];
   build: BuildInfo;
   role: PortalRole;
   slug: string;
 }) {
-  // What goes in the iframe: an explicit embedUrl wins; otherwise derive an
-  // embeddable URL from whichever link is a Figma URL. This lets the PM paste a
-  // normal Figma share link and have it just work.
-  const embedSrc =
-    prototype.embedUrl?.trim() ||
-    toFigmaEmbedUrl(prototype.figmaUrl) ||
-    toFigmaEmbedUrl(prototype.prototypeUrl) ||
-    null;
+  const figmaLink = links.find((l) => l.type === "figma");
+  const installLink = links.find((l) => l.type === "playstore" || l.type === "testflight");
+  const primaryLink = links[0];
+  const otherLinks = links.filter((l) => l !== figmaLink && l !== installLink && l !== primaryLink);
+
+  // What goes in the iframe: derive an embeddable URL from the Figma link.
+  const embedSrc = toFigmaEmbedUrl(figmaLink?.url) || null;
 
   return (
     <div>
-      <SectionTitle title="See it working" aside={prototype.caption} />
+      <SectionTitle title="See it working" aside={primaryLink?.description} />
       <div className="grid gap-4 lg:grid-cols-2 lg:gap-5">
         <Card className="flex items-center justify-center">
           {embedSrc ? (
             <PrototypeEmbed
               src={embedSrc}
-              title={prototype.frameLabel || "Embedded prototype"}
+              title={figmaLink?.title || "Embedded prototype"}
             />
           ) : (
             <div className="flex h-[480px] w-full max-w-[280px] flex-col items-center justify-center rounded-2xl border border-dashed border-[var(--p-border)] bg-[var(--p-surface-2)] px-6 text-center text-[12px] text-[var(--p-text-dim)]">
@@ -132,7 +138,7 @@ export function SeeItWorking({
                   strokeLinejoin="round"
                 />
               </svg>
-              {prototype.frameLabel || "Embedded prototype"}
+              {figmaLink?.title || "Embedded prototype"}
             </div>
           )}
         </Card>
@@ -144,13 +150,15 @@ export function SeeItWorking({
             what is built.
           </p>
           <div className="mt-4 flex flex-wrap gap-2">
-            <LinkButton href={prototype.prototypeUrl} primary>
-              Open the prototype
-            </LinkButton>
-            <LinkButton href={prototype.installUrl}>
-              {prototype.installLabel || "Install build"}
-            </LinkButton>
-            <LinkButton href={prototype.figmaUrl}>Figma file</LinkButton>
+            {links.length === 0 ? (
+              <LinkButton primary>Open the prototype</LinkButton>
+            ) : (
+              links.map((link) => (
+                <LinkButton key={link.id} href={link.url} primary={link === primaryLink}>
+                  {link.title || LINK_TYPE_LABEL[link.type]}
+                </LinkButton>
+              ))
+            )}
           </div>
 
           <Card className="mt-4 py-2">
@@ -170,25 +178,38 @@ export function SeeItWorking({
             <Fact label="Tested on" value={build.testedOn} />
           </Card>
 
+          {otherLinks.length > 0 ? (
+            <div className="mt-4 space-y-2">
+              {otherLinks.map((link) => (
+                <div
+                  key={link.id}
+                  className="rounded-lg border border-[var(--p-border)] bg-[var(--p-surface)] px-3 py-2 text-[12px]"
+                >
+                  <p className="font-semibold text-[var(--p-text)]">
+                    {link.title || LINK_TYPE_LABEL[link.type]}
+                    {link.buildVersion ? ` — ${link.buildVersion}` : ""}
+                  </p>
+                  {link.description ? (
+                    <p className="mt-0.5 text-[var(--p-text-dim)]">{link.description}</p>
+                  ) : null}
+                </div>
+              ))}
+            </div>
+          ) : null}
+
           {role === "pm" ? (
             <PmAnnotation
               linkLabel="+ Add / replace links"
               href={`/console?p=${slug}`}
             >
-              {prototype.pmNote ? (
-                prototype.pmNote
-              ) : (
-                <>
-                  <span className="font-semibold text-[var(--p-text)]">
-                    — how this area gets filled
-                  </span>
-                  <span className="mt-1.5 block">
-                    Paste a Figma prototype or share URL and a TestFlight or Play
-                    link; the embed and the buttons update together. Build number,
-                    issue count and device list are typed once per push.
-                  </span>
-                </>
-              )}
+              <span className="font-semibold text-[var(--p-text)]">
+                — how this area gets filled
+              </span>
+              <span className="mt-1.5 block">
+                Add a Figma prototype or share URL and a TestFlight or Play link;
+                the embed and the buttons update together. Give each link its own
+                title, description and build version.
+              </span>
             </PmAnnotation>
           ) : null}
         </div>

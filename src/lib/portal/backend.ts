@@ -149,6 +149,19 @@ export const backend = {
       body: data as Json,
     }),
 
+  addLink: (token: string, slug: string, data: unknown) =>
+    request<{ id: string }>(`/api/projects/${encodeURIComponent(slug)}/links`, {
+      method: "POST",
+      token,
+      body: data as Json,
+    }),
+
+  updateLink: (token: string, slug: string, id: string, changes: unknown) =>
+    request<{ ok: true }>(
+      `/api/projects/${encodeURIComponent(slug)}/links/${encodeURIComponent(id)}`,
+      { method: "PATCH", token, body: changes as Json },
+    ),
+
   getDecisions: (token: string, slug: string) =>
     request<{ decisions: unknown[]; total?: number; active?: number }>(
       `/api/projects/${encodeURIComponent(slug)}/decisions`,
@@ -213,6 +226,18 @@ export const backend = {
   deleteScreen: (token: string, slug: string, id: string) =>
     request<{ ok: true }>(
       `/api/projects/${encodeURIComponent(slug)}/screens/${encodeURIComponent(id)}`,
+      { method: "DELETE", token },
+    ),
+
+  deleteLink: (token: string, slug: string, id: string) =>
+    request<{ ok: true }>(
+      `/api/projects/${encodeURIComponent(slug)}/links/${encodeURIComponent(id)}`,
+      { method: "DELETE", token },
+    ),
+
+  deleteNote: (token: string, slug: string, id: string) =>
+    request<{ ok: true }>(
+      `/api/projects/${encodeURIComponent(slug)}/notes/${encodeURIComponent(id)}`,
       { method: "DELETE", token },
     ),
 

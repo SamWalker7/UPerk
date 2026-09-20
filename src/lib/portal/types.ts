@@ -84,6 +84,22 @@ export type PrototypeLinks = {
   pmNote?: string;
 };
 
+export type LinkType = "figma" | "playstore" | "testflight" | "other";
+
+/** One preview/build link (Figma file, Play Store/TestFlight build, or other
+ *  reference URL), each with its own title, description and build details —
+ *  replaces the old single-value PrototypeLinks fields. */
+export type ProjectLink = {
+  id: string;
+  type: LinkType;
+  url: string;
+  title?: string;
+  description?: string;
+  buildVersion?: string;
+  /** free-form extra fields, e.g. { screen: "Checkout" } */
+  details?: Record<string, unknown>;
+};
+
 export type FinishedScreen = {
   id: string;
   name: string;
@@ -186,7 +202,9 @@ export type ProjectData = {
   steps: { label: string; state: StepState }[];
   requests: ClientRequest[];
   build: BuildInfo;
+  /** @deprecated use links */
   prototype: PrototypeLinks;
+  links?: ProjectLink[];
   plan: {
     /** e.g. "8 June — 6 November" */
     rangeLabel: string;

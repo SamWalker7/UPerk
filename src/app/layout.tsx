@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, Figtree, Space_Grotesk, Manrope } from "next/font/google";
+import { Inter, Space_Grotesk, Manrope } from "next/font/google";
 import { Suspense } from "react";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -8,17 +8,12 @@ import GoogleAnalytics from "@/components/analytics/GoogleAnalytics";
 
 import "./globals.css";
 
+// Site-wide body font. Also exposed as --font-inter for the client portal
+// (/portal) and PM console, which pick it up via --p-font in portal.css.
 const inter = Inter({
   subsets: ["latin"],
   display: "swap",
-});
-
-// The client portal (/portal) uses Figtree; wired in as a CSS variable that
-// portal.css picks up via --p-font.
-const figtree = Figtree({
-  subsets: ["latin"],
-  display: "swap",
-  variable: "--font-figtree",
+  variable: "--font-inter",
 });
 
 const spaceGrotesk = Space_Grotesk({
@@ -103,7 +98,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.className} ${figtree.variable} ${spaceGrotesk.variable} ${manrope.variable} antialiased`}>
+      <body className={`${inter.className} ${inter.variable} ${spaceGrotesk.variable} ${manrope.variable} antialiased`}>
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(ORGANIZATION_JSON_LD) }} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(WEBSITE_JSON_LD) }} />
         <Suspense fallback={null}>
