@@ -1657,11 +1657,9 @@ function intentFor(label: string): RequestAction["intent"] {
   return "choice";
 }
 
-/** Edits an unbounded list of client-facing action buttons. Labels are typed
- *  comma-separated (any number, not just two); each button's kind — which
- *  controls whether it renders as the filled "primary" style or the outlined
- *  "secondary" style on the client portal — is then set per-button, instead
- *  of defaulting from its position in the list. */
+/** Edits an unbounded list of client-facing action buttons: one row per
+ *  button (label + primary/secondary toggle + remove), with an "+ Add
+ *  button" control to append more — not a comma-separated field. */
 function ActionsEditor({
   actions,
   onChange,
@@ -1669,58 +1667,80 @@ function ActionsEditor({
   actions: RequestAction[];
   onChange: (actions: RequestAction[]) => void;
 }) {
+  function updateAt(idx: number, fn: (a: RequestAction) => RequestAction) {
+    onChange(actions.map((a, i) => (i === idx ? fn(a) : a)));
+  }
+
+  function addButton() {
+    const label = `Button ${actions.length + 1}`;
+    onChange([
+      ...actions,
+      { label, kind: actions.length === 0 ? "primary" : "secondary", intent: intentFor(label) },
+    ]);
+  }
+
+  function removeAt(idx: number) {
+    onChange(actions.filter((_, i) => i !== idx));
+  }
+
   return (
     <div>
-      <Field
-        label="Client button labels"
-        hint="comma-separated — the client's exact words"
-        value={actions.map((a) => a.label).join(", ")}
-        onChange={(v) => {
-          const labels = v.split(",").map((l) => l.trim()).filter(Boolean);
-          const byLabel = new Map(actions.map((a) => [a.label, a]));
-          onChange(
-            labels.map((label, idx) => {
-              const existing = byLabel.get(label);
-              return (
-                existing || {
-                  label,
-                  kind: idx < 2 ? "primary" : "secondary",
-                  intent: intentFor(label),
-                }
-              );
-            }),
-          );
-        }}
-        placeholder="Choose A, Choose B, Discuss Friday"
-      />
-      {actions.length > 0 ? (
-        <div className="mt-2 flex flex-wrap items-center gap-2">
-          <span className="text-[11px] text-[var(--p-text-dim)]">Style:</span>
-          {actions.map((a, idx) => (
+      <span className="mb-1 flex items-center justify-between gap-2 text-[12px] font-medium text-[var(--p-text-dim)]">
+        Client buttons
+        <span className="font-normal text-[var(--p-text-dim)]/80">
+          the client&apos;s exact words
+        </span>
+      </span>
+      <div className="space-y-2">
+        {actions.map((a, idx) => (
+          <div key={idx} className="flex items-center gap-2">
+            <input
+              value={a.label}
+              onChange={(e) =>
+                updateAt(idx, (x) => ({
+                  ...x,
+                  label: e.target.value,
+                  intent: intentFor(e.target.value),
+                }))
+              }
+              placeholder="Choose A"
+              className="w-full rounded-lg border border-[var(--p-border)] bg-[var(--p-surface)] px-3 py-2 text-[13px] outline-none focus:border-[var(--p-accent)]"
+            />
             <button
-              key={a.label}
               type="button"
               onClick={() =>
-                onChange(
-                  actions.map((x, i) =>
-                    i === idx
-                      ? { ...x, kind: x.kind === "primary" ? "secondary" : "primary" }
-                      : x,
-                  ),
-                )
+                updateAt(idx, (x) => ({
+                  ...x,
+                  kind: x.kind === "primary" ? "secondary" : "primary",
+                }))
               }
-              className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${
+              className={`shrink-0 rounded-full px-2.5 py-1.5 text-[11px] font-semibold ${
                 a.kind === "primary"
                   ? "bg-[var(--p-accent)] text-white"
                   : "border border-[var(--p-border)] text-[var(--p-text-dim)]"
               }`}
-              title={`${a.label} — click to make ${a.kind === "primary" ? "secondary" : "primary"}`}
+              title={`Click to make ${a.kind === "primary" ? "secondary" : "primary"}`}
             >
-              {a.label} · {a.kind}
+              {a.kind === "primary" ? "Primary" : "Secondary"}
             </button>
-          ))}
-        </div>
-      ) : null}
+            <button
+              type="button"
+              onClick={() => removeAt(idx)}
+              aria-label="Remove button"
+              className="shrink-0 rounded-md px-2 py-1.5 text-[12px] font-medium text-[var(--p-risk)] hover:bg-[var(--p-risk-bg)]"
+            >
+              ×
+            </button>
+          </div>
+        ))}
+      </div>
+      <button
+        type="button"
+        onClick={addButton}
+        className="mt-2 rounded-lg border border-dashed border-[var(--p-border)] px-3 py-1.5 text-[12px] font-medium text-[var(--p-accent)] hover:bg-[var(--p-accent-weak)]"
+      >
+        + Add button
+      </button>
     </div>
   );
 }
@@ -1871,8 +1891,7 @@ function NewRequestDialog({
         <p className="text-[12px] text-[var(--p-text-dim)]">
           Button labels are the client&apos;s exact words — write them the way
           you&apos;d say it on a call, not as a status (&ldquo;Choose A&rdquo;,
-          not &ldquo;Option 1 selected&rdquo;). Add as many as you need — style
-          each one primary or secondary below the field.
+          not &ldquo;Option 1 selected&rdquo;).
         </p>
         <CheckField
           label="Nudge at 3 and 7 days"
