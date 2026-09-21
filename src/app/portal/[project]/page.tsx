@@ -33,14 +33,14 @@ export default function ProjectPage() {
       </section>
 
       <section className="scroll-mt-6">
-        <ProjectNotes notes={data.notes} role={role} />
+        <ProjectNotes notes={data.notes} role={role} slug={data.slug} />
       </section>
 
-      <div className="grid items-start gap-10 lg:grid-cols-2 lg:gap-8">
-        <section className="scroll-mt-6">
+      <div className="grid min-w-0 items-start gap-10 lg:grid-cols-2 lg:gap-8">
+        <section className="min-w-0 scroll-mt-6">
           <JustFinished screens={data.finishedScreens} role={role} slug={data.slug} />
         </section>
-        <section id="decisions" className="scroll-mt-6">
+        <section id="decisions" className="min-w-0 scroll-mt-6">
           <Decisions
             decisions={data.decisions}
             intro={data.decisionsIntro}

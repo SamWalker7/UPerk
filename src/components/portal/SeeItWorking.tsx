@@ -1,3 +1,6 @@
+"use client";
+
+import { useRef, useState } from "react";
 import { PmAnnotation } from "./PmAnnotation";
 import { PrototypeEmbed } from "./PrototypeEmbed";
 import { Card, SectionTitle } from "./ui";
@@ -12,36 +15,87 @@ const LINK_TYPE_LABEL: Record<ProjectLink["type"], string> = {
   other: "Link",
 };
 
-function LinkButton({
-  href,
-  children,
-  primary,
+/** One item in the horizontally-scrollable link strip: just the title/type
+ *  as a label. Clicking it selects that link as the active one, so its
+ *  title/description/build-version (with its own "Open" button) surface
+ *  below — same for every viewer, nothing is edited. */
+function LinkCard({
+  link,
+  active,
+  onSelect,
 }: {
-  href?: string;
-  children: React.ReactNode;
-  primary?: boolean;
+  link: ProjectLink;
+  active: boolean;
+  onSelect: () => void;
 }) {
-  const cls = primary
-    ? "bg-[var(--p-accent)] text-white hover:opacity-90"
-    : "border border-[var(--p-border)] text-[var(--p-text)] hover:bg-[var(--p-surface-2)]";
-  if (!href) {
-    return (
-      <span
-        className={`cursor-not-allowed rounded-lg px-4 py-2 text-[13px] font-semibold opacity-40 ${cls}`}
+  const label = link.title || LINK_TYPE_LABEL[link.type];
+  const cls = active
+    ? "bg-[var(--p-accent)] text-white"
+    : "border border-[var(--p-border)] bg-[var(--p-surface)] text-[var(--p-text)]";
+  return (
+    <button
+      type="button"
+      onClick={onSelect}
+      title={label}
+      className={`shrink-0 snap-start truncate rounded-lg px-4 py-2 text-[13px] font-semibold ${cls}`}
+      style={{ maxWidth: 200 }}
+    >
+      {label}
+    </button>
+  );
+}
+
+/** Horizontally-scrollable row with no visible scrollbar and left/right nav
+ *  buttons at the ends — used instead of flex-wrap so an unbounded number of
+ *  links stays on one row. */
+function ScrollRow({ children }: { children: React.ReactNode }) {
+  const trackRef = useRef<HTMLDivElement>(null);
+  const [atStart, setAtStart] = useState(true);
+  const [atEnd, setAtEnd] = useState(false);
+
+  function updateEdges() {
+    const el = trackRef.current;
+    if (!el) return;
+    setAtStart(el.scrollLeft <= 1);
+    setAtEnd(el.scrollLeft + el.clientWidth >= el.scrollWidth - 1);
+  }
+
+  function scrollBy(dir: -1 | 1) {
+    trackRef.current?.scrollBy({ left: dir * 200, behavior: "smooth" });
+  }
+
+  return (
+    <div className="flex items-center gap-2">
+      <button
+        type="button"
+        onClick={() => scrollBy(-1)}
+        disabled={atStart}
+        aria-label="Scroll left"
+        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[var(--p-border)] bg-[var(--p-surface)] text-[var(--p-text-dim)] disabled:opacity-30"
+      >
+        <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4" aria-hidden>
+          <path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </button>
+      <div
+        ref={trackRef}
+        onScroll={updateEdges}
+        className="flex min-w-0 flex-1 snap-x snap-mandatory gap-2 overflow-x-auto scroll-smooth px-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         {children}
-      </span>
-    );
-  }
-  return (
-    <a
-      href={href}
-      target="_blank"
-      rel="noreferrer"
-      className={`rounded-lg px-4 py-2 text-[13px] font-semibold ${cls}`}
-    >
-      {children}
-    </a>
+      </div>
+      <button
+        type="button"
+        onClick={() => scrollBy(1)}
+        disabled={atEnd}
+        aria-label="Scroll right"
+        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[var(--p-border)] bg-[var(--p-surface)] text-[var(--p-text-dim)] disabled:opacity-30"
+      >
+        <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4" aria-hidden>
+          <path d="M9 6l6 6-6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </button>
+    </div>
   );
 }
 
@@ -94,24 +148,54 @@ export function SeeItWorking({
   role: PortalRole;
   slug: string;
 }) {
-  const figmaLink = links.find((l) => l.type === "figma");
-  const installLink = links.find((l) => l.type === "playstore" || l.type === "testflight");
-  const primaryLink = links[0];
-  const otherLinks = links.filter((l) => l !== figmaLink && l !== installLink && l !== primaryLink);
+  const [activeLinkId, setActiveLinkId] = useState<string | null>(null);
+  const activeLink = links.find((l) => l.id === activeLinkId) || links[0];
 
-  // What goes in the iframe: derive an embeddable URL from the Figma link.
-  const embedSrc = toFigmaEmbedUrl(figmaLink?.url) || null;
+  // Figma links embed in the iframe; anything else (Play Store, TestFlight,
+  // other) can't be framed, so it gets a coloured card with an Open button
+  // instead of a dead placeholder.
+  const embedSrc =
+    activeLink?.type === "figma" ? toFigmaEmbedUrl(activeLink.url) : null;
 
   return (
     <div>
-      <SectionTitle title="See it working" aside={primaryLink?.description} />
+      <SectionTitle title="See it working" />
       <div className="grid gap-4 lg:grid-cols-2 lg:gap-5">
         <Card className="flex items-center justify-center">
           {embedSrc ? (
             <PrototypeEmbed
               src={embedSrc}
-              title={figmaLink?.title || "Embedded prototype"}
+              title={activeLink?.title || "Embedded prototype"}
             />
+          ) : activeLink ? (
+            <div className="flex h-[480px] w-full max-w-[280px] flex-col items-center justify-center gap-4 rounded-2xl bg-[var(--p-accent-weak)] px-6 text-center">
+              <p className="text-[14px] font-semibold text-[var(--p-text)]">
+                {activeLink.title || LINK_TYPE_LABEL[activeLink.type]}
+              </p>
+              {activeLink.url?.trim() ? (
+                <a
+                  href={activeLink.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-[var(--p-accent)] px-4 py-2 text-[13px] font-semibold text-white hover:opacity-90"
+                >
+                  Open
+                  <svg viewBox="0 0 24 24" fill="none" className="h-3.5 w-3.5" aria-hidden>
+                    <path
+                      d="M7 17L17 7M17 7H9M17 7V15"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </a>
+              ) : (
+                <span className="cursor-not-allowed rounded-lg bg-[var(--p-accent)] px-4 py-2 text-[13px] font-semibold text-white opacity-40">
+                  Open
+                </span>
+              )}
+            </div>
           ) : (
             <div className="flex h-[480px] w-full max-w-[280px] flex-col items-center justify-center rounded-2xl border border-dashed border-[var(--p-border)] bg-[var(--p-surface-2)] px-6 text-center text-[12px] text-[var(--p-text-dim)]">
               <svg
@@ -138,7 +222,7 @@ export function SeeItWorking({
                   strokeLinejoin="round"
                 />
               </svg>
-              {figmaLink?.title || "Embedded prototype"}
+              Embedded prototype
             </div>
           )}
         </Card>
@@ -149,53 +233,87 @@ export function SeeItWorking({
             would the real app — it refreshes every time we push work, so what is here is
             what is built.
           </p>
-          <div className="mt-4 flex flex-wrap gap-2">
+          <div className="mt-4">
             {links.length === 0 ? (
-              <LinkButton primary>Open the prototype</LinkButton>
+              <span className="inline-block cursor-not-allowed rounded-lg bg-[var(--p-accent)] px-4 py-2 text-[13px] font-semibold text-white opacity-40">
+                Open the prototype
+              </span>
             ) : (
-              links.map((link) => (
-                <LinkButton key={link.id} href={link.url} primary={link === primaryLink}>
-                  {link.title || LINK_TYPE_LABEL[link.type]}
-                </LinkButton>
-              ))
+              <ScrollRow>
+                {links.map((link) => (
+                  <LinkCard
+                    key={link.id}
+                    link={link}
+                    active={link === activeLink}
+                    onSelect={() => setActiveLinkId(link.id)}
+                  />
+                ))}
+              </ScrollRow>
             )}
           </div>
 
-          <Card className="mt-4 py-2">
-            <Fact
-              label="Latest build"
-              value={`${build.version} — ${formatDate(build.date)}`}
-            />
-            <Fact
-              label="Screens in prototype"
-              value={`${build.screensBuilt} of ${build.screensTotal}`}
-            />
-            <Fact
-              label="Known issues"
-              value={build.knownIssues}
-              dot={knownIssuesDot(build.knownIssues)}
-            />
-            <Fact label="Tested on" value={build.testedOn} />
-          </Card>
-
-          {otherLinks.length > 0 ? (
-            <div className="mt-4 space-y-2">
-              {otherLinks.map((link) => (
-                <div
-                  key={link.id}
-                  className="rounded-lg border border-[var(--p-border)] bg-[var(--p-surface)] px-3 py-2 text-[12px]"
-                >
-                  <p className="font-semibold text-[var(--p-text)]">
-                    {link.title || LINK_TYPE_LABEL[link.type]}
-                    {link.buildVersion ? ` — ${link.buildVersion}` : ""}
-                  </p>
-                  {link.description ? (
-                    <p className="mt-0.5 text-[var(--p-text-dim)]">{link.description}</p>
-                  ) : null}
-                </div>
-              ))}
-            </div>
-          ) : null}
+          {(() => {
+            const latestBuild = [build.version, formatDate(build.date)]
+              .filter(Boolean)
+              .join(" — ");
+            const screens = build.screensBuilt || build.screensTotal
+              ? `${build.screensBuilt} of ${build.screensTotal}`
+              : "";
+            const rows = [
+              activeLink?.buildVersion
+                ? { label: "Build version", value: activeLink.buildVersion }
+                : null,
+              latestBuild ? { label: "Latest build", value: latestBuild } : null,
+              screens ? { label: "Screens in prototype", value: screens } : null,
+              build.knownIssues
+                ? { label: "Known issues", value: build.knownIssues, dot: knownIssuesDot(build.knownIssues) }
+                : null,
+              build.testedOn ? { label: "Tested on", value: build.testedOn } : null,
+            ].filter((r): r is NonNullable<typeof r> => r !== null);
+            const hasHeader = Boolean(activeLink?.title || activeLink?.description);
+            const hasOpen = Boolean(activeLink?.url?.trim());
+            if (rows.length === 0 && !hasHeader && !hasOpen) return null;
+            return (
+              <Card className="mt-4 py-2">
+                {hasHeader ? (
+                  <div
+                    className={`py-3 first:pt-0 ${rows.length > 0 || hasOpen ? "border-b border-[var(--p-border)]" : ""}`}
+                  >
+                    {activeLink?.title ? (
+                      <p className="text-[14px] font-bold text-[var(--p-text)]">{activeLink.title}</p>
+                    ) : null}
+                    {activeLink?.description ? (
+                      <p className="mt-1 text-[13px] text-[var(--p-text-dim)]">{activeLink.description}</p>
+                    ) : null}
+                  </div>
+                ) : null}
+                {rows.map((row) => (
+                  <Fact key={row.label} label={row.label} value={row.value} dot={"dot" in row ? row.dot : undefined} />
+                ))}
+                {hasOpen ? (
+                  <div className="py-3 last:pb-0">
+                    <a
+                      href={activeLink!.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center gap-1.5 rounded-md bg-[var(--p-accent)] px-2.5 py-1 text-[12px] font-semibold text-white hover:opacity-90"
+                    >
+                      Open
+                      <svg viewBox="0 0 24 24" fill="none" className="h-3.5 w-3.5" aria-hidden>
+                        <path
+                          d="M7 17L17 7M17 7H9M17 7V15"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    </a>
+                  </div>
+                ) : null}
+              </Card>
+            );
+          })()}
 
           {role === "pm" ? (
             <PmAnnotation

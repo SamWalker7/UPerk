@@ -517,22 +517,28 @@ export default function ConsoleEditor({
     apply: (d: ProjectData) => void,
     label: string,
   ) {
-    const res = await fetch(path, { method: "DELETE" });
-    if (!res.ok) {
-      const body = await res.json().catch(() => ({}));
-      throw new Error(body.error || `Could not delete ${label}.`);
+    setSaving(true);
+    setMessage(null);
+    try {
+      const res = await fetch(path, { method: "DELETE" });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.error || `Could not delete ${label}.`);
+      }
+      setData((prev) => {
+        const next = structuredClone(prev) as ProjectData;
+        apply(next);
+        return next;
+      });
+      setSaved((prev) => {
+        const next = structuredClone(prev) as ProjectData;
+        apply(next);
+        return next;
+      });
+      setMessage({ kind: "ok", text: `${label} deleted.` });
+    } finally {
+      setSaving(false);
     }
-    setData((prev) => {
-      const next = structuredClone(prev) as ProjectData;
-      apply(next);
-      return next;
-    });
-    setSaved((prev) => {
-      const next = structuredClone(prev) as ProjectData;
-      apply(next);
-      return next;
-    });
-    setMessage({ kind: "ok", text: `${label} deleted.` });
   }
 
   const deleteRequest = (id: string) =>
@@ -913,62 +919,63 @@ export default function ConsoleEditor({
             />
           </Section>
 
-          {/* Preview & build links */}
-          <Section
-            title="Preview & build links"
-            dirty={dirtyMap.links}
-            open={open.links}
-            onToggle={() => toggle("links")}
-            summary={'Feeds "See it working"'}
-            headerAction={
-              <SectionHistoryDrawer
-                slug={slug}
-                history={data.projectHistory}
-                section="links"
-                className="rounded-lg border border-[var(--p-border)] bg-[var(--p-surface)] px-3 py-1.5 text-[12px] font-semibold text-[var(--p-accent)] shadow-sm hover:bg-[var(--p-accent-weak)]"
-              />
-            }
-          >
-            <LinksEditor
-              links={data.links || []}
-              build={data.build}
-              onChangeBuild={(fn) => patch((d) => fn(d.build))}
-              onAdd={addLink}
-              onUpdate={updateLink}
-              onDelete={deleteLink}
-              onSave={save}
-              saving={saving}
+          {/* Preview & build links / Finished screens */}
+          <div className="grid gap-8 md:grid-cols-2">
+            <Section
+              title="Preview & build links"
               dirty={dirtyMap.links}
-            />
-          </Section>
-
-          {/* Finished screens */}
-          <Section
-            title="Finished screens"
-            dirty={dirtyMap.screens}
-            open={open.screens}
-            onToggle={() => toggle("screens")}
-            headerAction={
-              <SectionHistoryDrawer
-                slug={slug}
-                history={data.projectHistory}
-                section="screens"
-                className="rounded-lg border border-[var(--p-border)] bg-[var(--p-surface)] px-3 py-1.5 text-[12px] font-semibold text-[var(--p-accent)] shadow-sm hover:bg-[var(--p-accent-weak)]"
+              open={open.links}
+              onToggle={() => toggle("links")}
+              summary={'Feeds "See it working"'}
+              headerAction={
+                <SectionHistoryDrawer
+                  slug={slug}
+                  history={data.projectHistory}
+                  section="links"
+                  className="rounded-lg border border-[var(--p-border)] bg-[var(--p-surface)] px-3 py-1.5 text-[12px] font-semibold text-[var(--p-accent)] shadow-sm hover:bg-[var(--p-accent-weak)]"
+                />
+              }
+            >
+              <LinksEditor
+                links={data.links || []}
+                build={data.build}
+                onChangeBuild={(fn) => patch((d) => fn(d.build))}
+                onAdd={addLink}
+                onUpdate={updateLink}
+                onDelete={deleteLink}
+                onSave={save}
+                saving={saving}
+                dirty={dirtyMap.links}
               />
-            }
-          >
-            <ScreensEditor
-              screens={data.finishedScreens}
-              onChange={(screens) => patch((d) => (d.finishedScreens = screens))}
-              isPersisted={(id) => savedScreenIds.has(id)}
-              onDelete={deleteScreen}
-              onSave={save}
-              onUpload={addScreens}
-              saving={saving}
-              uploading={uploadingScreens}
+            </Section>
+
+            <Section
+              title="Finished screens"
               dirty={dirtyMap.screens}
-            />
-          </Section>
+              open={open.screens}
+              onToggle={() => toggle("screens")}
+              headerAction={
+                <SectionHistoryDrawer
+                  slug={slug}
+                  history={data.projectHistory}
+                  section="screens"
+                  className="rounded-lg border border-[var(--p-border)] bg-[var(--p-surface)] px-3 py-1.5 text-[12px] font-semibold text-[var(--p-accent)] shadow-sm hover:bg-[var(--p-accent-weak)]"
+                />
+              }
+            >
+              <ScreensEditor
+                screens={data.finishedScreens}
+                onChange={(screens) => patch((d) => (d.finishedScreens = screens))}
+                isPersisted={(id) => savedScreenIds.has(id)}
+                onDelete={deleteScreen}
+                onSave={save}
+                onUpload={addScreens}
+                saving={saving}
+                uploading={uploadingScreens}
+                dirty={dirtyMap.screens}
+              />
+            </Section>
+          </div>
         </div>
       </div>
 
@@ -1718,12 +1725,6 @@ function ActionsEditor({
   );
 }
 
-const RESPOND_MODES = [
-  { value: "two", label: "Pick one of two options" },
-  { value: "ack", label: "One acknowledgement" },
-  { value: "action", label: "An action + fallback" },
-] as const;
-
 function NewRequestDialog({
   open,
   onAdd,
@@ -1740,10 +1741,10 @@ function NewRequestDialog({
   const [assignee, setAssignee] = useState("");
   const [dueBy, setDueBy] = useState("");
   const [holdsUp, setHoldsUp] = useState("");
-  const [mode, setMode] = useState<(typeof RESPOND_MODES)[number]["value"]>("two");
-  const [btn1, setBtn1] = useState("Choose A");
-  const [btn2, setBtn2] = useState("Choose B");
-  const [secondary, setSecondary] = useState("");
+  const [actions, setActions] = useState<RequestAction[]>([
+    { label: "Choose A", kind: "primary", intent: intentFor("Choose A") },
+    { label: "Choose B", kind: "primary", intent: intentFor("Choose B") },
+  ]);
   const [nudge, setNudge] = useState(false);
   const [touched, setTouched] = useState(false);
   const [error, setError] = useState("");
@@ -1755,10 +1756,10 @@ function NewRequestDialog({
     setAssignee("");
     setDueBy("");
     setHoldsUp("");
-    setMode("two");
-    setBtn1("Choose A");
-    setBtn2("Choose B");
-    setSecondary("");
+    setActions([
+      { label: "Choose A", kind: "primary", intent: intentFor("Choose A") },
+      { label: "Choose B", kind: "primary", intent: intentFor("Choose B") },
+    ]);
     setNudge(false);
     setTouched(false);
     setError("");
@@ -1768,17 +1769,12 @@ function NewRequestDialog({
 
   const titleValid = title.trim().length > 0;
   const bodyValid = body.trim().length > 0;
+  const actionsValid = actions.length > 0;
 
   async function submit(event: React.FormEvent) {
     event.preventDefault();
     setTouched(true);
-    if (!titleValid || !bodyValid) return;
-    const labels =
-      mode === "ack"
-        ? [btn1.trim() || "Got it"]
-        : mode === "action"
-          ? [btn1.trim() || "Do it", secondary.trim() || "Discuss first"]
-          : [btn1.trim(), btn2.trim(), secondary.trim()].filter(Boolean);
+    if (!titleValid || !bodyValid || !actionsValid) return;
     setError("");
     try {
       await onAdd({
@@ -1786,11 +1782,7 @@ function NewRequestDialog({
         body: body.trim(),
         daysOpen: 0,
         blocking: false,
-        actions: labels.map((label, idx) => ({
-          label,
-          kind: idx < 2 ? "primary" : "secondary",
-          intent: intentFor(label),
-        })),
+        actions,
         ...(assignee.trim() ? { attributionShort: assignee.trim() } : {}),
         ...(holdsUp.trim() ? { subNote: holdsUp.trim() } : {}),
         ...(nudge ? { nudgeSchedule: [3, 7] } : {}),
@@ -1872,40 +1864,15 @@ function NewRequestDialog({
           onChange={setHoldsUp}
           placeholder="Invite screen build, 9 Sept"
         />
-        <SelectField
-          label="How should the client respond?"
-          value={mode}
-          options={RESPOND_MODES}
-          onChange={(v) => setMode(v)}
-        />
-        <Grid>
-          <Field
-            label={mode === "ack" ? "Button label" : "Button 1 label"}
-            value={btn1}
-            onChange={setBtn1}
-          />
-          {mode === "two" ? (
-            <Field label="Button 2 label" value={btn2} onChange={setBtn2} />
-          ) : (
-            <Field
-              label={mode === "action" ? "Fallback label" : "Secondary link (optional)"}
-              value={secondary}
-              onChange={setSecondary}
-            />
-          )}
-        </Grid>
-        {mode === "two" ? (
-          <Field
-            label="Secondary link (optional)"
-            value={secondary}
-            onChange={setSecondary}
-            placeholder="Discuss Friday"
-          />
+        <ActionsEditor actions={actions} onChange={setActions} />
+        {touched && !actionsValid ? (
+          <p className="text-[11px] text-[var(--p-risk)]">Add at least one client button label.</p>
         ) : null}
         <p className="text-[12px] text-[var(--p-text-dim)]">
           Button labels are the client&apos;s exact words — write them the way
           you&apos;d say it on a call, not as a status (&ldquo;Choose A&rdquo;,
-          not &ldquo;Option 1 selected&rdquo;).
+          not &ldquo;Option 1 selected&rdquo;). Add as many as you need — style
+          each one primary or secondary below the field.
         </p>
         <CheckField
           label="Nudge at 3 and 7 days"
@@ -2311,6 +2278,7 @@ function NotesEditor({
 }) {
   const [draft, setDraft] = useState("");
   const [visibility, setVisibility] = useState<NoteItem["visibility"]>("internal");
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   function update(id: string, fn: (n: NoteItem) => void) {
     onChange(
@@ -2327,6 +2295,15 @@ function NotesEditor({
     if (!draft.trim()) return;
     await onAdd({ body: draft.trim(), visibility });
     setDraft("");
+  }
+
+  async function remove(id: string) {
+    setDeletingId(id);
+    try {
+      await onDelete(id);
+    } finally {
+      setDeletingId(null);
+    }
   }
 
   return (
@@ -2375,9 +2352,11 @@ function NotesEditor({
                 </p>
                 <button
                   type="button"
-                  onClick={() => onDelete(n.id)}
-                  className="shrink-0 text-[12px] font-medium text-[var(--p-risk)] underline underline-offset-2"
+                  onClick={() => remove(n.id)}
+                  disabled={deletingId === n.id}
+                  className="flex shrink-0 items-center gap-1.5 text-[12px] font-medium text-[var(--p-risk)] underline underline-offset-2 disabled:opacity-50"
                 >
+                  {deletingId === n.id ? <Spinner className="h-3 w-3" /> : null}
                   Remove
                 </button>
               </div>

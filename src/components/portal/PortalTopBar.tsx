@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import type { PortalRole } from "@/lib/portal/types";
 import { BrandLogo } from "./BrandLogo";
+import { ThemeToggle } from "./ThemeToggle";
 
 /** Shared sticky top bar: brand on the left, actions on the right. `crumb`
  *  renders between the brand and the actions (project name, "Projects", etc.). */
@@ -50,6 +51,7 @@ export function PortalTopBar({
           </>
         ) : null}
         <div className="ml-auto flex shrink-0 items-center gap-2 sm:gap-3">
+          <ThemeToggle />
           {role === "pm" && showConsoleLink ? (
             <Link
               href="/console"

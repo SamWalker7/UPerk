@@ -70,14 +70,13 @@
 
 /* Type-size floor: the portal's components mostly set copy in fixed
    arbitrary sizes (text-[10px]..text-[18px], plus text-xs/text-sm), all
-   below the marketing home page's 19px body-copy floor (see the
-   --text-base override in globals.css, which doesn't reach here because
-   these are arbitrary-value utilities, not the rem-based --text-* scale).
-   Rather than hand-edit every one of those call sites, override the
-   generated utility classes directly so any of them renders at the
-   19px floor instead of its literal value — mirrors the home page's own
-   "raise the floor" approach. `:where()` keeps this at zero specificity
-   so a more specific component rule can still opt out deliberately. */
+   below this 16px body-copy floor (see the --text-base override in
+   globals.css, which doesn't reach here because these are arbitrary-value
+   utilities, not the rem-based --text-* scale). Rather than hand-edit every
+   one of those call sites, override the generated utility classes directly
+   so any of them renders at the 16px floor instead of its literal value.
+   `:where()` keeps this at zero specificity so a more specific component
+   rule can still opt out deliberately. */
 .portal-scope :where(
   .text-xs,
   .text-sm,
@@ -91,7 +90,7 @@
   .text-\[17px\],
   .text-\[18px\]
 ) {
-  font-size: 19px;
+  font-size: 16px;
 }
 
 /* Right-hand side sheet: backdrop fade + panel slide. Add .is-open to play the

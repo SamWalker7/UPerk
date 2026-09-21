@@ -16,7 +16,7 @@ function ProjectShell({ children }: { children: ReactNode }) {
         <StatusHero data={data} role={role} />
       </div>
 
-      <div className="mx-auto w-full max-w-[1440px] px-3 py-10 sm:px-6 sm:py-11">
+      <div className="mx-auto w-full max-w-[1440px] overflow-x-hidden px-3 py-10 sm:px-6 sm:py-11">
         {children}
       </div>
 
