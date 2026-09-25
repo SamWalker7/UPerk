@@ -8,7 +8,7 @@
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 const ISO_DATETIME = /^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}/;
 
-/** "5 Sept 2026" for a bare date, "5 Sept 2026, 21:09" when a time is present. */
+/** "Sept 5, 2026" for a bare date, "Sept 5, 2026, 21:09" when a time is present. */
 export function formatDateTime(value: string | null | undefined): string {
   if (!value) return "";
   const v = value.trim();
@@ -18,7 +18,7 @@ export function formatDateTime(value: string | null | undefined): string {
   const d = new Date(hasTime ? v : `${v}T00:00:00`);
   if (Number.isNaN(d.getTime())) return v;
 
-  const date = d.toLocaleDateString("en-GB", {
+  const date = d.toLocaleDateString("en-US", {
     day: "numeric",
     month: "short",
     year: "numeric",
@@ -48,14 +48,14 @@ export function formatTime(value: string | null | undefined): string {
     .toLowerCase();
 }
 
-/** Date only, never a time — "5 Sept 2026". */
+/** Date only, never a time — "Jan 25, 2026". */
 export function formatDate(value: string | null | undefined): string {
   if (!value) return "";
   const v = value.trim();
   if (!ISO_DATETIME.test(v) && !ISO_DATE.test(v)) return v;
   const d = new Date(ISO_DATE.test(v) ? `${v}T00:00:00` : v);
   if (Number.isNaN(d.getTime())) return v;
-  return d.toLocaleDateString("en-GB", {
+  return d.toLocaleDateString("en-US", {
     day: "numeric",
     month: "short",
     year: "numeric",

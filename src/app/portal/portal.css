@@ -15,7 +15,7 @@
   --p-accent: #2563eb;
   --p-accent-weak: #eff6ff;
 
-  --p-hero: #10395a;
+  --p-hero: #0c2e4c;
   --p-hero-text: #ffffff;
   --p-hero-dim: #b8d0e5;
 
@@ -52,9 +52,12 @@
   --p-accent: #2ca2f4;
   --p-accent-weak: rgba(44, 162, 244, 0.14);
 
-  --p-hero: #060a14;
-  --p-hero-text: #f1f5f9;
-  --p-hero-dim: #94a3b8;
+  /* Same navy as light mode — the hero keeps its distinct branded card
+     look regardless of theme, instead of blending into --p-bg (both were
+     #060a14, so the hero had no visible contrast against the page). */
+  --p-hero: #0c2e4c;
+  --p-hero-text: #ffffff;
+  --p-hero-dim: #b8d0e5;
 
   --p-ok: #34d399;
   --p-ok-bg: rgba(52, 211, 153, 0.12);
@@ -66,6 +69,13 @@
 
 .portal-scope :where(button, input, select, textarea) {
   font-family: inherit;
+}
+
+/* WebKit/Chromium render the <input type="date"> calendar icon as a
+   near-black glyph regardless of page theme — invisible against the
+   portal's dark surfaces. `invert()` flips it to near-white in dark mode. */
+.dark .portal-scope input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(1) brightness(1.4);
 }
 
 /* Type-size floor: the portal's components mostly set copy in fixed

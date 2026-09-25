@@ -8,8 +8,10 @@ import { formatDate } from "@/lib/portal/format";
 import { useProjectData } from "./ProjectDataProvider";
 
 /** PM-only "+ Add note" form, inline on the client-facing page — a shortcut
- *  to the same POST /notes endpoint the console's Notes editor uses. */
-function AddNoteForm({ slug, onClose }: { slug: string; onClose: () => void }) {
+ *  to the same POST /notes endpoint the console's Notes editor uses. Shared
+ *  by ProjectNotes and any other client-facing section that offers the same
+ *  "+ Add note" shortcut (e.g. Decisions, next to "Next call"). */
+export function AddNoteForm({ slug, onClose }: { slug: string; onClose: () => void }) {
   const { refresh } = useProjectData();
   const [body, setBody] = useState("");
   const [visibility, setVisibility] = useState<"internal" | "client">("client");
@@ -82,6 +84,19 @@ function AddNoteForm({ slug, onClose }: { slug: string; onClose: () => void }) {
   );
 }
 
+/** The bit before "@" in an email-shaped attribution, title-cased — e.g.
+ *  "manager@universalpark.com" -> "Manager". Anything that isn't
+ *  email-shaped (a real display name, "PM", etc.) passes through as-is. */
+function displayName(attribution: string): string {
+  const match = /^([^\s@]+)@[^\s@]+\.[^\s@]+$/.exec(attribution.trim());
+  if (!match) return attribution;
+  return match[1]
+    .split(/[._-]+/)
+    .filter(Boolean)
+    .map((part) => part[0].toUpperCase() + part.slice(1))
+    .join(" ");
+}
+
 /** "Project notes" section on the client portal page — always the
  *  client-facing view, for every role. Internal notes never render here,
  *  PM included; the PM previews/manages internal notes in the console's
@@ -97,7 +112,12 @@ export function ProjectNotes({
   slug: string;
 }) {
   const [adding, setAdding] = useState(false);
-  const clientNotes = (notes || []).filter((note) => note.visibility === "client");
+  // Newest first — notes are appended to the end of the stored array as
+  // they're added, so the latest one is last.
+  const clientNotes = (notes || [])
+    .filter((note) => note.visibility === "client")
+    .slice()
+    .reverse();
 
   if (clientNotes.length === 0 && role !== "pm") return null;
 
@@ -108,15 +128,25 @@ export function ProjectNotes({
         aside={clientNotes.length > 0 ? `${clientNotes.length} ${clientNotes.length === 1 ? "note" : "notes"}` : undefined}
       />
       <div className="space-y-3">
-        {clientNotes.map((note) => (
+        {clientNotes.map((note, i) => (
           <div
             key={note.id}
             className="rounded-2xl border border-[var(--p-border)] bg-[var(--p-surface)] p-5"
           >
-            <p className="text-[13px] leading-relaxed text-[var(--p-text)]">{note.body}</p>
-            <p className="mt-2 text-[12px] text-[var(--p-text-dim)]">
-              {note.attribution} · {formatDate(note.date)}
-            </p>
+            <div className="flex items-center justify-between gap-3">
+              <span className="flex items-center gap-2 text-[12px] font-semibold text-[var(--p-text)]">
+                {displayName(note.attribution)}
+                {i === 0 ? (
+                  <span className="rounded-full bg-[var(--p-accent-weak)] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[var(--p-accent)]">
+                    Latest
+                  </span>
+                ) : null}
+              </span>
+              <span className="shrink-0 text-[12px] font-medium text-[var(--p-text-dim)]">
+                {formatDate(note.date)}
+              </span>
+            </div>
+            <p className="mt-2 text-[13px] leading-relaxed text-[var(--p-text)]">{note.body}</p>
           </div>
         ))}
 

@@ -231,6 +231,11 @@ export function WaitingOnYou({
           {open.map((req) => (
             <RequestCard key={req.id} req={req} role={role} slug={slug} />
           ))}
+          {open.length === 1 ? (
+            <div className="hidden items-center justify-center rounded-2xl border border-dashed border-[var(--p-border)] p-10 text-center text-[13px] text-[var(--p-text-dim)] lg:flex">
+              There&apos;s no additional item to show
+            </div>
+          ) : null}
         </div>
       )}
       {role === "pm" ? (

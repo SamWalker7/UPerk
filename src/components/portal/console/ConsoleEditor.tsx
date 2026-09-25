@@ -100,6 +100,38 @@ function stepsForPhase(
   }));
 }
 
+/**
+ * Rebuild every phase's `state` in "The plan" chart so it matches the newly
+ * picked "Current phase" — these were previously two independent fields a PM
+ * had to update separately (this map and each plan phase's own "State"
+ * dropdown), so picking a phase here could leave the plan chart showing a
+ * stale phase as "now". Matches each plan phase to a step index the same way
+ * the hero's stepper does (by name, falling back to its stored id), so a
+ * plan phase named e.g. "Build" or id "build" lines up with the console's
+ * "Build" option even though `ProjectData["plan"]["phases"]` allows free text.
+ */
+function phasesForCurrentPhase(
+  phase: string,
+  phases: ProjectData["plan"]["phases"],
+): ProjectData["plan"]["phases"] {
+  const activeIdx = PHASE_TO_STEP[phase as (typeof PHASE_OPTIONS)[number]];
+  if (activeIdx == null) return phases;
+  const stepEntries = Object.entries(PHASE_TO_STEP) as [
+    (typeof PHASE_OPTIONS)[number],
+    number,
+  ][];
+  return phases.map((p) => {
+    const key = (p.name || p.id).trim().toLowerCase();
+    const match = stepEntries.find(([name]) => name.toLowerCase() === key);
+    if (!match) return p;
+    const idx = match[1];
+    return {
+      ...p,
+      state: idx < activeIdx ? "done" : idx === activeIdx ? "now" : "upcoming",
+    };
+  });
+}
+
 type StatusLabel = "On track" | "Watch" | "At risk";
 
 const SECTION_KEYS = [
@@ -158,15 +190,25 @@ export default function ConsoleEditor({
       name: p.name,
       client: p.client,
     });
+    // "Current phase" and each plan phase's own "State" used to be edited
+    // independently and could drift apart (e.g. currentPhase moved to
+    // "Build" without the plan chart's phases being updated to match).
+    // Treating that drift as dirty here — rather than only reacting to an
+    // actual edit — surfaces it and lets Save self-heal it in one click,
+    // even for a project that drifted before this sync existed.
+    const planOutOfSync = !eq(
+      data.plan.phases,
+      phasesForCurrentPhase(data.status.currentPhase, data.plan.phases),
+    );
     return {
       header: !eq(headerFields(data.project), headerFields(saved.project)),
       status: !eq(data.status, saved.status),
-      statusMeta: !eq(data.status, saved.status),
+      statusMeta: !eq(data.status, saved.status) || planOutOfSync,
       requests: !eq(data.requests, saved.requests),
       // Links persist immediately via their own POST/PATCH/DELETE endpoints
       // (see addLink/updateLink/deleteLink) — only build info goes out here.
       links: !eq(data.build, saved.build),
-      plan: !eq(data.plan, saved.plan),
+      plan: !eq(data.plan, saved.plan) || planOutOfSync,
       screens: !eq(data.finishedScreens, saved.finishedScreens),
       // Decisions are committed immediately through the audit-log endpoint.
       decisions: false,
@@ -222,6 +264,13 @@ export default function ConsoleEditor({
     const payload = structuredClone(data) as ProjectData;
     payload.project.updatedAt = nowStamp();
     payload.project.updatedBy = who || payload.project.updatedBy || "PM";
+    // "Current phase" (Phases & status) and each plan phase's own "State"
+    // (The plan) used to be two independently-edited fields that could drift
+    // out of sync — recomputed here, on every save, rather than only when the
+    // phase dropdown itself changes, so a project already out of sync
+    // self-heals the moment anything is saved, no matter which section the
+    // PM actually touched.
+    payload.plan.phases = phasesForCurrentPhase(payload.status.currentPhase, payload.plan.phases);
     // Send only changed sections. In particular, this prevents an unchanged
     // uploaded screen image from making an ordinary text save exceed the API
     // gateway request-size limit.
@@ -859,12 +908,41 @@ export default function ConsoleEditor({
                 patch((d) => {
                   d.status.currentPhase = phase;
                   d.steps = stepsForPhase(phase, d.steps);
+                  d.plan.phases = phasesForCurrentPhase(phase, d.plan.phases);
                 })
               }
               onSave={save}
               onRevert={discard}
               saving={saving}
               dirty={dirtyMap.status}
+            />
+          </Section>
+
+          {/* Finished screens */}
+          <Section
+            title="Finished screens"
+            dirty={dirtyMap.screens}
+            open={open.screens}
+            onToggle={() => toggle("screens")}
+            headerAction={
+              <SectionHistoryDrawer
+                slug={slug}
+                history={data.projectHistory}
+                section="screens"
+                className="rounded-lg border border-[var(--p-border)] bg-[var(--p-surface)] px-3 py-1.5 text-[12px] font-semibold text-[var(--p-accent)] shadow-sm hover:bg-[var(--p-accent-weak)]"
+              />
+            }
+          >
+            <ScreensEditor
+              screens={data.finishedScreens}
+              onChange={(screens) => patch((d) => (d.finishedScreens = screens))}
+              isPersisted={(id) => savedScreenIds.has(id)}
+              onDelete={deleteScreen}
+              onSave={save}
+              onUpload={addScreens}
+              saving={saving}
+              uploading={uploadingScreens}
+              dirty={dirtyMap.screens}
             />
           </Section>
         </div>
@@ -919,63 +997,34 @@ export default function ConsoleEditor({
             />
           </Section>
 
-          {/* Preview & build links / Finished screens */}
-          <div className="grid gap-8 md:grid-cols-2">
-            <Section
-              title="Preview & build links"
+          {/* Preview & build links */}
+          <Section
+            title="Preview & build links"
+            dirty={dirtyMap.links}
+            open={open.links}
+            onToggle={() => toggle("links")}
+            summary={'Feeds "See it working"'}
+            headerAction={
+              <SectionHistoryDrawer
+                slug={slug}
+                history={data.projectHistory}
+                section="links"
+                className="rounded-lg border border-[var(--p-border)] bg-[var(--p-surface)] px-3 py-1.5 text-[12px] font-semibold text-[var(--p-accent)] shadow-sm hover:bg-[var(--p-accent-weak)]"
+              />
+            }
+          >
+            <LinksEditor
+              links={data.links || []}
+              build={data.build}
+              onChangeBuild={(fn) => patch((d) => fn(d.build))}
+              onAdd={addLink}
+              onUpdate={updateLink}
+              onDelete={deleteLink}
+              onSave={save}
+              saving={saving}
               dirty={dirtyMap.links}
-              open={open.links}
-              onToggle={() => toggle("links")}
-              summary={'Feeds "See it working"'}
-              headerAction={
-                <SectionHistoryDrawer
-                  slug={slug}
-                  history={data.projectHistory}
-                  section="links"
-                  className="rounded-lg border border-[var(--p-border)] bg-[var(--p-surface)] px-3 py-1.5 text-[12px] font-semibold text-[var(--p-accent)] shadow-sm hover:bg-[var(--p-accent-weak)]"
-                />
-              }
-            >
-              <LinksEditor
-                links={data.links || []}
-                build={data.build}
-                onChangeBuild={(fn) => patch((d) => fn(d.build))}
-                onAdd={addLink}
-                onUpdate={updateLink}
-                onDelete={deleteLink}
-                onSave={save}
-                saving={saving}
-                dirty={dirtyMap.links}
-              />
-            </Section>
-
-            <Section
-              title="Finished screens"
-              dirty={dirtyMap.screens}
-              open={open.screens}
-              onToggle={() => toggle("screens")}
-              headerAction={
-                <SectionHistoryDrawer
-                  slug={slug}
-                  history={data.projectHistory}
-                  section="screens"
-                  className="rounded-lg border border-[var(--p-border)] bg-[var(--p-surface)] px-3 py-1.5 text-[12px] font-semibold text-[var(--p-accent)] shadow-sm hover:bg-[var(--p-accent-weak)]"
-                />
-              }
-            >
-              <ScreensEditor
-                screens={data.finishedScreens}
-                onChange={(screens) => patch((d) => (d.finishedScreens = screens))}
-                isPersisted={(id) => savedScreenIds.has(id)}
-                onDelete={deleteScreen}
-                onSave={save}
-                onUpload={addScreens}
-                saving={saving}
-                uploading={uploadingScreens}
-                dirty={dirtyMap.screens}
-              />
-            </Section>
-          </div>
+            />
+          </Section>
         </div>
       </div>
 
@@ -999,6 +1048,9 @@ export default function ConsoleEditor({
         <PhasesEditor
           plan={data.plan}
           onChange={(plan) => patch((d) => (d.plan = plan))}
+          onSave={save}
+          saving={saving}
+          dirty={dirtyMap.plan}
         />
       </Section>
 
@@ -1069,6 +1121,18 @@ export default function ConsoleEditor({
             </button>
           </div>
         </Grid>
+
+        <div className="mt-4 flex items-center gap-3 border-t border-[var(--p-border)] pt-4">
+          <button
+            type="button"
+            onClick={save}
+            disabled={saving || !dirtyMap.nextCall}
+            className="flex h-9 items-center gap-2 rounded-lg bg-[var(--p-accent)] px-4 text-[13px] font-semibold text-white hover:brightness-95 disabled:opacity-40"
+          >
+            {saving ? <Spinner className="h-3.5 w-3.5" /> : null}
+            Save next call
+          </button>
+        </div>
       </Section>
 
       <AgendaDialog
@@ -1364,7 +1428,7 @@ function PhasesStatusEditor({
               key={o.value}
               className={`flex cursor-pointer items-center gap-2 rounded-full px-3 py-1.5 text-[13px] ${
                 status.statusLabel === o.value
-                  ? "bg-[var(--p-surface)] font-semibold shadow-sm"
+                  ? "bg-[var(--p-surface)] font-semibold text-[var(--p-text)] shadow-sm ring-1 ring-[var(--p-border)]"
                   : "text-[var(--p-text-dim)]"
               }`}
             >
@@ -2411,9 +2475,15 @@ function NotesEditor({
 function PhasesEditor({
   plan,
   onChange,
+  onSave,
+  saving,
+  dirty,
 }: {
   plan: ProjectData["plan"];
   onChange: (p: ProjectData["plan"]) => void;
+  onSave: () => void;
+  saving: boolean;
+  dirty: boolean;
 }) {
   function updatePhase(
     i: number,
@@ -2538,6 +2608,18 @@ function PhasesEditor({
           ))}
         </div>
       ) : null}
+
+      <div className="mt-4 flex items-center gap-3 border-t border-[var(--p-border)] pt-4">
+        <button
+          type="button"
+          onClick={onSave}
+          disabled={saving || !dirty}
+          className="flex h-9 items-center gap-2 rounded-lg bg-[var(--p-accent)] px-4 text-[13px] font-semibold text-white hover:brightness-95 disabled:opacity-40"
+        >
+          {saving ? <Spinner className="h-3.5 w-3.5" /> : null}
+          Save plan
+        </button>
+      </div>
     </>
   );
 }
@@ -2553,6 +2635,7 @@ function ScreensEditor({
   onUpload,
   saving,
   uploading,
+  dirty,
 }: {
   screens: FinishedScreen[];
   onChange: (s: FinishedScreen[]) => void;
@@ -2731,10 +2814,19 @@ function ScreensEditor({
             {reordering ? "Done reordering" : "Reorder"}
           </button>
         ) : null}
+        <button
+          type="button"
+          onClick={onSave}
+          disabled={saving || !dirty}
+          className="flex h-9 items-center gap-2 rounded-lg border border-[var(--p-border)] bg-[var(--p-surface)] px-4 text-[13px] font-semibold hover:bg-[var(--p-surface-2)] disabled:opacity-40"
+        >
+          {saving ? <Spinner className="h-3.5 w-3.5" /> : null}
+          Save screens
+        </button>
       </div>
 
       {screens.length > 0 ? (
-        <ul className="grid gap-3 sm:grid-cols-2">
+        <ul className="@container grid gap-3 @[420px]:grid-cols-2">
           {screens.map((sc, i) => (
             <li
               key={sc.id}

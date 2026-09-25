@@ -3,6 +3,7 @@ import { statusTone } from "@/lib/portal/data";
 import { StatusChip } from "./ui";
 import { OverviewTab } from "./OverviewTab";
 import { WeeklyHistoryDrawer } from "./WeeklyHistoryDrawer";
+import { formatDate } from "@/lib/portal/format";
 import type { PortalRole } from "@/lib/portal/types";
 
 function Dots({ built, total }: { built: number; total: number }) {
@@ -21,15 +22,33 @@ function Dots({ built, total }: { built: number; total: number }) {
 }
 
 // The client hero shows a coarse 4-stage funnel. Where each fine-grained
-// project phase sits on it:
+// project phase sits on it. Keys match the console's PHASE_OPTIONS
+// (ConsoleEditor.tsx) exactly, plus the free-text phase names some existing
+// project data still carries from before that dropdown existed — resolved
+// case-insensitively in phaseStep() below so older data doesn't silently
+// reset the stepper to step 0.
 const PHASE_TO_STEP: Record<string, number> = {
-  Discovery: 0,
-  Design: 1,
-  Build: 2,
-  Beta: 2,
-  Launch: 3,
-  Support: 3,
+  discovery: 0,
+  design: 1,
+  build: 2,
+  development: 2,
+  beta: 2,
+  "qa & beta": 2,
+  "qa &amp; beta": 2,
+  qa: 2,
+  launch: 3,
+  support: 3,
 };
+
+/** Case-insensitive lookup into PHASE_TO_STEP, falling back to a substring
+ *  match (e.g. "QA & Beta Testing" still resolves via "qa") before giving
+ *  up and defaulting to step 0. */
+function phaseStep(currentPhase: string): number {
+  const key = currentPhase.trim().toLowerCase();
+  if (key in PHASE_TO_STEP) return PHASE_TO_STEP[key];
+  const match = Object.keys(PHASE_TO_STEP).find((k) => key.includes(k));
+  return match ? PHASE_TO_STEP[match] : 0;
+}
 
 /**
  * The stepper the client sees. Its state is derived from `currentPhase` so it
@@ -45,7 +64,7 @@ function deriveSteps(
     storedSteps.length > 0
       ? storedSteps.map((s) => s.label)
       : ["Discovery", "Design", "Build", "Launch"];
-  const active = PHASE_TO_STEP[currentPhase] ?? 0;
+  const active = phaseStep(currentPhase);
   return labels.map((label, i) => ({
     label,
     state: i < active ? "done" : i === active ? "now" : "upcoming",
@@ -55,7 +74,7 @@ function deriveSteps(
 function Stepper({ steps }: { steps: ProjectData["steps"] }) {
   return (
     <div className="mt-7 overflow-x-auto px-1 py-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-      <div className="min-w-[420px]">
+      <div className="min-w-[420px] max-w-[640px]">
         <div className="flex items-center">
           {steps.map((s, i) => (
             <div key={s.label} className="flex flex-1 items-center last:flex-none">
@@ -129,7 +148,7 @@ function Stat({
           {value}
         </p>
       ) : (
-        <p className="mt-1.5 flex items-baseline gap-2 text-[40px] font-bold leading-none tracking-[-0.03em] text-white sm:text-[44px]">
+        <p className="mt-1.5 flex flex-wrap items-baseline gap-x-2 gap-y-1 text-[40px] font-bold leading-none tracking-[-0.03em] text-white sm:text-[44px]">
           {value}
           {suffix ? (
             <span className="text-[14px] font-medium tracking-normal text-white/70">
@@ -151,7 +170,7 @@ export function StatusHero({ data, role }: { data: ProjectData; role: PortalRole
     <section id="overview" className="relative scroll-mt-6 overflow-hidden rounded-2xl bg-[var(--p-hero)] text-[var(--p-hero-text)] shadow-[0_18px_38px_rgba(20,55,86,.16)] [--p-accent:#65b5ee] [--p-accent-weak:#2a577c] [--p-border:#4c7090] [--p-text-dim:var(--p-hero-dim)]">
       <div className="p-5 sm:p-8">
       <div className="flex flex-col gap-8 lg:flex-row lg:items-start lg:justify-between lg:gap-10">
-        <div className="grid flex-1 gap-x-8 gap-y-7 sm:grid-cols-3 sm:gap-x-10">
+        <div className="grid flex-1 grid-cols-1 gap-x-8 gap-y-7 min-[520px]:grid-cols-2 lg:grid-cols-3 lg:gap-x-10">
           <Stat
             kind="text"
             label="Current phase"
@@ -161,7 +180,7 @@ export function StatusHero({ data, role }: { data: ProjectData; role: PortalRole
           <Stat
             label="Days to launch"
             value={s.daysToLaunch}
-            suffix={s.launchDate}
+            suffix={formatDate(s.launchDate)}
             sub={s.launchNote}
           />
           <div className="min-w-0">
@@ -191,7 +210,7 @@ export function StatusHero({ data, role }: { data: ProjectData; role: PortalRole
         <OverviewTab data={data} role={role} embedded />
       </div>
       <div className="border-t border-white/15 px-5 py-3 text-right sm:px-8">
-        <WeeklyHistoryDrawer slug={data.slug} updates={data.weeklyHistory} className="text-[13px] font-semibold text-[#a9d9fb] underline underline-offset-4 hover:text-white" />
+        <WeeklyHistoryDrawer slug={data.slug} updates={data.weeklyHistory} className="text-[13px] font-semibold text-[var(--p-warn)] underline underline-offset-4 hover:text-white" />
       </div>
     </section>
   );

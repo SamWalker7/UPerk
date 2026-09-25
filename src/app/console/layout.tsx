@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
+import { PortalAuthGuard } from "@/components/portal/PortalAuthGuard";
 import "../portal/portal.css";
 
 export const metadata: Metadata = {
@@ -10,5 +11,10 @@ export const metadata: Metadata = {
 };
 
 export default function ConsoleLayout({ children }: { children: ReactNode }) {
-  return <div className="portal-scope min-h-screen">{children}</div>;
+  return (
+    <div className="portal-scope min-h-screen">
+      <PortalAuthGuard />
+      {children}
+    </div>
+  );
 }
