@@ -2955,7 +2955,10 @@ function DecisionComposer({
   const [error, setError] = useState("");
   const [supersedeId, setSupersedeId] = useState("");
 
-  const live = decisions.filter((d) => !d.supersededBy);
+  // Decisions are appended to the end of the stored array as they're
+  // logged, so the newest one is last — reverse to list newest first,
+  // matching the client-facing Decisions section and the History drawer.
+  const live = decisions.filter((d) => !d.supersededBy).reverse();
 
   async function submit() {
     if (!body.trim() || busy) return;
