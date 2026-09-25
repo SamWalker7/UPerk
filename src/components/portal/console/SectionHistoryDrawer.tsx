@@ -78,7 +78,7 @@ export function SectionHistoryDrawer({
                 <h2 className="mt-1 text-xl font-bold tracking-tight">{TITLES[section]}</h2>
                 <p className="mt-1 text-[13px] text-[var(--p-text-dim)]">Saved automatically before this section changes.</p>
               </div>
-              <button type="button" onClick={() => setOpen(false)} className="rounded-lg p-2 text-xl leading-none text-[var(--p-text-dim)] hover:bg-[var(--p-surface-2)]" aria-label="Close history">×</button>
+              <button type="button" onClick={() => setOpen(false)} className="shrink-0 rounded-lg border border-[var(--p-border)] px-3 py-1.5 text-[13px] font-semibold text-[var(--p-text-dim)] hover:bg-[var(--p-surface-2)] hover:text-[var(--p-text)]">Close</button>
             </header>
 
             <div className="flex-1 overflow-y-auto px-5 py-6 sm:px-6">

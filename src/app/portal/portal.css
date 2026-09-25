@@ -78,6 +78,21 @@
   filter: invert(1) brightness(1.4);
 }
 
+/* PageLoader's brand-mark loading state (Spinner.tsx) — a gentle breathing
+   pulse rather than a spin, since the mark itself has no natural "rotation"
+   affordance the way a plain ring does. */
+@keyframes portal-loader-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.55;
+  }
+  50% {
+    transform: scale(1.08);
+    opacity: 1;
+  }
+}
+
 /* Type-size floor: the portal's components mostly set copy in fixed
    arbitrary sizes (text-[10px]..text-[18px], plus text-xs/text-sm), all
    below this 16px body-copy floor (see the --text-base override in

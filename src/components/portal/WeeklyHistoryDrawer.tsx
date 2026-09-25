@@ -157,22 +157,9 @@ export function WeeklyHistoryDrawer({
               <button
                 type="button"
                 onClick={() => setOpen(false)}
-                aria-label="Close"
-                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-[var(--p-text-dim)] hover:bg-[var(--p-surface-2)] hover:text-[var(--p-text)]"
+                className="shrink-0 rounded-lg border border-[var(--p-border)] px-3 py-1.5 text-[13px] font-semibold text-[var(--p-text-dim)] hover:bg-[var(--p-surface-2)] hover:text-[var(--p-text)]"
               >
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  className="h-4 w-4"
-                  aria-hidden
-                >
-                  <path
-                    d="M6 6l12 12M18 6L6 18"
-                    stroke="currentColor"
-                    strokeWidth="1.8"
-                    strokeLinecap="round"
-                  />
-                </svg>
+                Close
               </button>
             </header>
 
