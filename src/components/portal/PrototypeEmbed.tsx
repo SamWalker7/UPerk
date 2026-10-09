@@ -18,7 +18,7 @@ export function PrototypeEmbed({
   const [state, setState] = useState<"loading" | "ready" | "error">("loading");
 
   return (
-    <div className="relative h-[520px] w-full overflow-hidden rounded-xl border border-[var(--p-border)] bg-[var(--p-surface-2)]">
+    <div className="relative h-[440px] w-full sm:h-[520px] overflow-hidden rounded-xl border border-[var(--p-border)] bg-[var(--p-surface-2)]">
       <iframe
         src={src}
         title={title}

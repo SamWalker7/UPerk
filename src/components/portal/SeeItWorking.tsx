@@ -125,9 +125,10 @@ function Fact({
         ? "bg-[var(--p-risk)]"
         : "bg-[var(--p-ok)]";
   return (
-    <div className="flex items-center justify-between gap-4 border-b border-[var(--p-border)] py-3 text-[13px] last:border-0">
-      <span className="text-[var(--p-text-dim)]">{label}</span>
-      <span className="flex items-center gap-2 text-right font-medium">
+    // Stacked on mobile so long values (e.g. known issues) get the full width
+    <div className="flex flex-col gap-1 border-b border-[var(--p-border)] py-3 text-[13px] last:border-0 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+      <span className="shrink-0 text-[var(--p-text-dim)]">{label}</span>
+      <span className="flex min-w-0 items-center gap-2 break-words font-medium sm:text-right">
         {dot ? (
           <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${dotColor}`} />
         ) : null}
@@ -160,8 +161,9 @@ export function SeeItWorking({
   return (
     <div>
       <SectionTitle title="See it working" />
-      <div className="grid gap-4 lg:grid-cols-2 lg:gap-5">
-        <Card className="flex items-center justify-center">
+      {/* grid-cols-1 (= minmax(0,1fr)) + min-w-0 stop long content from stretching the page on mobile */}
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-5">
+        <Card className="flex min-w-0 items-center justify-center p-3 sm:p-6">
           {embedSrc ? (
             <PrototypeEmbed
               src={embedSrc}
@@ -227,7 +229,7 @@ export function SeeItWorking({
           )}
         </Card>
 
-        <div>
+        <div className="min-w-0">
           <p className="text-[14px] leading-relaxed text-[var(--p-text-dim)]">
             This is the clickable prototype, not a picture. Tap through it the way you
             would the real app — it refreshes every time we push work, so what is here is
