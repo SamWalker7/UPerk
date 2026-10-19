@@ -1069,6 +1069,9 @@ export default function ConsoleEditor({
             : "not set"
         }
       >
+        {/* Call — what and when */}
+        <div className="space-y-3 rounded-xl border border-[var(--p-border)] bg-[var(--p-surface-2)]/40 p-3 sm:p-4">
+          <p className="text-[12px] font-semibold text-[var(--p-text)]">Call</p>
         <Grid>
           <Field
             label="Label"
@@ -1089,7 +1092,11 @@ export default function ConsoleEditor({
             }
           />
         </Grid>
+        </div>
 
+        {/* Agenda — talking points + link to the full doc */}
+        <div className="space-y-3 rounded-xl border border-[var(--p-border)] bg-[var(--p-surface-2)]/40 p-3 sm:p-4">
+          <p className="text-[12px] font-semibold text-[var(--p-text)]">Agenda</p>
         <Grid>
           <Field
             label="Agenda URL"
@@ -1126,6 +1133,7 @@ export default function ConsoleEditor({
             </button>
           </div>
         </Grid>
+        </div>
 
         {/* Live preview — the same card the client sees on their page. */}
         {data.nextCall?.label || data.nextCall?.agenda ? (
