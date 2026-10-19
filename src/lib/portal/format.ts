@@ -48,6 +48,22 @@ export function formatTime(value: string | null | undefined): string {
     .toLowerCase();
 }
 
+/** "Today", "Tomorrow", "In 5 days", "3 days ago" for a bare ISO date.
+ *  Empty string for anything that isn't an ISO date. */
+export function relativeDay(value: string | null | undefined): string {
+  const v = value?.trim() || "";
+  if (!ISO_DATE.test(v)) return "";
+  const target = new Date(`${v}T00:00:00`);
+  if (Number.isNaN(target.getTime())) return "";
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const days = Math.round((target.getTime() - today.getTime()) / 86_400_000);
+  if (days === 0) return "Today";
+  if (days === 1) return "Tomorrow";
+  if (days === -1) return "Yesterday";
+  return days > 0 ? `In ${days} days` : `${-days} days ago`;
+}
+
 /** Date only, never a time — "Jan 25, 2026". */
 export function formatDate(value: string | null | undefined): string {
   if (!value) return "";

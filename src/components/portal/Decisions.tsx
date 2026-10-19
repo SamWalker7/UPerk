@@ -3,9 +3,9 @@
 import { useState } from "react";
 import { PmAnnotation } from "./PmAnnotation";
 import { AddNoteForm } from "./ProjectNotes";
+import { NextCallCard } from "./NextCallCard";
 import { Card, SectionTitle } from "./ui";
 import { formatDate, formatTime } from "@/lib/portal/format";
-import { sanitizeAgendaHtml } from "@/lib/portal/sanitizeHtml";
 import type { Decision, PortalRole } from "@/lib/portal/types";
 
 const PAGE_SIZE = 5;
@@ -118,27 +118,8 @@ export function Decisions({
       ) : null}
 
       {nextCall ? (
-        <div className="mt-4 text-[13px] text-[var(--p-text-dim)]">
-          <p>
-            <span className="font-bold text-[var(--p-text)]">{nextCall.label}</span>
-            {nextCall.date ? ` — ${formatDate(nextCall.date)}` : ""}{" "}
-            {nextCall.agendaUrl ? (
-              <a
-                href={nextCall.agendaUrl}
-                className="underline underline-offset-2"
-                target="_blank"
-                rel="noreferrer"
-              >
-                See the agenda
-              </a>
-            ) : null}
-          </p>
-          {nextCall.agenda ? (
-            <div
-              className="agenda-content mt-1.5 [&_a]:underline [&_a]:underline-offset-2 [&_li]:ml-5 [&_ol]:list-decimal [&_ul]:list-disc"
-              dangerouslySetInnerHTML={{ __html: sanitizeAgendaHtml(nextCall.agenda) }}
-            />
-          ) : null}
+        <div className="mt-6">
+          <NextCallCard nextCall={nextCall} />
         </div>
       ) : null}
 

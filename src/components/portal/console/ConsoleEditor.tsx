@@ -31,7 +31,8 @@ import { DecisionDialog, type DecisionInput } from "./DecisionDialog";
 import { type NewRequestInput } from "./RequestDialog";
 import { DecisionHistoryDrawer } from "./DecisionHistoryDrawer";
 import { SectionHistoryDrawer } from "./SectionHistoryDrawer";
-import { formatDate, formatDateTime } from "@/lib/portal/format";
+import { NextCallCard } from "../NextCallCard";
+import { formatDate, formatDateTime, relativeDay } from "@/lib/portal/format";
 import { toFigmaEmbedUrl } from "@/lib/portal/figma";
 import { WeeklyHistoryDrawer } from "../WeeklyHistoryDrawer";
 
@@ -1078,6 +1079,7 @@ export default function ConsoleEditor({
           />
           <DateField
             label="Date"
+            hint={relativeDay(data.nextCall?.date)}
             value={data.nextCall?.date || ""}
             onChange={(v) =>
               patch(
@@ -1107,10 +1109,10 @@ export default function ConsoleEditor({
             <button
               type="button"
               onClick={() => setAgendaDialogOpen(true)}
-              className="w-full rounded-lg border border-[var(--p-border)] bg-[var(--p-surface)] px-3 py-2.5 text-left text-[13px] hover:bg-[var(--p-accent-weak)]"
+              className="flex w-full items-center justify-between gap-3 rounded-lg border border-[var(--p-border)] bg-[var(--p-surface)] px-3 py-2.5 text-left text-[13px] hover:bg-[var(--p-accent-weak)]"
             >
               {data.nextCall?.agenda ? (
-                <span className="line-clamp-1 text-[var(--p-text)]">
+                <span className="line-clamp-1 min-w-0 text-[var(--p-text)]">
                   {stripHtml(data.nextCall.agenda)}
                 </span>
               ) : (
@@ -1118,9 +1120,22 @@ export default function ConsoleEditor({
                   Add talking points…
                 </span>
               )}
+              <span className="shrink-0 text-[12px] font-semibold text-[var(--p-accent)]">
+                {data.nextCall?.agenda ? "Edit" : "Write"}
+              </span>
             </button>
           </div>
         </Grid>
+
+        {/* Live preview — the same card the client sees on their page. */}
+        {data.nextCall?.label || data.nextCall?.agenda ? (
+          <div>
+            <span className="mb-1.5 block text-[12px] font-medium text-[var(--p-text-dim)]">
+              Client view
+            </span>
+            <NextCallCard nextCall={data.nextCall} />
+          </div>
+        ) : null}
 
         <div className="mt-4 flex items-center gap-3 border-t border-[var(--p-border)] pt-4">
           <button
@@ -2344,6 +2359,9 @@ function EmbedTestModal({
 
 type NoteItem = NonNullable<ProjectData["notes"]>[number];
 
+/** Notes shown per page in the console Notes editor. */
+const NOTES_PAGE_SIZE = 5;
+
 function NotesEditor({
   notes,
   onChange,
@@ -2362,6 +2380,13 @@ function NotesEditor({
   const [draft, setDraft] = useState("");
   const [visibility, setVisibility] = useState<NoteItem["visibility"]>("internal");
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [page, setPage] = useState(0);
+
+  // Clamp so deleting the last note on a page doesn't leave an empty page.
+  const pageCount = Math.max(1, Math.ceil(notes.length / NOTES_PAGE_SIZE));
+  const currentPage = Math.min(page, pageCount - 1);
+  const start = currentPage * NOTES_PAGE_SIZE;
+  const pageNotes = notes.slice(start, start + NOTES_PAGE_SIZE);
 
   function update(id: string, fn: (n: NoteItem) => void) {
     onChange(
@@ -2378,6 +2403,8 @@ function NotesEditor({
     if (!draft.trim()) return;
     await onAdd({ body: draft.trim(), visibility });
     setDraft("");
+    // New notes are prepended — jump back to page 1 so the PM sees it land.
+    setPage(0);
   }
 
   async function remove(id: string) {
@@ -2424,7 +2451,7 @@ function NotesEditor({
 
       {notes.length > 0 ? (
         <ul className="space-y-2 border-t border-[var(--p-border)] pt-4">
-          {notes.map((n) => (
+          {pageNotes.map((n) => (
             <li
               key={n.id}
               className="rounded-lg border border-[var(--p-border)] bg-[var(--p-surface-2)] p-3"
@@ -2465,6 +2492,39 @@ function NotesEditor({
             </li>
           ))}
         </ul>
+      ) : null}
+
+      {/* Pager — only when there's more than one page of notes. */}
+      {pageCount > 1 ? (
+        <nav
+          aria-label="Notes pages"
+          className="flex flex-wrap items-center justify-between gap-2 text-[12px] text-[var(--p-text-dim)]"
+        >
+          <span>
+            {start + 1}–{start + pageNotes.length} of {notes.length}
+          </span>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setPage(currentPage - 1)}
+              disabled={currentPage === 0}
+              className="rounded-lg border border-[var(--p-border)] bg-[var(--p-surface)] px-3 py-1.5 font-semibold text-[var(--p-text)] hover:bg-[var(--p-surface-2)] disabled:opacity-40"
+            >
+              Previous
+            </button>
+            <span className="font-medium">
+              Page {currentPage + 1} of {pageCount}
+            </span>
+            <button
+              type="button"
+              onClick={() => setPage(currentPage + 1)}
+              disabled={currentPage === pageCount - 1}
+              className="rounded-lg border border-[var(--p-border)] bg-[var(--p-surface)] px-3 py-1.5 font-semibold text-[var(--p-text)] hover:bg-[var(--p-surface-2)] disabled:opacity-40"
+            >
+              Next
+            </button>
+          </div>
+        </nav>
       ) : null}
     </div>
   );
