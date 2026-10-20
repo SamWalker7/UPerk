@@ -111,12 +111,15 @@ should keep its own summary/list projection in sync.
 DELETE /api/projects/:slug                    200: { "ok": true }
 DELETE /api/projects/:slug/requests/:id        200: { "ok": true }
 DELETE /api/projects/:slug/screens/:id         200: { "ok": true }
+DELETE /api/projects/:slug/next-call           200: { "ok": true }   (no body; publish to show the client)
   403: { "error": "PM access required" }
   404: { "error": "Not found" }
 ```
 
-Deleting the project removes it and everything in it; the backend keeps its
-summary/list projection in sync. Request and screen deletes are hard deletes
+`DELETE /api/projects/:slug` needs a PM bearer token and no request body. It
+deletes the draft, the published project, and the stored screen images. The
+console keeps its type-the-slug confirmation dialog before calling it. The
+backend keeps its summary/list projection in sync. Request and screen deletes are hard deletes
 (decisions are *not* deletable — supersede instead).
 
 ### Granular routes

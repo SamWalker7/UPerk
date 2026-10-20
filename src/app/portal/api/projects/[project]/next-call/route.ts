@@ -1,0 +1,23 @@
+import { NextResponse } from "next/server";
+import { deleteNextCall } from "@/lib/portal/data";
+import { getPortalSession } from "@/lib/portal/session";
+
+// PM-only: proxies DELETE /api/projects/:slug/next-call (no request body).
+export async function DELETE(
+  _req: Request,
+  { params }: { params: Promise<{ project: string }> },
+) {
+  const session = await getPortalSession();
+  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (session.role !== "pm") {
+    return NextResponse.json({ error: "PM access required" }, { status: 403 });
+  }
+  const { project } = await params;
+
+  const result = await deleteNextCall(session.apiToken, project);
+  if (!result.ok) {
+    const status = result.reason === "read-only" ? 503 : result.status;
+    return NextResponse.json({ error: result.message }, { status });
+  }
+  return NextResponse.json({ ok: true });
+}

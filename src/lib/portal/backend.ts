@@ -223,6 +223,13 @@ export const backend = {
       { method: "DELETE", token },
     ),
 
+  // Clears the project's next call. Needs a publish to reach the client.
+  deleteNextCall: (token: string, slug: string) =>
+    request<{ ok: true }>(
+      `/api/projects/${encodeURIComponent(slug)}/next-call`,
+      { method: "DELETE", token },
+    ),
+
   deleteScreen: (token: string, slug: string, id: string) =>
     request<{ ok: true }>(
       `/api/projects/${encodeURIComponent(slug)}/screens/${encodeURIComponent(id)}`,

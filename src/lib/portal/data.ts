@@ -301,6 +301,18 @@ export async function deleteRequest(
   }
 }
 
+export async function deleteNextCall(
+  token: string,
+  slug: string,
+): Promise<WriteResult> {
+  try {
+    await backend.deleteNextCall(token, slug);
+    return { ok: true };
+  } catch (err) {
+    return toWriteResult(err);
+  }
+}
+
 export async function deleteScreen(
   token: string,
   slug: string,

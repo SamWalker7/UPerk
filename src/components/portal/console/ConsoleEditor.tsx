@@ -606,6 +606,14 @@ export default function ConsoleEditor({
       "Screen",
     );
 
+  // Removes nextCall from both draft and saved state; publish to show the client.
+  const deleteNextCall = () =>
+    deleteItem(
+      `/portal/api/projects/${slug}/next-call`,
+      (d) => delete d.nextCall,
+      "Next call",
+    );
+
   const deleteLink = (id: string) =>
     deleteItem(
       `/portal/api/projects/${slug}/links/${id}`,
@@ -1155,6 +1163,18 @@ export default function ConsoleEditor({
             {saving ? <Spinner className="h-3.5 w-3.5" /> : null}
             Save next call
           </button>
+          {saved.nextCall ? (
+            <button
+              type="button"
+              onClick={() => deleteNextCall().catch((error) =>
+                setMessage({ kind: "err", text: error instanceof Error ? error.message : "Could not delete next call." }),
+              )}
+              disabled={saving}
+              className="h-9 rounded-lg border border-[var(--p-risk)] px-4 text-[13px] font-semibold text-[var(--p-risk)] hover:bg-[var(--p-risk)] hover:text-white disabled:opacity-40"
+            >
+              Remove next call
+            </button>
+          ) : null}
         </div>
       </Section>
 
