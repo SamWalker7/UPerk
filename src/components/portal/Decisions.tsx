@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { PmAnnotation } from "./PmAnnotation";
 import { AddNoteForm } from "./ProjectNotes";
-import { NextCallCard } from "./NextCallCard";
 import { Card, SectionTitle } from "./ui";
 import { formatDate, formatTime } from "@/lib/portal/format";
 import type { Decision, PortalRole } from "@/lib/portal/types";
@@ -27,13 +26,11 @@ function decisionStamp(d: Decision): string {
 export function Decisions({
   decisions,
   intro,
-  nextCall,
   role,
   slug,
 }: {
   decisions: Decision[];
   intro?: string;
-  nextCall?: { label: string; date?: string; agendaUrl?: string; agenda?: string };
   role: PortalRole;
   slug: string;
 }) {
@@ -115,12 +112,6 @@ export function Decisions({
           One line, a date, who agreed it, and an optional Figma or doc link. Entries can
           be superseded but never deleted.
         </PmAnnotation>
-      ) : null}
-
-      {nextCall ? (
-        <div className="mt-6">
-          <NextCallCard nextCall={nextCall} />
-        </div>
       ) : null}
 
       {role === "pm" ? (

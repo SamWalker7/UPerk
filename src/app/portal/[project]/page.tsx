@@ -6,6 +6,7 @@ import { SeeItWorking } from "@/components/portal/SeeItWorking";
 import { ThePlan } from "@/components/portal/ThePlan";
 import { JustFinished } from "@/components/portal/JustFinished";
 import { Decisions } from "@/components/portal/Decisions";
+import { NextCallCard } from "@/components/portal/NextCallCard";
 import { ProjectNotes } from "@/components/portal/ProjectNotes";
 
 // One scrolling page. TabNav (in the layout) is a scroll-spy over these
@@ -39,12 +40,17 @@ export default function ProjectPage() {
       <div className="grid min-w-0 items-start gap-10 lg:grid-cols-2 lg:gap-8">
         <section className="min-w-0 scroll-mt-6">
           <JustFinished screens={data.finishedScreens} role={role} slug={data.slug} />
+          {/* Next call + agenda sit in the left column, under the screens */}
+          {data.nextCall ? (
+            <div className="mt-6">
+              <NextCallCard nextCall={data.nextCall} />
+            </div>
+          ) : null}
         </section>
         <section id="decisions" className="min-w-0 scroll-mt-6">
           <Decisions
             decisions={data.decisions}
             intro={data.decisionsIntro}
-            nextCall={data.nextCall}
             role={role}
             slug={data.slug}
           />
