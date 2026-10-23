@@ -678,9 +678,25 @@ export default function HomeClient() {
             layout — text left, graphic right. */}
         <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 items-center gap-12 lg:gap-8">
           <div className="text-center lg:text-left">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-blue-200 dark:border-blue-800/60 bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 text-[14.5px] font-medium mb-8">
-              <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
-              Web, mobile and AI services, built by one team
+            {/* Partner credential leads the hero: it's the first thing a
+                buyer reads, ahead of the headline. */}
+            <div className="mb-8 flex items-center justify-center lg:justify-start gap-4">
+              <Image
+                src="/icons/partners/OpenAI_Select_Partner_Badge.svg"
+                alt="OpenAI Select Partner"
+                width={375}
+                height={177}
+                priority
+                className="h-auto w-[140px] sm:w-[176px] shrink-0"
+              />
+              <div className="text-left">
+                <p className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white leading-tight">
+                  OpenAI Select Partner
+                </p>
+                <p className="mt-1 text-[14.5px] text-gray-600 dark:text-gray-400 leading-snug">
+                  Production AI for teams handling sensitive data
+                </p>
+              </div>
             </div>
             <h1 className="text-5xl sm:text-6xl font-semibold tracking-normal leading-[1.08] mb-5">
               One team to build your{" "}

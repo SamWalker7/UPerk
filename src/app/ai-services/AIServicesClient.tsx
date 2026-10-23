@@ -23,7 +23,6 @@ import {
   ScrollText,
   ServerCog,
   ShieldCheck,
-  Sparkles,
   Target,
   UserCheck,
   UserPlus,
@@ -559,9 +558,25 @@ export default function AIServicesClient() {
 
         <div className="mx-auto grid max-w-6xl grid-cols-1 items-center gap-12 lg:grid-cols-2 lg:gap-10">
           <div className="text-center lg:text-left">
-            <div className="mb-7 inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-4 py-1.5 text-[14.5px] font-medium text-blue-600 dark:border-blue-800/60 dark:bg-blue-950/40 dark:text-blue-400">
-              <Sparkles aria-hidden className="h-4 w-4" />
-              Applied AI engineering
+            {/* Partner credential leads the hero: it's the first thing a
+                buyer reads, ahead of the headline. */}
+            <div className="mb-7 flex items-center justify-center gap-4 lg:justify-start">
+              <Image
+                src="/icons/partners/OpenAI_Select_Partner_Badge.svg"
+                alt="OpenAI Select Partner"
+                width={375}
+                height={177}
+                priority
+                className="h-auto w-[140px] shrink-0 sm:w-[176px]"
+              />
+              <div className="text-left">
+                <p className="text-base font-semibold leading-tight text-gray-900 dark:text-white sm:text-lg">
+                  OpenAI Select Partner
+                </p>
+                <p className="mt-1 text-[14.5px] leading-snug text-gray-600 dark:text-gray-400">
+                  Applied AI engineering for regulated teams
+                </p>
+              </div>
             </div>
             <h1 className="mb-5 text-5xl font-semibold leading-[1.08] tracking-normal sm:text-6xl">
               Get AI out of the pilot and{" "}
@@ -638,6 +653,41 @@ export default function AIServicesClient() {
             ))}
           </div>
         </div>
+      </section>
+
+      {/* ── OpenAI Select Partner ─────────────────────────────────────── */}
+      {/* Pairs the partner credential with the compliance wedge. Every
+          point here is a claim the page already makes elsewhere. */}
+      <section className="relative overflow-hidden border-y border-gray-100 bg-gray-50 px-4 py-14 dark:border-gray-800/60 dark:bg-white/[0.015] sm:px-6 sm:py-16">
+        <Reveal className="mx-auto flex max-w-5xl flex-col items-center gap-8 text-center lg:flex-row lg:gap-14 lg:text-left">
+          <Image
+            src="/icons/partners/OpenAI_Select_Partner_Badge_Portrait.svg"
+            alt="OpenAI Select Partner"
+            width={265}
+            height={305}
+            className="h-auto w-[160px] shrink-0 sm:w-[200px]"
+          />
+          <div>
+            <p className="mb-3 text-[12.5px] font-semibold uppercase tracking-widest text-blue-600 dark:text-blue-400">
+              OpenAI Select Partner
+            </p>
+            <h2 className="mb-6 text-3xl font-bold tracking-tight sm:text-4xl">
+              OpenAI&rsquo;s models, deployed the way your compliance team needs.
+            </h2>
+            <ul className="mx-auto grid max-w-md gap-3 text-left lg:mx-0 lg:max-w-none sm:grid-cols-3">
+              {[
+                "Runs inside your own cloud account",
+                "Model endpoints that don't train on your data",
+                "Signed BAA and a full audit trail",
+              ].map((point) => (
+                <li key={point} className="flex items-start gap-2 text-[15px] text-gray-700 dark:text-gray-300">
+                  <CheckCircle2 aria-hidden className="mt-0.5 h-5 w-5 shrink-0 text-blue-600 dark:text-blue-400" />
+                  {point}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </Reveal>
       </section>
 
       {/* ── Why AI stalls ─────────────────────────────────────────────── */}
@@ -1247,6 +1297,16 @@ export default function AIServicesClient() {
           <div className="h-[480px] w-[480px] rounded-full opacity-20 blur-[120px] dark:opacity-15 bg-[radial-gradient(circle,_#2563eb_0%,_#34e5ff_60%,_transparent_100%)]" />
         </div>
         <Reveal className="mx-auto max-w-2xl text-center">
+          <Image
+            src="/icons/partners/OpenAI_Select_Partner_Badge.svg"
+            alt="OpenAI Select Partner"
+            width={375}
+            height={177}
+            className="mx-auto mb-3 h-auto w-[176px]"
+          />
+          <p className="mb-6 text-base font-semibold text-gray-900 dark:text-white">
+            Build with an OpenAI Select Partner
+          </p>
           <h2 className="mb-4 text-4xl font-bold tracking-tight sm:text-5xl">
             Tell us what&rsquo;s costing you the most.
           </h2>
